@@ -82,17 +82,20 @@ class TestCLI(unittest.TestCase):
             self.assertIn("title: Sitemap Overview", overview_content)
             self.assertIn("type: sitemap", overview_content)
 
-            # Single unified preview file
+            # Single unified preview file (Solution 1: pure static scanner)
             preview_file = out_dir / "preview.html"
             self.assertTrue(preview_file.exists())
             preview_html = preview_file.read_text(encoding="utf-8")
             self.assertIn("Information Architecture Studio", preview_html)
-            self.assertIn("sitemap-overview", preview_html)
-            self.assertIn("sitemap-detailed", preview_html)
-            self.assertIn("UC-DOSSIER", preview_html)
-            self.assertIn("PF-DOSSIER-NOM", preview_html)
-            self.assertIn('"HOME"', preview_html)
-            self.assertIn('"L001"', preview_html)
+            self.assertIn("btn-open-folder", preview_html)
+            self.assertIn("scanDirectoryHandle", preview_html)
+
+            # Node metadata json file
+            meta_json_file = out_dir / "metadata.json"
+            self.assertTrue(meta_json_file.exists())
+            meta_json = meta_json_file.read_text(encoding="utf-8")
+            self.assertIn('"HOME"', meta_json)
+            self.assertIn('"L001"', meta_json)
         finally:
             sys.argv = old_argv
 

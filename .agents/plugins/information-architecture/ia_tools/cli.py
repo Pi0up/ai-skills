@@ -87,6 +87,12 @@ def main() -> int:
     scr_parser.add_argument("--dir", default=".", help="Root directory")
     scr_parser.add_argument("--out", default="generated/screen-sheets", help="Output directory (default: generated/screen-sheets)")
 
+    # 5. preview
+    prev_parser = subparsers.add_parser("preview", help="Open local visualizer server in browser.")
+    prev_parser.add_argument("--dir", default="generated", help="Directory containing preview.html (default: generated)")
+    prev_parser.add_argument("--port", type=int, default=8080, help="HTTP server port (default: 8080)")
+    prev_parser.add_argument("--no-open", action="store_true", help="Do not open browser automatically")
+
     args = parser.parse_args()
     root_dir = Path(args.dir).resolve()
 
@@ -182,6 +188,8 @@ def main() -> int:
 
     elif args.command == "generate-mermaid":
         arbo = ArborescenceParser.parse_directory(root_dir)
+        if not arbo.pages and (root_dir / "arborescence").exists():
+            arbo = ArborescenceParser.parse_directory(root_dir / "arborescence")
         uf = UserflowsParser.parse_directory(root_dir)
         out_dir = Path(args.out).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -248,43 +256,29 @@ def main() -> int:
                         "type": meta_pf.get("type", "userflow"),
                         "roles": meta_pf.get("roles", [cu.uc_id]),
                         "tags": meta_pf.get("tags", ["userflow", "collapsed"]),
-                        "description": meta_pf.get("description", pf.label or pf.pf_id),
+                        "description": meta_pf.get("description", pf.objectif or pf.pf_id),
                         "source": p_mmd,
                     })
+
+        # Indexation des métadonnées de nœuds pour le visualiseur
+        scr_gen = ScreenSheetGenerator(arbo, uf)
+        sheets = scr_gen.extract_screen_sheets()
+        nodes_registry = MermaidGenerator.build_node_metadata_registry(arbo, uf, sheets)
+        (out_dir / "metadata.json").write_text(json.dumps(nodes_registry, ensure_ascii=False, indent=2), encoding="utf-8")
 
         if preview:
             tpl_dir = find_templates_dir()
             unified_tpl_file = tpl_dir / "themes" / "unified-preview-template.html"
-
-            # Déduction des fiches écran pour alimenter les métadonnées de nœuds
-            scr_gen = ScreenSheetGenerator(arbo, uf)
-            sheets = scr_gen.extract_screen_sheets()
-            sheets_payload = {}
-            for ref, sheet in sheets.items():
-                sheets_payload[ref] = {
-                    "ref": ref,
-                    "content": scr_gen.format_sheet_markdown(sheet),
-                }
-
-            nodes_registry = MermaidGenerator.build_node_metadata_registry(arbo, uf, sheets)
-
-            payload = {
-                "diagrams": diagrams_data,
-                "nodes": nodes_registry,
-                "screen_sheets": sheets_payload,
-            }
-            payload_json = json.dumps(payload, ensure_ascii=False, indent=2)
-
             if unified_tpl_file.exists():
-                html = unified_tpl_file.read_text(encoding="utf-8")
-                html = html.replace("{{EMBEDDED_JSON_DATA}}", payload_json)
-                (out_dir / "preview.html").write_text(html, encoding="utf-8")
+                shutil.copy2(unified_tpl_file, out_dir / "preview.html")
 
         print(f"✅ Mermaid diagrams generated in {out_dir} (style: {style}{', unified preview: preview.html' if preview else ''})")
         return 0
 
     elif args.command == "extract-screens":
         arbo = ArborescenceParser.parse_directory(root_dir)
+        if not arbo.pages and (root_dir / "arborescence").exists():
+            arbo = ArborescenceParser.parse_directory(root_dir / "arborescence")
         uf = UserflowsParser.parse_directory(root_dir)
         out_dir = Path(args.out).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -298,6 +292,38 @@ def main() -> int:
 
         print(f"✅ {len(sheets)} screen sheets generated in {out_dir}")
         return 0
+
+    elif args.command == "preview":
+        import functools
+        import http.server
+        import webbrowser
+
+        target_dir = Path(args.dir).resolve()
+        if not target_dir.exists():
+            print(f"❌ Error: Directory '{target_dir}' does not exist.")
+            return 1
+
+        port = args.port
+        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(target_dir))
+
+        for p in range(port, port + 20):
+            try:
+                server = http.server.ThreadingHTTPServer(("127.0.0.1", p), handler)
+                url = f"http://127.0.0.1:{p}/preview.html"
+                print(f"🚀 Information Architecture Studio running at: {url}")
+                print("Press Ctrl+C to stop.")
+                if not args.no_open:
+                    webbrowser.open(url)
+                try:
+                    server.serve_forever()
+                except KeyboardInterrupt:
+                    print("\n🛑 Server stopped.")
+                return 0
+            except OSError:
+                continue
+
+        print(f"❌ Error: Could not bind to any port in range {port}-{port+20}.")
+        return 1
 
     return 0
 

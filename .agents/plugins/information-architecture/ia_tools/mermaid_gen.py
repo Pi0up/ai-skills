@@ -130,7 +130,7 @@ class MermaidGenerator:
                 "features": features,
                 "signals": [f"URL: {page.url}"],
                 "screen_sheet": f"screen-sheets/screen-{code}.md",
-                "description": page.description or f"Page {code} ({page.label or page.url})",
+                "description": f"Page {code} ({page.label or page.url})",
             }
 
         # 2. Modules transverses
@@ -152,7 +152,7 @@ class MermaidGenerator:
                 "features": [],
                 "signals": [f"MOD: !{mod.invocation}"],
                 "screen_sheet": f"screen-sheets/screen-M_{mcode}.md",
-                "description": mod.description or f"Module transverse {mod.code}",
+                "description": f"Module transverse {mod.code} ({mod.label or mod.invocation})",
             }
 
         # 3. Variantes d'écran
@@ -165,7 +165,7 @@ class MermaidGenerator:
 
             var_meta = {
                 "code": vref,
-                "label": var.label or vref,
+                "label": vref,
                 "url": url,
                 "nature": "Variante",
                 "is_protected": True,
@@ -180,7 +180,7 @@ class MermaidGenerator:
                 "features": list(sheet.fonctionnalites_actionnees) if sheet else [],
                 "signals": [f"VAR: {vref}"],
                 "screen_sheet": f"screen-sheets/screen-{re.sub(r'[^A-Za-z0-9_]', '_', vref)}.md",
-                "description": var.description or f"Variante d'écran {vref}",
+                "description": f"Variante d'écran {vref} ({var.condition_spec})",
             }
             registry[clean_code] = var_meta
             registry[vref] = var_meta
@@ -207,7 +207,7 @@ class MermaidGenerator:
                             "outputs": [],
                             "contexts": [f"Statut: {pf.statut}"],
                             "features": [etape.reference] if etape.type == "ACT" else [],
-                            "signals": [f"Signal: {etape.signal.type if etape.signal else 'None'}"],
+                            "signals": [f"Signal: {etape.signal}"] if etape.signal else [],
                             "screen_sheet": f"screen-sheets/screen-{re.sub(r'[^A-Za-z0-9_]', '_', etape.reference)}.md" if etape.type == "ECR" else None,
                             "description": f"Étape {etape.numero:02d} ({etape.type}) du parcours {pf.pf_id}",
                         }
@@ -725,7 +725,7 @@ class MermaidGenerator:
             f"id: {parcours.pf_id}",
             f"roles: [{parcours.uc}]",
             f"tags: [userflow, collapsed, {parcours.statut}]",
-            f"description: {parcours.label or f'Parcours {parcours.pf_id}'}",
+            f"description: {parcours.objectif or f'Parcours {parcours.pf_id}'}",
             "---",
             "%% ==============================================================================",
             f"%% Userflow - {parcours.pf_id} (Vue Repliée)",
