@@ -341,8 +341,8 @@ class UserflowsParser:
             part_valeur_indicative=part_valeur,
         )
 
-        # 2. Split content by journey sections
-        sections = re.split(r"\n(?=#{2,4}\s+)", content)
+        # 2. Split content by journey sections (level 2 headings)
+        sections = re.split(r"\n(?=##\s+)", content)
         for sec in sections:
             yaml_match = re.search(r"```ya?ml\s*\n(.*?)\n```", sec, re.DOTALL)
             if not yaml_match:
