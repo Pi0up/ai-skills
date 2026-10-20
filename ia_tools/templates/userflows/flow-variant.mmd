@@ -1,0 +1,36 @@
+---
+title: Flow Variant - PF-DOSSIER-VAR-ASSIST
+type: userflow
+id: PF-DOSSIER-VAR-ASSIST
+version: 1.0.0
+roles: [USER]
+tags: [userflow, variant, assistance]
+description: Template de parcours avec variante et rupture déclarée (⏸)
+---
+flowchart LR
+
+    %% --------------------------------------------------------------------------
+    %% Parcours Nominal : PF-DOSSIER-NOM (Trait plein)
+    %% Contexte d'entrée : Données complètes
+    %% --------------------------------------------------------------------------
+    ND010(["ND-010 ECR C010:EDIT"])
+    ND011["ND-011 ACT FEAT-VALIDER-INFOS"]
+    ND020(["ND-020 ECR C010"])
+    ND021["ND-021 ACT FEAT-SOUMETTRE"]
+
+    ND010 --> ND011
+    ND011 --> ND020
+    ND020 --> ND021
+
+    %% --------------------------------------------------------------------------
+    %% Parcours Variante : PF-DOSSIER-VAR-ASSIST (Trait pointillé)
+    %% diverge_de: PF-DOSSIER-NOM@1 | rejoint: PF-DOSSIER-NOM@4
+    %% Contexte d'entrée : Pièces manquantes + assistance demandée
+    %% Inclut un événement hors application observable de manière indirecte (EXT avec clé de retour) + rupture ⏸
+    %% --------------------------------------------------------------------------
+    ND030["ND-030 ACT FEAT-DEMANDER-AIDE"]
+    ND031[/"ND-031 EXT Échange téléphonique conseiller ⏸"/]
+
+    ND010 -. "diverge_de @1" .-> ND030
+    ND030 -.-> ND031
+    ND031 -. "rejoint @4 (Clé de retour)" .-> ND020

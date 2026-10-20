@@ -1,0 +1,42 @@
+---
+title: Components Palette
+type: reference
+id: COMPONENTS-PALETTE
+version: 1.0.0
+roles: [ALL]
+tags: [userflow, reference, palette, syntax]
+description: Palette visuelle et aide-mémoire des nœuds et liaisons de parcours
+---
+flowchart LR
+
+    %% --------------------------------------------------------------------------
+    %% 1. Types de Nœuds et Leurs Formes Géométriques Strictes
+    %% --------------------------------------------------------------------------
+    subgraph TypesNoeuds["1. Types de Nœuds (Formes Mermaid)"]
+        direction TB
+        N_ECR(["ECR : Écran / État d'écran ([ND-xxx ECR PG:État])"])
+        N_ACT["ACT : Action utilisateur sur FEAT [ND-xxx ACT FEAT-xxx]"]
+        N_ATT{{"ATT : Attente / Traitement async {{ND-xxx ATT Traitement}}"}}
+        N_EXT[/"EXT : Événement hors application [/ND-xxx EXT Email ou tiers/]" /]
+        N_CALL[["CALL : Appel sous-parcours [[CALL PF-xxx]]"]]
+    end
+
+    %% --------------------------------------------------------------------------
+    %% 2. États Particuliers et Marqueurs
+    %% --------------------------------------------------------------------------
+    subgraph MarqueursEtats["2. Annotations & Observabilité"]
+        direction TB
+        N_RUPT{{"Nœud avec Rupture déclarée ⏸"}}
+        N_NON_OBS[/"Nœud Non Observable (Bord pointillé)"/]
+        N_OBS(["Nœud Observable (Signal URL ou événement dédié)"])
+    end
+
+    %% --------------------------------------------------------------------------
+    %% 3. Typologie des Liaisons
+    %% --------------------------------------------------------------------------
+    subgraph Liaisons["3. Types de Liaisons"]
+        direction TB
+        L1_A["Étape N"] -->|"Liaison nominale (-->)"| L1_B["Étape N+1"]
+        L2_A["Étape N"] -.->|"Liaison variante (-.->)"| L2_B["Étape Variante"]
+        L3_A["Étape N"] -->|"Contexte produit : [État:Validé]"| L3_B["Étape Suivante"]
+    end

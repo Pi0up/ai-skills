@@ -1,8 +1,12 @@
-%% ==============================================================================
-%% Palette Visuelle des Composants Mermaid - Graphe de Parcours (Userflows)
-%% Aide-mémoire & Référence syntaxique stricte selon spec v2 (Section 2 & 9)
-%% ==============================================================================
-
+---
+title: Components Palette
+type: reference
+id: COMPONENTS-PALETTE
+version: 1.0.0
+roles: [ALL]
+tags: [userflow, reference, palette, syntax]
+description: Palette visuelle et aide-mémoire des nœuds et liaisons de parcours
+---
 flowchart LR
 
     %% --------------------------------------------------------------------------
@@ -10,11 +14,11 @@ flowchart LR
     %% --------------------------------------------------------------------------
     subgraph TypesNoeuds["1. Types de Nœuds (Formes Mermaid)"]
         direction TB
-        N_ECR(["ECR : Écran / État d'écran<br/><code>([ND-xxx ECR PG:État])</code>"])
-        N_ACT["ACT : Action utilisateur sur FEAT<br/><code>[ND-xxx ACT FEAT-xxx]</code>"]
-        N_ATT{{"ATT : Attente / Traitement async<br/><code>{{ND-xxx ATT Traitement}}</code>"}}
-        N_EXT[/"EXT : Événement hors application<br/><code>[/ND-xxx EXT Email ou tiers/]</code>"/]
-        N_CALL[["CALL : Appel sous-parcours<br/><code>[[CALL PF-xxx]]</code>"]]
+        N_ECR(["ECR : Écran / État d'écran ([ND-xxx ECR PG:État])"])
+        N_ACT["ACT : Action utilisateur sur FEAT [ND-xxx ACT FEAT-xxx]"]
+        N_ATT{{"ATT : Attente / Traitement async {{ND-xxx ATT Traitement}}"}}
+        N_EXT[/"EXT : Événement hors application [/ND-xxx EXT Email ou tiers/]" /]
+        N_CALL[["CALL : Appel sous-parcours [[CALL PF-xxx]]"]]
     end
 
     %% --------------------------------------------------------------------------
@@ -22,9 +26,9 @@ flowchart LR
     %% --------------------------------------------------------------------------
     subgraph MarqueursEtats["2. Annotations & Observabilité"]
         direction TB
-        N_RUPT{{"Nœud avec Rupture déclarée ⏸<br/>(Marqueur ⏸ dans le libellé)"}}
-        N_NON_OBS[/"Nœud Non Observable<br/>(Bord pointillé via stroke-dasharray)"/]
-        N_OBS(["Nœud Observable<br/>(Signal URL ou événement dédié)"])
+        N_RUPT{{"Nœud avec Rupture déclarée ⏸"}}
+        N_NON_OBS[/"Nœud Non Observable (Bord pointillé)"/]
+        N_OBS(["Nœud Observable (Signal URL ou événement dédié)"])
     end
 
     %% --------------------------------------------------------------------------
@@ -36,20 +40,3 @@ flowchart LR
         L2_A["Étape N"] -.->|"Liaison variante (-.->)"| L2_B["Étape Variante"]
         L3_A["Étape N"] -->|"Contexte produit : [État:Validé]"| L3_B["Étape Suivante"]
     end
-
-    %% --------------------------------------------------------------------------
-    %% Classes & Styles Réutilisables
-    %% --------------------------------------------------------------------------
-    classDef ecrNode fill:#e3f2fd,stroke:#1976d2,stroke-width:1.5px;
-    classDef actNode fill:#f1f8e9,stroke:#558b2f,stroke-width:1.5px;
-    classDef attNode fill:#fff8e1,stroke:#f57f17,stroke-width:1.5px;
-    classDef extNode fill:#ede7f6,stroke:#512da8,stroke-width:1.5px;
-    classDef callNode fill:#fce4ec,stroke:#c2185b,stroke-width:2px;
-    classDef nonObsNode stroke-dasharray: 4 4;
-
-    class N_ECR,N_OBS ecrNode;
-    class N_ACT actNode;
-    class N_ATT,N_RUPT attNode;
-    class N_EXT extNode;
-    class N_CALL callNode;
-    class N_NON_OBS extNode,nonObsNode;

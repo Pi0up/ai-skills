@@ -1,9 +1,12 @@
-%% ==============================================================================
-%% Template Arborescence - Niveau Général
-%% Conforme à : spec-arborescence.md (v0.2)
-%% Source de vérité : Table Markdown `pages` et `modules`
-%% ==============================================================================
-
+---
+title: Sitemap Overview
+type: sitemap
+id: sitemap-overview
+version: 1.0.0
+roles: [ANONYMOUS, AUTH]
+tags: [sitemap, overview, architecture]
+description: Template d'arborescence générale (niveau macro)
+---
 flowchart TD
 
     %% --------------------------------------------------------------------------
@@ -63,18 +66,3 @@ flowchart TD
         M001["M001 !help-panel [Portée: ALL]"]
         M002["M002 !user-preferences [Portée: AUTH]"]
     end
-
-    %% --------------------------------------------------------------------------
-    %% Classes & Styles visuels
-    %% --------------------------------------------------------------------------
-    classDef homeNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,font-weight:bold;
-    classDef hubNode fill:#fff3e0,stroke:#f57c00,stroke-width:1.5px,stroke-dasharray: 4 2;
-    classDef protectedNode fill:#fbe9e7,stroke:#d84315,stroke-width:1.5px;
-    classDef moduleNode fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,stroke-dasharray: 3 3;
-    classDef techNode fill:#eceff1,stroke:#607d8b,stroke-width:1px;
-
-    class HOME homeNode;
-    class H001 hubNode;
-    class D001,L003,C002,F002 protectedNode;
-    class M001,M002 moduleNode;
-    class E001 techNode;

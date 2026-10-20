@@ -1,9 +1,12 @@
-%% ==============================================================================
-%% Template Arborescence - Vue par Rôle (Projection Filtrée)
-%% Conforme à : spec-arborescence.md (Section 3.3 et 8)
-%% Exemple pour le rôle : @BUYER
-%% ==============================================================================
-
+---
+title: Sitemap By Role (@BUYER)
+type: sitemap
+id: sitemap-by-role
+version: 1.0.0
+roles: [BUYER]
+tags: [sitemap, role-view, buyer]
+description: Template d'arborescence filtrée par rôle utilisateur (@BUYER)
+---
 flowchart TD
 
     %% --------------------------------------------------------------------------
@@ -38,14 +41,3 @@ flowchart TD
 
     %% Renvois fonctionnels ouverts au rôle
     C001_BUYER -. "FEAT-Commander" .-> F002
-
-    %% --------------------------------------------------------------------------
-    %% Classes & Styles
-    %% --------------------------------------------------------------------------
-    classDef homeNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,font-weight:bold;
-    classDef pageNode fill:#e8f5e9,stroke:#388e3c,stroke-width:1.5px;
-    classDef moduleNode fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,stroke-dasharray: 3 3;
-
-    class HOME homeNode;
-    class L002,C001_BUYER,D001,F002 pageNode;
-    class M001,M002 moduleNode;

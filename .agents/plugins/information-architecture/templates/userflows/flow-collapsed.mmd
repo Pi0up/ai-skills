@@ -1,0 +1,28 @@
+---
+title: Flow Collapsed - PF-DOSSIER-NOM
+type: userflow
+id: PF-DOSSIER-NOM
+version: 1.0.0
+roles: [USER]
+tags: [userflow, nominal, collapsed]
+description: Template de parcours nominal en vue repliée (UC-DOSSIER)
+---
+flowchart LR
+
+    %% --------------------------------------------------------------------------
+    %% Séquence linéaire du parcours nominal
+    %% Chaque étape est un événement (ECR, ACT, ATT, EXT ou CALL)
+    %% Formes : ECR ([stade]), ACT [rect], ATT {{hexa}}, EXT [/para/], CALL [[double]]
+    %% --------------------------------------------------------------------------
+
+    ND010(["ND-010 ECR C010:EDIT"])
+    ND011["ND-011 ACT FEAT-VALIDER-INFOS"]
+    PJ[["CALL PF-DOSSIER-PJ-SEG"]]
+    ND020(["ND-020 ECR C010"])
+    ND021["ND-021 ACT FEAT-SOUMETTRE"]
+
+    %% Enchaînement linéaire (P3 : pas de bifurcation interne)
+    ND010 --> ND011
+    ND011 --> PJ
+    PJ --> ND020
+    ND020 --> ND021
