@@ -182,6 +182,8 @@ def main() -> int:
 
     elif args.command == "generate-mermaid":
         arbo = ArborescenceParser.parse_directory(root_dir)
+        if not arbo.pages and (root_dir / "arborescence").exists():
+            arbo = ArborescenceParser.parse_directory(root_dir / "arborescence")
         uf = UserflowsParser.parse_directory(root_dir)
         out_dir = Path(args.out).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -285,6 +287,8 @@ def main() -> int:
 
     elif args.command == "extract-screens":
         arbo = ArborescenceParser.parse_directory(root_dir)
+        if not arbo.pages and (root_dir / "arborescence").exists():
+            arbo = ArborescenceParser.parse_directory(root_dir / "arborescence")
         uf = UserflowsParser.parse_directory(root_dir)
         out_dir = Path(args.out).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
