@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arborescence Détaillée - Visualiseur Mermaid IA</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+/**
+ * Thème CSS pour diagrammes Mermaid - Architecture de l'Information
+ * Inspiré du Design System Figma (Cartes à 4 quadrants, connecteurs courbés et grille de canvas)
+ *
+ * Utilisation :
+ * - Inclus dans un export HTML / SVG via Mermaid CLI (`mmdc --cssFile mermaid-ia-theme.css`)
+ * - Utilisé dans une page web ou un visualiseur autonome (VitePress, MkDocs, VS Code preview)
+ */
+
+:root {
+  /* Palette de couleurs */
+  --ia-primary: #2952ff;
+  --ia-primary-light: rgba(41, 82, 255, 0.08);
+  --ia-border: #d1d5db;
+  --ia-border-subtle: #e2e8f0;
+  --ia-bg-card: #ffffff;
+  --ia-bg-canvas: #f8fafc;
+  --ia-grid-dot: #cbd5e1;
+
+  /* Typographie */
+  --ia-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ia-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
+  --ia-text-title: #111827;
+  --ia-text-body: #374151;
+  --ia-text-muted: #6b7280;
+  --ia-text-subtle: #9ca3af;
+
+  /* Badges & Statuts */
+  --ia-badge-order-bg: #b4b7ee;
+  --ia-badge-order-text: #1e1b4b;
+  --ia-pill-orange: #ea580c;
+  --ia-pill-green: #16a34a;
+  --ia-pill-blue: #2563eb;
+  --ia-pill-gray: #64748b;
+  --ia-pill-red: #dc2626;
+
+  /* Connecteurs */
+  --ia-edge-color: #64748b;
+  --ia-edge-width: 2px;
+}
+
+/* =============================================================================
+   1. Canvas & Environnement de présentation
+   ============================================================================= */
+
+.ia-canvas {
+  background-color: var(--ia-bg-canvas);
+  background-image: radial-gradient(var(--ia-grid-dot) 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+  padding: 32px;
+  border-radius: 12px;
+  font-family: var(--ia-font-sans);
+  position: relative;
+  overflow: auto;
+}
+
+.ia-canvas__badge {
+  display: inline-block;
+  background: #ffffff;
+  border: 1px solid var(--ia-border-subtle);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ia-text-title);
+  margin-bottom: 24px;
+}
+
+/* =============================================================================
+   2. Carte de Nœud (.ia-card) - Anatomie à 4 quadrants
+   ============================================================================= */
+
+.ia-card {
+  box-sizing: border-box;
+  width: 250px;
+  min-height: 115px;
+  background: var(--ia-bg-card);
+  border: 1.5px solid var(--ia-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  position: relative;
+  text-align: left;
+  font-family: var(--ia-font-sans);
+  line-height: 1.25;
+}
+
+/* Variantes de cartes */
+.ia-card--primary {
+  border: 2.5px solid var(--ia-primary);
+  box-shadow: 0 4px 12px var(--ia-primary-light);
+}
+
+.ia-card--protected {
+  border-color: var(--ia-pill-orange);
+}
+
+.ia-card--module {
+  border-style: dashed;
+  border-color: #8b5cf6;
+  background: #fdfcff;
+}
+
+.ia-card--hub {
+  border-style: dashed;
+  border-color: #f59e0b;
+}
+
+.ia-card--tech {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Quadrant Haut (Top) : URL à gauche, Badge pilule à droite */
+.ia-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ia-card__url-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ia-card__url {
+  font-size: 11px;
+  font-family: var(--ia-font-mono);
+  color: var(--ia-text-body);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ia-card__url-nature {
+  font-size: 9px;
+  color: var(--ia-text-subtle);
+  text-transform: capitalize;
+}
+
+/* Badges Pilules (Top-Right) */
+.ia-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.ia-pill--orange {
+  color: var(--ia-pill-orange);
+  border: 1.5px solid var(--ia-pill-orange);
+  background: #ffffff;
+}
+
+.ia-pill--green {
+  color: var(--ia-pill-green);
+  border: 1.5px solid var(--ia-pill-green);
+  background: #ffffff;
+}
+
+.ia-pill--blue {
+  color: #ffffff;
+  background: var(--ia-pill-blue);
+  border: 1px solid var(--ia-pill-blue);
+}
+
+.ia-pill--gray {
+  color: var(--ia-pill-gray);
+  border: 1.5px solid var(--ia-pill-gray);
+  background: #ffffff;
+}
+
+.ia-pill--red {
+  color: #ffffff;
+  background: var(--ia-pill-red);
+  border: 1px solid var(--ia-pill-red);
+}
+
+/* Zone Centrale (Body) : Titre de l'écran */
+.ia-card__body {
+  margin: 6px 0;
+  text-align: center;
+}
+
+.ia-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ia-text-title);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Quadrant Bas (Bottom) : Badge d'ordre à gauche, Métadonnées à droite */
+.ia-card__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ia-card__order-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ia-badge-order-bg);
+  color: var(--ia-badge-order-text);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ia-card__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ia-card__code {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--ia-font-mono);
+  color: var(--ia-text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ia-card__type {
+  font-size: 9px;
+  color: var(--ia-text-muted);
+}
+
+/* =============================================================================
+   3. Surcharges Mermaid SVG (Rendu des liens et suppression des formes natives)
+   ============================================================================= */
+
+/* Supprimer le rectangle ou cercle natif SVG généré automatiquement par Mermaid */
+.node foreignObject {
+  overflow: visible !important;
+}
+
+.node .label {
+  color: inherit;
+}
+
+.node rect,
+.node circle,
+.node polygon,
+.node path.outer {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+/* Lignes de liaison (Edges) - Tracés gris doux et soignés */
+.edgePath path {
+  stroke: var(--ia-edge-color) !important;
+  stroke-width: var(--ia-edge-width) !important;
+}
+
+.edgePath marker path {
+  fill: var(--ia-edge-color) !important;
+  stroke: none !important;
+}
+
+.edgeLabel {
+  background-color: #ffffff !important;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-family: var(--ia-font-sans);
+  color: var(--ia-text-muted);
+}
+
+/* Sous-graphes (Subgraphs / Clusters) */
+.cluster rect {
+  rx: 12px !important;
+  ry: 12px !important;
+  stroke: var(--ia-border) !important;
+  stroke-dasharray: 4 4 !important;
+  stroke-width: 1.5px !important;
+  fill: rgba(248, 250, 252, 0.6) !important;
+}
+
+.cluster-label span {
+  font-family: var(--ia-font-sans) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: var(--ia-text-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+</style>
+</head>
+<body style="margin: 0; padding: 24px; background: #f1f5f9; min-height: 100vh;">
+
+<div class="ia-canvas">
+  <div class="ia-canvas__badge">Arborescence</div>
+  
+  <div class="mermaid">
+%% ==============================================================================
+%% Diagramme Arborescence - Niveau Détaillé (Généré automatiquement)
+%% ==============================================================================
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'lineColor': '#64748b'
+  },
+  'flowchart': {
+    'curve': 'basis',
+    'nodeSpacing': 50,
+    'rankSpacing': 60,
+    'htmlLabels': true
+  }
+}}%%
+flowchart TD
+
+    %% 1. Hiérarchie principale
+    HOME["<div class='ia-card ia-card--primary'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>home</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>HOME</span><span class='ia-card__type'>Homepage</span></div></div></div>"]
+    L001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/search-results</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>search-results</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>L001</span><span class='ia-card__type'>Liste / Datagrid</span></div></div></div>"]
+    L002["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/products</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>products</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>02</div><div class='ia-card__meta'><span class='ia-card__code'>L002</span><span class='ia-card__type'>Liste / Datagrid</span></div></div></div>"]
+    C001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/products/[id]</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>product-detail</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>C001</span><span class='ia-card__type'>Consultation</span></div></div></div>"]
+    F001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/login</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>login</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>03</div><div class='ia-card__meta'><span class='ia-card__code'>F001</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    D001["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/account</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>account</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>04</div><div class='ia-card__meta'><span class='ia-card__code'>D001</span><span class='ia-card__type'>Dashboard</span></div></div></div>"]
+    F002["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/checkout</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>checkout</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>05</div><div class='ia-card__meta'><span class='ia-card__code'>F002</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    C010["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/files/[id]</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>dossier-detail</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>06</div><div class='ia-card__meta'><span class='ia-card__code'>C010</span><span class='ia-card__type'>Consultation</span></div></div></div>"]
+    F010["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/files/[id]/documents</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>justificatifs</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>F010</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    HOME --> L001
+    HOME --> L002
+    L002 --> C001
+    HOME --> F001
+    HOME --> D001
+    HOME --> F002
+    HOME --> C010
+    C010 --> F010
+
+    %% 2. Composants rattachés (ancres # et popins !)
+    subgraph Sub_C001["Composants rattachés à C001"]
+        direction TB
+        COMP_C001_quick_view["!quick-view (Aperçu rapide)"]
+        COMP_C001_reviews["#reviews (Avis)"]
+    end
+    C001 -.-> COMP_C001_quick_view
+    C001 -.-> COMP_C001_reviews
+
+    %% 3. Variantes déclarées
+    subgraph Sub_Var_C001["Variantes de C001"]
+        direction TB
+        VAR_C001_ADMIN_EDIT["C001@ADMIN:EDIT"]
+        VAR_C001_BUYER["C001@BUYER"]
+    end
+    C001 === Sub_Var_C001
+    subgraph Sub_Var_C010["Variantes de C010"]
+        direction TB
+        VAR_C010_EDIT["C010:EDIT"]
+    end
+    C010 === Sub_Var_C010
+    subgraph Sub_Var_F010["Variantes de F010"]
+        direction TB
+        VAR_F010_CONTROLE["F010:CONTROLE"]
+    end
+    F010 === Sub_Var_F010
+
+    %% 4. Modules (Hors arbre)
+    subgraph ModulesTransverses["Modules (Hors Arbre)"]
+        direction TB
+        M001["<div class='ia-card ia-card--module'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>!help-panel</span><span class='ia-card__url-nature'>Portée: ALL</span></div><span class='ia-pill ia-pill--gray'>MODULE</span></div><div class='ia-card__body'><div class='ia-card__title'>Aide en ligne</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#e9d5ff;color:#581c87;'>M</div><div class='ia-card__meta'><span class='ia-card__code'>M001</span><span class='ia-card__type'>Module</span></div></div></div>"]
+        M002["<div class='ia-card ia-card--module'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>!user-preferences</span><span class='ia-card__url-nature'>Portée: AUTH</span></div><span class='ia-pill ia-pill--gray'>MODULE</span></div><div class='ia-card__body'><div class='ia-card__title'>Préférences</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#e9d5ff;color:#581c87;'>M</div><div class='ia-card__meta'><span class='ia-card__code'>M002</span><span class='ia-card__type'>Module</span></div></div></div>"]
+    end
+
+    %% 5. Renvois fonctionnels
+    C001@BUYER -. "FEAT-COMMANDER" .-> F002
+    L001 -. "FEAT-OUVRIR-PRODUIT" .-> C001
+
+    linkStyle default stroke:#64748b,stroke-width:2px;
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    theme: 'base',
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 50,
+      rankSpacing: 60
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue Cas d'Usage UC-CATALOGUE - Visualiseur Mermaid IA</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+/**
+ * Thème CSS pour diagrammes Mermaid - Architecture de l'Information
+ * Inspiré du Design System Figma (Cartes à 4 quadrants, connecteurs courbés et grille de canvas)
+ *
+ * Utilisation :
+ * - Inclus dans un export HTML / SVG via Mermaid CLI (`mmdc --cssFile mermaid-ia-theme.css`)
+ * - Utilisé dans une page web ou un visualiseur autonome (VitePress, MkDocs, VS Code preview)
+ */
+
+:root {
+  /* Palette de couleurs */
+  --ia-primary: #2952ff;
+  --ia-primary-light: rgba(41, 82, 255, 0.08);
+  --ia-border: #d1d5db;
+  --ia-border-subtle: #e2e8f0;
+  --ia-bg-card: #ffffff;
+  --ia-bg-canvas: #f8fafc;
+  --ia-grid-dot: #cbd5e1;
+
+  /* Typographie */
+  --ia-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ia-font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
+  --ia-text-title: #111827;
+  --ia-text-body: #374151;
+  --ia-text-muted: #6b7280;
+  --ia-text-subtle: #9ca3af;
+
+  /* Badges & Statuts */
+  --ia-badge-order-bg: #b4b7ee;
+  --ia-badge-order-text: #1e1b4b;
+  --ia-pill-orange: #ea580c;
+  --ia-pill-green: #16a34a;
+  --ia-pill-blue: #2563eb;
+  --ia-pill-gray: #64748b;
+  --ia-pill-red: #dc2626;
+
+  /* Connecteurs */
+  --ia-edge-color: #64748b;
+  --ia-edge-width: 2px;
+}
+
+/* =============================================================================
+   1. Canvas & Environnement de présentation
+   ============================================================================= */
+
+.ia-canvas {
+  background-color: var(--ia-bg-canvas);
+  background-image: radial-gradient(var(--ia-grid-dot) 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+  padding: 32px;
+  border-radius: 12px;
+  font-family: var(--ia-font-sans);
+  position: relative;
+  overflow: auto;
+}
+
+.ia-canvas__badge {
+  display: inline-block;
+  background: #ffffff;
+  border: 1px solid var(--ia-border-subtle);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ia-text-title);
+  margin-bottom: 24px;
+}
+
+/* =============================================================================
+   2. Carte de Nœud (.ia-card) - Anatomie à 4 quadrants
+   ============================================================================= */
+
+.ia-card {
+  box-sizing: border-box;
+  width: 250px;
+  min-height: 115px;
+  background: var(--ia-bg-card);
+  border: 1.5px solid var(--ia-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  position: relative;
+  text-align: left;
+  font-family: var(--ia-font-sans);
+  line-height: 1.25;
+}
+
+/* Variantes de cartes */
+.ia-card--primary {
+  border: 2.5px solid var(--ia-primary);
+  box-shadow: 0 4px 12px var(--ia-primary-light);
+}
+
+.ia-card--protected {
+  border-color: var(--ia-pill-orange);
+}
+
+.ia-card--module {
+  border-style: dashed;
+  border-color: #8b5cf6;
+  background: #fdfcff;
+}
+
+.ia-card--hub {
+  border-style: dashed;
+  border-color: #f59e0b;
+}
+
+.ia-card--tech {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* Quadrant Haut (Top) : URL à gauche, Badge pilule à droite */
+.ia-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ia-card__url-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ia-card__url {
+  font-size: 11px;
+  font-family: var(--ia-font-mono);
+  color: var(--ia-text-body);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ia-card__url-nature {
+  font-size: 9px;
+  color: var(--ia-text-subtle);
+  text-transform: capitalize;
+}
+
+/* Badges Pilules (Top-Right) */
+.ia-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.ia-pill--orange {
+  color: var(--ia-pill-orange);
+  border: 1.5px solid var(--ia-pill-orange);
+  background: #ffffff;
+}
+
+.ia-pill--green {
+  color: var(--ia-pill-green);
+  border: 1.5px solid var(--ia-pill-green);
+  background: #ffffff;
+}
+
+.ia-pill--blue {
+  color: #ffffff;
+  background: var(--ia-pill-blue);
+  border: 1px solid var(--ia-pill-blue);
+}
+
+.ia-pill--gray {
+  color: var(--ia-pill-gray);
+  border: 1.5px solid var(--ia-pill-gray);
+  background: #ffffff;
+}
+
+.ia-pill--red {
+  color: #ffffff;
+  background: var(--ia-pill-red);
+  border: 1px solid var(--ia-pill-red);
+}
+
+/* Zone Centrale (Body) : Titre de l'écran */
+.ia-card__body {
+  margin: 6px 0;
+  text-align: center;
+}
+
+.ia-card__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ia-text-title);
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Quadrant Bas (Bottom) : Badge d'ordre à gauche, Métadonnées à droite */
+.ia-card__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ia-card__order-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ia-badge-order-bg);
+  color: var(--ia-badge-order-text);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ia-card__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ia-card__code {
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--ia-font-mono);
+  color: var(--ia-text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ia-card__type {
+  font-size: 9px;
+  color: var(--ia-text-muted);
+}
+
+/* =============================================================================
+   3. Surcharges Mermaid SVG (Rendu des liens et suppression des formes natives)
+   ============================================================================= */
+
+/* Supprimer le rectangle ou cercle natif SVG généré automatiquement par Mermaid */
+.node foreignObject {
+  overflow: visible !important;
+}
+
+.node .label {
+  color: inherit;
+}
+
+.node rect,
+.node circle,
+.node polygon,
+.node path.outer {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+/* Lignes de liaison (Edges) - Tracés gris doux et soignés */
+.edgePath path {
+  stroke: var(--ia-edge-color) !important;
+  stroke-width: var(--ia-edge-width) !important;
+}
+
+.edgePath marker path {
+  fill: var(--ia-edge-color) !important;
+  stroke: none !important;
+}
+
+.edgeLabel {
+  background-color: #ffffff !important;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 10px;
+  font-family: var(--ia-font-sans);
+  color: var(--ia-text-muted);
+}
+
+/* Sous-graphes (Subgraphs / Clusters) */
+.cluster rect {
+  rx: 12px !important;
+  ry: 12px !important;
+  stroke: var(--ia-border) !important;
+  stroke-dasharray: 4 4 !important;
+  stroke-width: 1.5px !important;
+  fill: rgba(248, 250, 252, 0.6) !important;
+}
+
+.cluster-label span {
+  font-family: var(--ia-font-sans) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  color: var(--ia-text-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+</style>
+</head>
+<body style="margin: 0; padding: 24px; background: #f1f5f9; min-height: 100vh;">
+
+<div class="ia-canvas">
+  <div class="ia-canvas__badge">flows / User</div>
+  
+  <div class="mermaid">
+%% ==============================================================================
+%% Vue Cas d'Usage : UC-CATALOGUE - Consulter et commander un produit
+%% ==============================================================================
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'lineColor': '#64748b'
+  },
+  'flowchart': {
+    'curve': 'basis',
+    'nodeSpacing': 60,
+    'rankSpacing': 70,
+    'htmlLabels': true
+  }
+}}%%
+flowchart LR
+
+    %% Parcours : PF-CATALOGUE-NOM (nominal)
+    ND_100["<div class='ia-card ia-card--primary'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>HOME</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>HOME</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>ND-100</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_101["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>L001</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>L001</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>02</div><div class='ia-card__meta'><span class='ia-card__code'>ND-101</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_102["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>L002</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>L002</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>03</div><div class='ia-card__meta'><span class='ia-card__code'>ND-102</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_103["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>C001@BUYER</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>C001@BUYER</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>04</div><div class='ia-card__meta'><span class='ia-card__code'>ND-103</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_104["<div class='ia-card' style='width: 210px; min-height: 95px; border-color: #16a34a;'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>Action Utilisateur</span></div><span class='ia-pill ia-pill--green'>ACT</span></div><div class='ia-card__body'><div class='ia-card__title' style='font-size: 13px;'>FEAT-COMMANDER</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#dcfce7;color:#166534;'>05</div><div class='ia-card__meta'><span class='ia-card__code'>ND-104</span><span class='ia-card__type'>Action</span></div></div></div>"]
+    ND_105["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>F001</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>F001</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>06</div><div class='ia-card__meta'><span class='ia-card__code'>ND-105</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_106["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>D001</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>D001</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>07</div><div class='ia-card__meta'><span class='ia-card__code'>ND-106</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_107["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>F002</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>F002</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>08</div><div class='ia-card__meta'><span class='ia-card__code'>ND-107</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_108["<div class='ia-card' style='width: 210px; min-height: 95px; border-color: #16a34a;'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>Action Utilisateur</span></div><span class='ia-pill ia-pill--green'>ACT</span></div><div class='ia-card__body'><div class='ia-card__title' style='font-size: 13px;'>FEAT-FINALISER</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#dcfce7;color:#166534;'>09</div><div class='ia-card__meta'><span class='ia-card__code'>ND-108</span><span class='ia-card__type'>Action</span></div></div></div>"]
+    ND_100 --> ND_101 --> ND_102 --> ND_103 --> ND_104 --> ND_105 --> ND_106 --> ND_107 --> ND_108
+
+    linkStyle default stroke:#64748b,stroke-width:2px;
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    theme: 'base',
+    flowchart: {
+      htmlLabels: true,
+      curve: 'basis',
+      nodeSpacing: 60,
+      rankSpacing: 70
+    }
+  });
+</script>
+</body>
+</html>

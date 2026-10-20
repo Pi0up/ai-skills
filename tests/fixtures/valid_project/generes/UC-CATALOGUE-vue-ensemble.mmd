@@ -1,0 +1,30 @@
+%% ==============================================================================
+%% Vue Cas d'Usage : UC-CATALOGUE - Consulter et commander un produit
+%% ==============================================================================
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'lineColor': '#64748b'
+  },
+  'flowchart': {
+    'curve': 'basis',
+    'nodeSpacing': 60,
+    'rankSpacing': 70,
+    'htmlLabels': true
+  }
+}}%%
+flowchart LR
+
+    %% Parcours : PF-CATALOGUE-NOM (nominal)
+    ND_100["<div class='ia-card ia-card--primary'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>HOME</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>HOME</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>ND-100</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_101["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>L001</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>L001</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>02</div><div class='ia-card__meta'><span class='ia-card__code'>ND-101</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_102["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>L002</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>L002</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>03</div><div class='ia-card__meta'><span class='ia-card__code'>ND-102</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_103["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>C001@BUYER</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>C001@BUYER</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>04</div><div class='ia-card__meta'><span class='ia-card__code'>ND-103</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_104["<div class='ia-card' style='width: 210px; min-height: 95px; border-color: #16a34a;'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>Action Utilisateur</span></div><span class='ia-pill ia-pill--green'>ACT</span></div><div class='ia-card__body'><div class='ia-card__title' style='font-size: 13px;'>FEAT-COMMANDER</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#dcfce7;color:#166534;'>05</div><div class='ia-card__meta'><span class='ia-card__code'>ND-104</span><span class='ia-card__type'>Action</span></div></div></div>"]
+    ND_105["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>F001</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>F001</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>06</div><div class='ia-card__meta'><span class='ia-card__code'>ND-105</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_106["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>D001</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>D001</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>07</div><div class='ia-card__meta'><span class='ia-card__code'>ND-106</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_107["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>F002</span><span class='ia-card__url-nature'>Écran</span></div><span class='ia-pill ia-pill--blue'>ECR</span></div><div class='ia-card__body'><div class='ia-card__title'>F002</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>08</div><div class='ia-card__meta'><span class='ia-card__code'>ND-107</span><span class='ia-card__type'>Écran</span></div></div></div>"]
+    ND_108["<div class='ia-card' style='width: 210px; min-height: 95px; border-color: #16a34a;'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>Action Utilisateur</span></div><span class='ia-pill ia-pill--green'>ACT</span></div><div class='ia-card__body'><div class='ia-card__title' style='font-size: 13px;'>FEAT-FINALISER</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#dcfce7;color:#166534;'>09</div><div class='ia-card__meta'><span class='ia-card__code'>ND-108</span><span class='ia-card__type'>Action</span></div></div></div>"]
+    ND_100 --> ND_101 --> ND_102 --> ND_103 --> ND_104 --> ND_105 --> ND_106 --> ND_107 --> ND_108
+
+    linkStyle default stroke:#64748b,stroke-width:2px;

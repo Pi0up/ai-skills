@@ -1,0 +1,24 @@
+%% ==============================================================================
+%% Userflow - PF-DOSSIER-VAR-ASSIST (Vue Repliée)
+%% Cas d'usage : UC-DOSSIER | Statut : variante
+%% ==============================================================================
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'lineColor': '#64748b'
+  },
+  'flowchart': {
+    'curve': 'basis',
+    'nodeSpacing': 60,
+    'rankSpacing': 70,
+    'htmlLabels': true
+  }
+}}%%
+flowchart LR
+
+    ND_030["<div class='ia-card' style='width: 210px; min-height: 95px; border-color: #16a34a;'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>Action Utilisateur</span></div><span class='ia-pill ia-pill--green'>ACT</span></div><div class='ia-card__body'><div class='ia-card__title' style='font-size: 13px;'>FEAT-DEMANDER-AIDE</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#dcfce7;color:#166534;'>01</div><div class='ia-card__meta'><span class='ia-card__code'>ND-030</span><span class='ia-card__type'>Action</span></div></div></div>"]
+    ND_031["<div class='ia-card' style='width: 210px; min-height: 95px; border-color: #6366f1;'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>Système Externe</span></div><span class='ia-pill ia-pill--blue'>EXT</span></div><div class='ia-card__body'><div class='ia-card__title' style='font-size: 13px;'>Échange téléphonique ⏸</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#e0e7ff;color:#3730a3;'>02</div><div class='ia-card__meta'><span class='ia-card__code'>ND-031</span><span class='ia-card__type'>Externe</span></div></div></div>"]
+
+    ND_030 -.-> ND_031
+
+    linkStyle default stroke:#64748b,stroke-width:2px;

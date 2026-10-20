@@ -1,0 +1,75 @@
+%% ==============================================================================
+%% Diagramme Arborescence - Niveau Détaillé (Généré automatiquement)
+%% ==============================================================================
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'lineColor': '#64748b'
+  },
+  'flowchart': {
+    'curve': 'basis',
+    'nodeSpacing': 50,
+    'rankSpacing': 60,
+    'htmlLabels': true
+  }
+}}%%
+flowchart TD
+
+    %% 1. Hiérarchie principale
+    HOME["<div class='ia-card ia-card--primary'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>home</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>HOME</span><span class='ia-card__type'>Homepage</span></div></div></div>"]
+    L001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/search-results</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>search-results</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>L001</span><span class='ia-card__type'>Liste / Datagrid</span></div></div></div>"]
+    L002["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/products</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>products</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>02</div><div class='ia-card__meta'><span class='ia-card__code'>L002</span><span class='ia-card__type'>Liste / Datagrid</span></div></div></div>"]
+    C001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/products/[id]</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>product-detail</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>C001</span><span class='ia-card__type'>Consultation</span></div></div></div>"]
+    F001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/login</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>login</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>03</div><div class='ia-card__meta'><span class='ia-card__code'>F001</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    D001["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/account</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>account</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>04</div><div class='ia-card__meta'><span class='ia-card__code'>D001</span><span class='ia-card__type'>Dashboard</span></div></div></div>"]
+    F002["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/checkout</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>checkout</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>05</div><div class='ia-card__meta'><span class='ia-card__code'>F002</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    C010["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/files/[id]</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>dossier-detail</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>06</div><div class='ia-card__meta'><span class='ia-card__code'>C010</span><span class='ia-card__type'>Consultation</span></div></div></div>"]
+    F010["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/files/[id]/documents</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>justificatifs</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>F010</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    HOME --> L001
+    HOME --> L002
+    L002 --> C001
+    HOME --> F001
+    HOME --> D001
+    HOME --> F002
+    HOME --> C010
+    C010 --> F010
+
+    %% 2. Composants rattachés (ancres # et popins !)
+    subgraph Sub_C001["Composants rattachés à C001"]
+        direction TB
+        COMP_C001_quick_view["!quick-view (Aperçu rapide)"]
+        COMP_C001_reviews["#reviews (Avis)"]
+    end
+    C001 -.-> COMP_C001_quick_view
+    C001 -.-> COMP_C001_reviews
+
+    %% 3. Variantes déclarées
+    subgraph Sub_Var_C001["Variantes de C001"]
+        direction TB
+        VAR_C001_ADMIN_EDIT["C001@ADMIN:EDIT"]
+        VAR_C001_BUYER["C001@BUYER"]
+    end
+    C001 === Sub_Var_C001
+    subgraph Sub_Var_C010["Variantes de C010"]
+        direction TB
+        VAR_C010_EDIT["C010:EDIT"]
+    end
+    C010 === Sub_Var_C010
+    subgraph Sub_Var_F010["Variantes de F010"]
+        direction TB
+        VAR_F010_CONTROLE["F010:CONTROLE"]
+    end
+    F010 === Sub_Var_F010
+
+    %% 4. Modules (Hors arbre)
+    subgraph ModulesTransverses["Modules (Hors Arbre)"]
+        direction TB
+        M001["<div class='ia-card ia-card--module'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>!help-panel</span><span class='ia-card__url-nature'>Portée: ALL</span></div><span class='ia-pill ia-pill--gray'>MODULE</span></div><div class='ia-card__body'><div class='ia-card__title'>Aide en ligne</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#e9d5ff;color:#581c87;'>M</div><div class='ia-card__meta'><span class='ia-card__code'>M001</span><span class='ia-card__type'>Module</span></div></div></div>"]
+        M002["<div class='ia-card ia-card--module'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>!user-preferences</span><span class='ia-card__url-nature'>Portée: AUTH</span></div><span class='ia-pill ia-pill--gray'>MODULE</span></div><div class='ia-card__body'><div class='ia-card__title'>Préférences</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#e9d5ff;color:#581c87;'>M</div><div class='ia-card__meta'><span class='ia-card__code'>M002</span><span class='ia-card__type'>Module</span></div></div></div>"]
+    end
+
+    %% 5. Renvois fonctionnels
+    C001@BUYER -. "FEAT-COMMANDER" .-> F002
+    L001 -. "FEAT-OUVRIR-PRODUIT" .-> C001
+
+    linkStyle default stroke:#64748b,stroke-width:2px;

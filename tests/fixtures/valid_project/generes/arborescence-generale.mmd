@@ -1,0 +1,53 @@
+%% ==============================================================================
+%% Diagramme Arborescence - Niveau Général (Généré automatiquement)
+%% ==============================================================================
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'lineColor': '#64748b'
+  },
+  'flowchart': {
+    'curve': 'basis',
+    'nodeSpacing': 50,
+    'rankSpacing': 60,
+    'htmlLabels': true
+  }
+}}%%
+flowchart TD
+
+    %% Racine
+    HOME["<div class='ia-card ia-card--primary'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>home</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>HOME</span><span class='ia-card__type'>Homepage</span></div></div></div>"]
+
+    subgraph ZonePublique["Zone Publique"]
+        direction TB
+    L001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/search-results</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>search-results</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>L001</span><span class='ia-card__type'>Liste / Datagrid</span></div></div></div>"]
+    L002["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/products</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>products</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>02</div><div class='ia-card__meta'><span class='ia-card__code'>L002</span><span class='ia-card__type'>Liste / Datagrid</span></div></div></div>"]
+    C001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/products/[id]</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>product-detail</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>C001</span><span class='ia-card__type'>Consultation</span></div></div></div>"]
+    F001["<div class='ia-card'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/login</span><span class='ia-card__url-nature'>Absolu</span></div></div><div class='ia-card__body'><div class='ia-card__title'>login</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>03</div><div class='ia-card__meta'><span class='ia-card__code'>F001</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    end
+
+    subgraph ZoneProtegee["Zone Protégée"]
+        direction TB
+    D001["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/account</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>account</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>04</div><div class='ia-card__meta'><span class='ia-card__code'>D001</span><span class='ia-card__type'>Dashboard</span></div></div></div>"]
+    F002["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/checkout</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>checkout</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>05</div><div class='ia-card__meta'><span class='ia-card__code'>F002</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    C010["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/files/[id]</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>dossier-detail</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>06</div><div class='ia-card__meta'><span class='ia-card__code'>C010</span><span class='ia-card__type'>Consultation</span></div></div></div>"]
+    F010["<div class='ia-card ia-card--protected'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>/files/[id]/documents</span><span class='ia-card__url-nature'>Absolu</span></div><span class='ia-pill ia-pill--orange'>PROT</span></div><div class='ia-card__body'><div class='ia-card__title'>justificatifs</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle'>01</div><div class='ia-card__meta'><span class='ia-card__code'>F010</span><span class='ia-card__type'>Formulaire</span></div></div></div>"]
+    end
+
+    %% Hiérarchie
+    HOME --> L001
+    HOME --> L002
+    L002 --> C001
+    HOME --> F001
+    HOME --> D001
+    HOME --> F002
+    HOME --> C010
+    C010 --> F010
+
+    subgraph ModulesTransverses["Modules Transverses (Hors Arbre)"]
+        direction TB
+        M001["<div class='ia-card ia-card--module'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>!help-panel</span><span class='ia-card__url-nature'>Portée: ALL</span></div><span class='ia-pill ia-pill--gray'>MODULE</span></div><div class='ia-card__body'><div class='ia-card__title'>Aide en ligne</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#e9d5ff;color:#581c87;'>M</div><div class='ia-card__meta'><span class='ia-card__code'>M001</span><span class='ia-card__type'>Module</span></div></div></div>"]
+        M002["<div class='ia-card ia-card--module'><div class='ia-card__top'><div class='ia-card__url-box'><span class='ia-card__url'>!user-preferences</span><span class='ia-card__url-nature'>Portée: AUTH</span></div><span class='ia-pill ia-pill--gray'>MODULE</span></div><div class='ia-card__body'><div class='ia-card__title'>Préférences</div></div><div class='ia-card__bottom'><div class='ia-card__order-circle' style='background:#e9d5ff;color:#581c87;'>M</div><div class='ia-card__meta'><span class='ia-card__code'>M002</span><span class='ia-card__type'>Module</span></div></div></div>"]
+    end
+
+    linkStyle default stroke:#64748b,stroke-width:2px;
