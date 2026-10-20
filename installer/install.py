@@ -45,9 +45,9 @@ SKILLS_NAMES = [
 TARGET_CONFIGS = {
     "antigravity": {
         "workspace": Path(".agents") / "skills",
-        "global": Path.home() / ".gemini" / "antigravity" / "skills",
+        "global": Path.home() / ".gemini" / "config" / "skills",
         "plugin_workspace": Path(".agents") / "plugins" / PLUGIN_NAME,
-        "plugin_global": Path.home() / ".gemini" / "antigravity" / "plugins" / PLUGIN_NAME,
+        "plugin_global": Path.home() / ".gemini" / "config" / "plugins" / PLUGIN_NAME,
     },
     "claude": {
         "workspace": Path(".claude") / "skills",
