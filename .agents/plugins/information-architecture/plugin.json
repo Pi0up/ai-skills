@@ -1,0 +1,15 @@
+{
+  "name": "information-architecture",
+  "description": "Complete Information Architecture (IA) suite: scoping, arborescence modeling (C1-C15), userflows (R-01 to R-72), integrity audit, registry synchronization, Mermaid diagram rendering, and test plans.",
+  "version": "0.3.0",
+  "skills": [
+    "ia-orchestrator",
+    "ia-cadrage",
+    "ia-arborescence",
+    "ia-userflows",
+    "ia-fiches-ecran",
+    "ia-tracking",
+    "ia-qa-uat",
+    "ia-audit"
+  ]
+}

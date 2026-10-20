@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}} - Information Architecture Visualizer</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+{{THEME_CSS}}
+</style>
+</head>
+<body style="margin: 0; padding: 24px; background: #f1f5f9; min-height: 100vh;">
+
+<div class="ia-canvas">
+  <div class="ia-canvas__badge">{{BADGE_LABEL}}</div>
+  
+  <div class="mermaid">
+{{MERMAID_SOURCE}}
+  </div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: 'loose',
+    theme: 'base',
+    flowchart: {
+      htmlLabels: true,
+      curve: '{{CURVE}}',
+      nodeSpacing: {{NODE_SPACING}},
+      rankSpacing: {{RANK_SPACING}}
+    }
+  });
+</script>
+</body>
+</html>
