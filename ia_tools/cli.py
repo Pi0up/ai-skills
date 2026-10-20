@@ -11,6 +11,7 @@ Available commands:
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -68,23 +69,23 @@ def main() -> int:
     m_parser = subparsers.add_parser("generate-mermaid", help="Render Mermaid diagrams.")
     m_parser.add_argument("--dir", default=".", help="Root directory")
     m_parser.add_argument("--type", choices=["arborescence", "userflows", "all"], default="all")
-    m_parser.add_argument("--out", default="generes", help="Output directory (default: generes)")
+    m_parser.add_argument("--out", default="generated", help="Output directory (default: generated)")
     m_parser.add_argument(
         "--style",
-        choices=["rich", "standard"],
-        default="rich",
-        help="Mermaid visual style (rich: Figma cards, standard: plain text)",
+        choices=["standard", "rich"],
+        default="standard",
+        help="Mermaid visual style (standard: pure logic, rich: Figma cards)",
     )
     m_parser.add_argument(
         "--preview",
         action="store_true",
-        help="Also generate standalone HTML preview files with canvas theme",
+        help="Also generate unified HTML preview file (preview.html)",
     )
 
     # 4. extract-screens
     scr_parser = subparsers.add_parser("extract-screens", help="Deduce cross-cutting screen sheets.")
     scr_parser.add_argument("--dir", default=".", help="Root directory")
-    scr_parser.add_argument("--out", default="generes/fiches_ecran", help="Output directory")
+    scr_parser.add_argument("--out", default="generated/screen-sheets", help="Output directory (default: generated/screen-sheets)")
 
     args = parser.parse_args()
     root_dir = Path(args.dir).resolve()
@@ -184,52 +185,102 @@ def main() -> int:
         uf = UserflowsParser.parse_directory(root_dir)
         out_dir = Path(args.out).resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
-        style = getattr(args, "style", "rich")
+        style = getattr(args, "style", "standard")
         preview = getattr(args, "preview", False)
 
-        tpl_dir = find_templates_dir()
-        theme_css_file = tpl_dir / "themes" / "mermaid-ia-theme.css"
-        preview_tpl_file = tpl_dir / "themes" / "diagram-preview-template.html"
-
-        theme_css = theme_css_file.read_text(encoding="utf-8") if theme_css_file.exists() else ""
-        preview_tpl = preview_tpl_file.read_text(encoding="utf-8") if preview_tpl_file.exists() else ""
-
-        def write_preview(name: str, title: str, badge: str, mmd_content: str, is_lr: bool = False):
-            if not preview or not preview_tpl:
-                return
-            html = preview_tpl.replace("{{TITLE}}", title)
-            html = html.replace("{{BADGE_LABEL}}", badge)
-            html = html.replace("{{THEME_CSS}}", theme_css)
-            html = html.replace("{{MERMAID_SOURCE}}", mmd_content)
-            html = html.replace("{{CURVE}}", "basis")
-            html = html.replace("{{NODE_SPACING}}", "60" if is_lr else "50")
-            html = html.replace("{{RANK_SPACING}}", "70" if is_lr else "60")
-            (out_dir / f"{name}.html").write_text(html, encoding="utf-8")
+        diagrams_data = []
 
         if args.type in ("arborescence", "all"):
             gen_mmd = MermaidGenerator.generate_arborescence_generale(arbo, mode=style)
-            (out_dir / "arborescence-generale.mmd").write_text(gen_mmd, encoding="utf-8")
-            write_preview("arborescence-generale", "Arborescence Générale", "Arborescence", gen_mmd, is_lr=False)
+            (out_dir / "sitemap-overview.mmd").write_text(gen_mmd, encoding="utf-8")
+            meta, _ = MermaidGenerator.parse_frontmatter(gen_mmd)
+            diagrams_data.append({
+                "id": meta.get("id", "sitemap-overview"),
+                "filename": "sitemap-overview.mmd",
+                "title": meta.get("title", "Sitemap Overview"),
+                "type": meta.get("type", "sitemap"),
+                "roles": meta.get("roles", ["ALL"]),
+                "tags": meta.get("tags", ["sitemap", "overview"]),
+                "description": meta.get("description", "General hierarchical page overview"),
+                "source": gen_mmd,
+            })
 
             det_mmd = MermaidGenerator.generate_arborescence_detaillee(arbo, mode=style)
-            (out_dir / "arborescence-detaillee.mmd").write_text(det_mmd, encoding="utf-8")
-            write_preview("arborescence-detaillee", "Arborescence Détaillée", "Arborescence", det_mmd, is_lr=False)
+            (out_dir / "sitemap-detailed.mmd").write_text(det_mmd, encoding="utf-8")
+            meta_det, _ = MermaidGenerator.parse_frontmatter(det_mmd)
+            diagrams_data.append({
+                "id": meta_det.get("id", "sitemap-detailed"),
+                "filename": "sitemap-detailed.mmd",
+                "title": meta_det.get("title", "Sitemap Detailed"),
+                "type": meta_det.get("type", "sitemap"),
+                "roles": meta_det.get("roles", ["ALL"]),
+                "tags": meta_det.get("tags", ["sitemap", "detailed"]),
+                "description": meta_det.get("description", "Detailed sitemap with variants and modules"),
+                "source": det_mmd,
+            })
 
         if args.type in ("userflows", "all"):
             for cu in uf.cas_usages.values():
                 cu_mmd = MermaidGenerator.generate_cas_usage_view(cu, mode=style)
-                (out_dir / f"{cu.uc_id}-vue-ensemble.mmd").write_text(cu_mmd, encoding="utf-8")
-                write_preview(f"{cu.uc_id}-vue-ensemble", f"Vue Cas d'Usage {cu.uc_id}", "flows / User", cu_mmd, is_lr=True)
+                fname_cu = f"{cu.uc_id}-overview.mmd"
+                (out_dir / fname_cu).write_text(cu_mmd, encoding="utf-8")
+                meta_cu, _ = MermaidGenerator.parse_frontmatter(cu_mmd)
+                diagrams_data.append({
+                    "id": meta_cu.get("id", cu.uc_id),
+                    "filename": fname_cu,
+                    "title": meta_cu.get("title", f"{cu.uc_id} - Overview"),
+                    "type": meta_cu.get("type", "userflow"),
+                    "roles": meta_cu.get("roles", [cu.uc_id]),
+                    "tags": meta_cu.get("tags", ["userflow", "use-case"]),
+                    "description": meta_cu.get("description", cu.nom or cu.uc_id),
+                    "source": cu_mmd,
+                })
 
                 for pf in cu.parcours.values():
                     p_mmd = MermaidGenerator.generate_parcours_replie(pf, mode=style)
-                    (out_dir / f"{pf.pf_id}-replie.mmd").write_text(p_mmd, encoding="utf-8")
-                    write_preview(f"{pf.pf_id}-replie", f"Parcours {pf.pf_id}", "flows / User", p_mmd, is_lr=True)
+                    fname_pf = f"{pf.pf_id}-collapsed.mmd"
+                    (out_dir / fname_pf).write_text(p_mmd, encoding="utf-8")
+                    meta_pf, _ = MermaidGenerator.parse_frontmatter(p_mmd)
+                    diagrams_data.append({
+                        "id": meta_pf.get("id", pf.pf_id),
+                        "filename": fname_pf,
+                        "title": meta_pf.get("title", f"{pf.pf_id} - Collapsed"),
+                        "type": meta_pf.get("type", "userflow"),
+                        "roles": meta_pf.get("roles", [cu.uc_id]),
+                        "tags": meta_pf.get("tags", ["userflow", "collapsed"]),
+                        "description": meta_pf.get("description", pf.objectif or pf.pf_id),
+                        "source": p_mmd,
+                    })
 
-        if preview and theme_css_file.exists():
-            (out_dir / "mermaid-ia-theme.css").write_text(theme_css, encoding="utf-8")
+        if preview:
+            tpl_dir = find_templates_dir()
+            unified_tpl_file = tpl_dir / "themes" / "unified-preview-template.html"
 
-        print(f"✅ Mermaid diagrams generated in {out_dir} (style: {style}{', with HTML previews' if preview else ''})")
+            # Déduction des fiches écran pour alimenter les métadonnées de nœuds
+            scr_gen = ScreenSheetGenerator(arbo, uf)
+            sheets = scr_gen.extract_screen_sheets()
+            sheets_payload = {}
+            for ref, sheet in sheets.items():
+                sheets_payload[ref] = {
+                    "ref": ref,
+                    "content": scr_gen.format_sheet_markdown(sheet),
+                }
+
+            nodes_registry = MermaidGenerator.build_node_metadata_registry(arbo, uf, sheets)
+
+            payload = {
+                "diagrams": diagrams_data,
+                "nodes": nodes_registry,
+                "screen_sheets": sheets_payload,
+            }
+            payload_json = json.dumps(payload, ensure_ascii=False, indent=2)
+
+            if unified_tpl_file.exists():
+                html = unified_tpl_file.read_text(encoding="utf-8")
+                html = html.replace("{{EMBEDDED_JSON_DATA}}", payload_json)
+                (out_dir / "preview.html").write_text(html, encoding="utf-8")
+
+        print(f"✅ Mermaid diagrams generated in {out_dir} (style: {style}{', unified preview: preview.html' if preview else ''})")
         return 0
 
     elif args.command == "extract-screens":
@@ -243,7 +294,7 @@ def main() -> int:
         for ref, sheet in sheets.items():
             safe_name = ref.replace(":", "_").replace("@", "_").replace("!", "_").replace("#", "_")
             md_content = gen.format_sheet_markdown(sheet)
-            (out_dir / f"fiche-{safe_name}.md").write_text(md_content, encoding="utf-8")
+            (out_dir / f"screen-{safe_name}.md").write_text(md_content, encoding="utf-8")
 
         print(f"✅ {len(sheets)} screen sheets generated in {out_dir}")
         return 0

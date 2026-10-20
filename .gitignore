@@ -39,6 +39,11 @@ nosetests.xml
 coverage.xml
 *.cover
 
+# Generated deliverables
+generated/
+generes/
+uv.lock
+
 # OS / Editor temporary files
 .DS_Store
 Thumbs.db

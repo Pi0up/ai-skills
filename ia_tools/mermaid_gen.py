@@ -67,6 +67,155 @@ MERMAID_RICH_INIT_LR = """%%{init: {
 
 class MermaidGenerator:
 
+    @classmethod
+    def parse_frontmatter(cls, content: str) -> Tuple[Dict[str, Any], str]:
+        """Extrait l'en-tête YAML frontmatter d'un diagramme Mermaid si présent.
+        
+        Retourne (dictionnaire_metadonnees, source_mermaid_sans_frontmatter).
+        """
+        metadata: Dict[str, Any] = {}
+        cleaned = content.strip()
+        if cleaned.startswith("---"):
+            parts = cleaned.split("---", 2)
+            if len(parts) >= 3:
+                raw_yaml = parts[1].strip()
+                cleaned = parts[2].strip()
+                for line in raw_yaml.splitlines():
+                    if ":" in line:
+                        k, v = line.split(":", 1)
+                        k = k.strip()
+                        v = v.strip()
+                        if v.startswith("[") and v.endswith("]"):
+                            metadata[k] = [x.strip() for x in v[1:-1].split(",") if x.strip()]
+                        else:
+                            metadata[k] = v
+        return metadata, cleaned
+
+    @classmethod
+    def build_node_metadata_registry(
+        cls,
+        arbo: ArborescenceModel,
+        uf: Optional[UserflowsModel] = None,
+        screen_sheets: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Indexe l'ensemble des métadonnées de nœuds (pages, modules, variantes, étapes de parcours)."""
+        registry: Dict[str, Any] = {}
+
+        # 1. Pages de l'arborescence
+        for code, page in arbo.pages.items():
+            nature = "Absolu" if page.url == "/" or page.url.startswith("/") else "Relatif"
+            tpl_label = TEMPLATE_LABELS.get(page.template, "Page")
+            access_roles = list(page.access) if page.access else (["ANONYMOUS"] if not page.is_protected else ["AUTH"])
+
+            sheet = screen_sheets.get(code) if screen_sheets else None
+            inputs = list(sheet.entrees) if sheet else []
+            outputs = list(sheet.sorties) if sheet else []
+            contexts = list(sheet.contextes_observes) if sheet else []
+            features = list(sheet.fonctionnalites_actionnees) if sheet else []
+
+            registry[code] = {
+                "code": code,
+                "label": page.label or code,
+                "url": page.url,
+                "nature": nature,
+                "is_protected": page.is_protected,
+                "template": page.template,
+                "template_label": tpl_label,
+                "order": page.ordre,
+                "parent": page.parent,
+                "roles": access_roles,
+                "inputs": inputs,
+                "outputs": outputs,
+                "contexts": contexts,
+                "features": features,
+                "signals": [f"URL: {page.url}"],
+                "screen_sheet": f"screen-sheets/screen-{code}.md",
+                "description": f"Page {code} ({page.label or page.url})",
+            }
+
+        # 2. Modules transverses
+        for mcode, mod in arbo.modules.items():
+            registry[mcode] = {
+                "code": mcode,
+                "label": mod.label or mcode,
+                "url": f"!{mod.invocation}",
+                "nature": "Module",
+                "is_protected": mod.portee not in ("ALL", "PUBLIC"),
+                "template": "M",
+                "template_label": "Module Transverse",
+                "order": None,
+                "parent": None,
+                "roles": [mod.portee],
+                "inputs": [],
+                "outputs": [],
+                "contexts": [],
+                "features": [],
+                "signals": [f"MOD: !{mod.invocation}"],
+                "screen_sheet": f"screen-sheets/screen-M_{mcode}.md",
+                "description": f"Module transverse {mod.code} ({mod.label or mod.invocation})",
+            }
+
+        # 3. Variantes d'écran
+        for vref, var in arbo.variantes.items():
+            clean_code = "VAR_" + re.sub(r"[^A-Za-z0-9_]", "_", vref)
+            base = arbo.pages.get(var.page_base)
+            url = var.url_distincte or (base.url if base else "")
+            access_roles = list(var.access) if var.access else (list(base.access) if base else ["AUTH"])
+            sheet = screen_sheets.get(vref) if screen_sheets else None
+
+            var_meta = {
+                "code": vref,
+                "label": vref,
+                "url": url,
+                "nature": "Variante",
+                "is_protected": True,
+                "template": base.template if base else "C",
+                "template_label": f"Variante ({TEMPLATE_LABELS.get(base.template, 'Page') if base else 'Page'})",
+                "order": None,
+                "parent": var.page_base,
+                "roles": access_roles,
+                "inputs": list(sheet.entrees) if sheet else [],
+                "outputs": list(sheet.sorties) if sheet else [],
+                "contexts": list(sheet.contextes_observes) if sheet else [],
+                "features": list(sheet.fonctionnalites_actionnees) if sheet else [],
+                "signals": [f"VAR: {vref}"],
+                "screen_sheet": f"screen-sheets/screen-{re.sub(r'[^A-Za-z0-9_]', '_', vref)}.md",
+                "description": f"Variante d'écran {vref} ({var.condition_spec})",
+            }
+            registry[clean_code] = var_meta
+            registry[vref] = var_meta
+
+        # 4. Étapes des Userflows
+        if uf:
+            for cu in uf.cas_usages.values():
+                for pf in cu.parcours.values():
+                    for etape in pf.etapes:
+                        nid = etape.noeud if etape.noeud else f"STEP_{etape.numero}"
+                        nid_clean = nid.replace("-", "_")
+                        step_meta = {
+                            "code": nid,
+                            "label": etape.reference,
+                            "url": f"Étape #{etape.numero:02d}",
+                            "nature": "Étape de Parcours",
+                            "is_protected": False,
+                            "template": etape.type,
+                            "template_label": f"Type {etape.type}",
+                            "order": etape.numero,
+                            "parent": pf.pf_id,
+                            "roles": [cu.uc_id],
+                            "inputs": [f"Parcours {pf.pf_id}"],
+                            "outputs": [],
+                            "contexts": [f"Statut: {pf.statut}"],
+                            "features": [etape.reference] if etape.type == "ACT" else [],
+                            "signals": [f"Signal: {etape.signal}"] if etape.signal else [],
+                            "screen_sheet": f"screen-sheets/screen-{re.sub(r'[^A-Za-z0-9_]', '_', etape.reference)}.md" if etape.type == "ECR" else None,
+                            "description": f"Étape {etape.numero:02d} ({etape.type}) du parcours {pf.pf_id}",
+                        }
+                        registry[nid_clean] = step_meta
+                        registry[nid] = step_meta
+
+        return registry
+
     # ==========================================================================
     # Helpers : Formatage de cartes HTML Riches (Inspiré du Design System Figma)
     # ==========================================================================
@@ -292,7 +441,20 @@ class MermaidGenerator:
 
     @classmethod
     def generate_arborescence_generale(cls, arbo: ArborescenceModel, mode: str = "rich") -> str:
+        roles_set: Set[str] = set()
+        for p in arbo.pages.values():
+            roles_set.update(p.access)
+        roles_str = f"[{', '.join(sorted(roles_set))}]" if roles_set else "[ALL]"
+
         lines: List[str] = [
+            "---",
+            "title: Sitemap Overview",
+            "type: sitemap",
+            "id: sitemap-overview",
+            f"roles: {roles_str}",
+            "tags: [sitemap, overview, hierarchy]",
+            "description: General hierarchical page and hub overview",
+            "---",
             "%% ==============================================================================",
             "%% Diagramme Arborescence - Niveau Général (Généré automatiquement)",
             "%% ==============================================================================",
@@ -404,7 +566,20 @@ class MermaidGenerator:
 
     @classmethod
     def generate_arborescence_detaillee(cls, arbo: ArborescenceModel, mode: str = "rich") -> str:
+        roles_set: Set[str] = set()
+        for p in arbo.pages.values():
+            roles_set.update(p.access)
+        roles_str = f"[{', '.join(sorted(roles_set))}]" if roles_set else "[ALL]"
+
         lines: List[str] = [
+            "---",
+            "title: Sitemap Detailed",
+            "type: sitemap",
+            "id: sitemap-detailed",
+            f"roles: {roles_str}",
+            "tags: [sitemap, detailed, components, variants]",
+            "description: Detailed sitemap with components, variants, modules, and cross-functional links",
+            "---",
             "%% ==============================================================================",
             "%% Diagramme Arborescence - Niveau Détaillé (Généré automatiquement)",
             "%% ==============================================================================",
@@ -544,6 +719,14 @@ class MermaidGenerator:
     @classmethod
     def generate_parcours_replie(cls, parcours: Parcours, mode: str = "rich") -> str:
         lines: List[str] = [
+            "---",
+            f"title: {parcours.pf_id} - Collapsed",
+            "type: userflow",
+            f"id: {parcours.pf_id}",
+            f"roles: [{parcours.uc}]",
+            f"tags: [userflow, collapsed, {parcours.statut}]",
+            f"description: {parcours.objectif or f'Parcours {parcours.pf_id}'}",
+            "---",
             "%% ==============================================================================",
             f"%% Userflow - {parcours.pf_id} (Vue Repliée)",
             f"%% Cas d'usage : {parcours.uc} | Statut : {parcours.statut}",
@@ -594,6 +777,14 @@ class MermaidGenerator:
     @classmethod
     def generate_cas_usage_view(cls, cu: CasUsage, mode: str = "rich") -> str:
         lines: List[str] = [
+            "---",
+            f"title: {cu.uc_id} - Overview",
+            "type: userflow",
+            f"id: {cu.uc_id}",
+            f"roles: [{cu.uc_id}]",
+            "tags: [userflow, use-case, overview]",
+            f"description: {cu.nom or cu.uc_id}",
+            "---",
             "%% ==============================================================================",
             f"%% Vue Cas d'Usage : {cu.uc_id} - {cu.nom}",
             "%% ==============================================================================",

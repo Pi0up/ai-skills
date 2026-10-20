@@ -74,6 +74,25 @@ class TestMermaidGenerator(unittest.TestCase):
         self.assertIn("ia-pill--green", mmd)
         self.assertIn("linkStyle default stroke:#64748b", mmd)
 
+    def test_frontmatter_and_metadata_registry(self):
+        # 1. Frontmatter parsing
+        mmd = MermaidGenerator.generate_arborescence_generale(self.arbo, mode="standard")
+        self.assertTrue(mmd.startswith("---"))
+        meta, clean_src = MermaidGenerator.parse_frontmatter(mmd)
+        self.assertEqual(meta.get("type"), "sitemap")
+        self.assertEqual(meta.get("id"), "sitemap-overview")
+        self.assertIn("flowchart TD", clean_src)
+
+        # 2. Node Metadata registry
+        registry = MermaidGenerator.build_node_metadata_registry(self.arbo, self.uf)
+        self.assertIn("HOME", registry)
+        self.assertIn("L001", registry)
+        self.assertIn("M001", registry)
+        self.assertEqual(registry["HOME"]["url"], "/")
+        self.assertEqual(registry["HOME"]["template"], "HOME")
+        self.assertEqual(registry["L001"]["nature"], "Absolu")
+        self.assertEqual(registry["M001"]["nature"], "Module")
+
 
 if __name__ == "__main__":
     unittest.main()
