@@ -70,13 +70,13 @@ Provide fields for each page:
 ### 6. Generate Mermaid Diagrams
 Run:
 ```bash
-# Rich style (default, Figma 4-quadrant cards + HTML preview)
-python -m ia_tools.cli generate-mermaid --type arborescence --out generes --style rich --preview
+# Generate pure logic Mermaid diagrams with unified HTML preview
+python -m ia_tools.cli generate-mermaid --type arborescence --out generated --preview
 
-# Standard style (pure GitHub-compatible text)
-python -m ia_tools.cli generate-mermaid --type arborescence --out generes --style standard
+# Standard style without preview
+python -m ia_tools.cli generate-mermaid --type arborescence --out generated
 ```
 Produced diagrams follow a **top-to-bottom** layout (`flowchart TD`):
-- `arborescence-generale.mmd` (high-level view with public/protected subgraphs and transversal modules)
-- `arborescence-detaillee.mmd` (detailed view with components, variants, invocations, and functional cross-references)
-- `arborescence-generale.html` & `arborescence-detaillee.html` (interactive preview with Figma theme and dot-grid canvas)
+- `sitemap-overview.mmd` (high-level view with public/protected subgraphs and transversal modules)
+- `sitemap-detailed.mmd` (detailed view with components, variants, invocations, and functional cross-references)
+- `preview.html` (single unified interactive viewer with pan/zoom, filters, node inspector, and image export)

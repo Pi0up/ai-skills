@@ -61,13 +61,13 @@ In each use case file:
 
 ### 5. Generate Mermaid Diagrams
 ```bash
-# Rich style (default, Figma-style cards with pills + HTML preview)
-python -m ia_tools.cli generate-mermaid --type userflows --out generes --style rich --preview
+# Generate pure logic Mermaid diagrams with unified HTML preview
+python -m ia_tools.cli generate-mermaid --type userflows --out generated --preview
 
-# Standard style (pure GitHub-compatible text)
-python -m ia_tools.cli generate-mermaid --type userflows --out generes --style standard
+# Standard style without preview
+python -m ia_tools.cli generate-mermaid --type userflows --out generated
 ```
 Userflows follow a **left-to-right horizontal** layout (`flowchart LR`):
-- Collapsed view (`PF-xxx-replie.mmd`)
-- Use case overview (`UC-xxx-vue-ensemble.mmd`)
-- Interactive preview HTML files with canvas theme.
+- Collapsed view (`PF-xxx-collapsed.mmd`)
+- Use case overview (`UC-xxx-overview.mmd`)
+- Single unified interactive preview in `generated/preview.html`.

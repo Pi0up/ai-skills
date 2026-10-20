@@ -117,15 +117,15 @@ python -m ia_tools.cli sync-registry --dir . --out registre
 ```
 
 ### 3.3 Generate Mermaid Diagrams
-Generates `flowchart TD` (general, detailed, and role-based arborescence) and `flowchart LR` (collapsed, expanded, and use case userflows) with interactive HTML previews:
+Generates `flowchart TD` (sitemap overview, detailed) and `flowchart LR` (userflow overview, collapsed, expanded) with frontmatter metadata and a single unified interactive HTML preview:
 ```bash
-python -m ia_tools.cli generate-mermaid --dir . --out generes --style rich --preview
+python -m ia_tools.cli generate-mermaid --dir . --out generated --preview
 ```
 
 ### 3.4 Extract Screen Sheets
 Extracts synthetic cross-cutting sheets for every identified screen:
 ```bash
-python -m ia_tools.cli extract-screens --dir . --out generes/fiches_ecran
+python -m ia_tools.cli extract-screens --dir . --out generated/screen-sheets
 ```
 
 ---
@@ -135,9 +135,10 @@ python -m ia_tools.cli extract-screens --dir . --out generes/fiches_ecran
 Pre-built templates are available in [`templates/`](./templates/):
 - **Arborescence Tables**: `templates/arborescence/tables/` (`pages.md`, `variantes.md`, `modules.md`, `composants_page.md`, `renvois.md`, `roles.md`).
 - **Userflows & Registry**: `templates/userflows/` (`uc/UC-template.md`, `registre/glossaire.md`, `registre/noeuds.md`).
-- **Derived Deliverables**: `templates/derived/` (`fiche-ecran-template.md`, `plan-tracking-template.md`, `plan-test-qa-uat-template.md`).
-- **Audit**: `templates/audit/rapport-audit-template.md`.
-- **Mermaid Diagrams**: `templates/arborescence/*.mmd` and `templates/userflows/*.mmd`.
+- **Derived Deliverables**: `templates/derived/` (`screen-sheet-template.md`, `tracking-plan-template.md`, `qa-uat-test-plan-template.md`).
+- **Audit**: `templates/audit/audit-report-template.md`.
+- **Mermaid Diagrams**: `templates/arborescence/*.mmd` (`sitemap-overview.mmd`, `sitemap-detailed.mmd`, `sitemap-by-role.mmd`) and `templates/userflows/*.mmd` (`flow-collapsed.mmd`, `flow-expanded.mmd`, `flow-variant.mmd`, `components-palette.mmd`).
+- **Unified Preview**: `templates/themes/unified-preview-template.html`.
 
 ---
 

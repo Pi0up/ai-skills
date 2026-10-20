@@ -36,14 +36,14 @@ It provides an objective, exhaustive inventory of everything occurring on a give
 
 To generate all screen sheets for the project:
 ```bash
-python -m ia_tools.cli extract-screens --dir . --out generes/fiches_ecran
+python -m ia_tools.cli extract-screens --dir . --out generated/screen-sheets
 ```
 
 ---
 
 ## Structure of a Deduced Screen Sheet
 
-Each generated sheet (`generes/fiches_ecran/fiche-[CODE].md`) contains:
+Each generated sheet (`generated/screen-sheets/screen-[CODE].md`) contains:
 1. **Technical Identity**: Canonical reference (`C010:EDIT`), target URL, authorized roles.
 2. **Observed Contexts**: Context pairs (`key=VALUE`) encountered when reaching this screen.
 3. **Contents and Features**: Actionable `FEAT-XXX` capabilities, accessible modules.

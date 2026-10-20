@@ -77,7 +77,7 @@ registre/roles.md         (synchronized from 'roles')
 registre/noeuds.md        (node event catalog)
 registre/glossaire.md     (closed context glossary)
 uc/UC-xxx.md              (use case specifications and journeys)
-generes/                  (generated Mermaid, screen sheets, test notebooks)
+generated/                (generated Mermaid diagrams, screen sheets, preview.html)
 ```
 
 ## 3. Use Cases and Journeys
