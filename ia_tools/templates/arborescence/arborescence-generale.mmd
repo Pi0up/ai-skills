@@ -1,0 +1,80 @@
+%% ==============================================================================
+%% Template Arborescence - Niveau Général
+%% Conforme à : spec-arborescence.md (v0.2)
+%% Source de vérité : Table Markdown `pages` et `modules`
+%% ==============================================================================
+
+flowchart TD
+
+    %% --------------------------------------------------------------------------
+    %% 1. Racine (HOME)
+    %% Règle : Unique, URL '/', code sans ID
+    %% --------------------------------------------------------------------------
+    HOME["HOME /"]
+
+    %% --------------------------------------------------------------------------
+    %% 2. Pages publiques / Zone accessible ANONYMOUS
+    %% Codes templates : L (Liste), C (Contenu), F (Formulaire), H (Hub)
+    %% Conventions URL : minuscules, pluriel pour listes, variables [id]
+    %% --------------------------------------------------------------------------
+    subgraph ZonePublique["Zone Publique (Accès : ANONYMOUS, ...)"]
+        direction TB
+        L001["L001 /search-results"]
+        L002["L002 /products"]
+        C001["C001 /products/[id]"]
+        F001["F001 /login"]
+        E001["E001 /404"]
+    end
+
+    %% --------------------------------------------------------------------------
+    %% 3. Zone protégée (ANONYMOUS exclu de 'access')
+    %% --------------------------------------------------------------------------
+    subgraph ZoneProtegee["Zone Protégée (Accès authentifié requis)"]
+        direction TB
+        D001["D001 /account (protégée)"]
+        H001["H001 /workspace (Hub)"]
+        L003["L003 /workspace/projects (protégée)"]
+        C002["C002 /workspace/projects/[id] (protégée)"]
+        F002["F002 /workspace/projects/new (protégée)"]
+    end
+
+    %% --------------------------------------------------------------------------
+    %% 4. Hiérarchie de l'Arbre (Parent unique par page, sauf HOME)
+    %% --------------------------------------------------------------------------
+    HOME --> L001
+    HOME --> L002
+    HOME --> F001
+    HOME --> E001
+    HOME --> D001
+    HOME --> H001
+
+    L002 --> C001
+    H001 --> L003
+    L003 --> C002
+    L003 --> F002
+
+    %% --------------------------------------------------------------------------
+    %% 5. Modules Transverses (Hors Arbre)
+    %% Règle : Code M, pas de parent, portée ALL/PUBLIC/AUTH/@ROLE
+    %% Invoqué via '!invocation' sur l'URL courante
+    %% --------------------------------------------------------------------------
+    subgraph ModulesTransverses["Modules Transverses (Hors Arbre)"]
+        direction TB
+        M001["M001 !help-panel [Portée: ALL]"]
+        M002["M002 !user-preferences [Portée: AUTH]"]
+    end
+
+    %% --------------------------------------------------------------------------
+    %% Classes & Styles visuels
+    %% --------------------------------------------------------------------------
+    classDef homeNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,font-weight:bold;
+    classDef hubNode fill:#fff3e0,stroke:#f57c00,stroke-width:1.5px,stroke-dasharray: 4 2;
+    classDef protectedNode fill:#fbe9e7,stroke:#d84315,stroke-width:1.5px;
+    classDef moduleNode fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,stroke-dasharray: 3 3;
+    classDef techNode fill:#eceff1,stroke:#607d8b,stroke-width:1px;
+
+    class HOME homeNode;
+    class H001 hubNode;
+    class D001,L003,C002,F002 protectedNode;
+    class M001,M002 moduleNode;
+    class E001 techNode;

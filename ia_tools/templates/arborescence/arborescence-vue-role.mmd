@@ -1,0 +1,51 @@
+%% ==============================================================================
+%% Template Arborescence - Vue par Rôle (Projection Filtrée)
+%% Conforme à : spec-arborescence.md (Section 3.3 et 8)
+%% Exemple pour le rôle : @BUYER
+%% ==============================================================================
+
+flowchart TD
+
+    %% --------------------------------------------------------------------------
+    %% Pages accessibles au rôle (@BUYER)
+    %% Les pages réservées à d'autres rôles (ex: Admin) sont masquées/filtrées
+    %% --------------------------------------------------------------------------
+    HOME["HOME /"]
+    L002["L002 /products"]
+    C001_BUYER["C001@BUYER /products/[id] (Variante Acheteur)"]
+    D001["D001 /account (Espace personnel)"]
+    F002["F002 /checkout (Commande)"]
+
+    %% Arborescence visible pour ce rôle
+    HOME --> L002
+    HOME --> D001
+    L002 --> C001_BUYER
+    D001 --> F002
+
+    %% --------------------------------------------------------------------------
+    %% Modules transverses éligibles à la portée du rôle
+    %% Portées éligibles : ALL, AUTH (si le rôle est connecté), ou @BUYER
+    %% --------------------------------------------------------------------------
+    subgraph ModulesRole["Modules accessibles pour @BUYER"]
+        direction TB
+        M001["M001 !help-panel [Portée: ALL]"]
+        M002["M002 !user-preferences [Portée: AUTH]"]
+    end
+
+    %% Invocations possibles pour ce rôle
+    C001_BUYER -. "!help-panel" .-> M001
+    D001 -. "!user-preferences" .-> M002
+
+    %% Renvois fonctionnels ouverts au rôle
+    C001_BUYER -. "FEAT-Commander" .-> F002
+
+    %% --------------------------------------------------------------------------
+    %% Classes & Styles
+    %% --------------------------------------------------------------------------
+    classDef homeNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,font-weight:bold;
+    classDef pageNode fill:#e8f5e9,stroke:#388e3c,stroke-width:1.5px;
+    classDef moduleNode fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,stroke-dasharray: 3 3;
+
+    class HOME homeNode;
+    class L002,C001_BUYER,D001,F002 pageNode;
+    class M001,M002 moduleNode;
