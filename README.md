@@ -22,10 +22,10 @@ The suite comprises **8 modular skills** following a logical, scopable workflow:
 | Skill | Role | Trigger / Usage |
 | :--- | :--- | :--- |
 | [`ia-orchestrator`](./skills/ia-orchestrator/SKILL.md) | **Master Orchestrator** | Coordinates end-to-end IA steps; handles global or scoped use case slicing. |
-| [`ia-cadrage`](./skills/ia-cadrage/SKILL.md) | **Scoping & Extraction** | Use when specifications are incomplete, informal, or raw (brief, PRD, existing code). |
-| [`ia-arborescence`](./skills/ia-arborescence/SKILL.md) | **Part 1: Arborescence** | Models reference tables (`pages`, `variantes`, `modules`, `composants_page`, `renvois`, `roles`) and canonical cascading URLs. |
+| [`ia-scoping`](./skills/ia-scoping/SKILL.md) | **Scoping & Extraction** | Use when specifications are incomplete, informal, or raw (brief, PRD, existing code). |
+| [`ia-sitemap`](./skills/ia-sitemap/SKILL.md) | **Part 1: Sitemap & Hierarchy** | Models reference tables (`pages`, `variantes`, `modules`, `composants_page`, `renvois`, `roles`) and canonical cascading URLs. |
 | [`ia-userflows`](./skills/ia-userflows/SKILL.md) | **Part 2: Userflows** | Formalizes journeys (`UC-xxx.md`), nominal flows, variants (`diverge_de`/`rejoint`), segments, flow breaks `⏸`, and closed context. |
-| [`ia-fiches-ecran`](./skills/ia-fiches-ecran/SKILL.md) | **Deduced Screen Sheets** | Generates detailed cross-cutting screen inventories for every screen (Section 7). |
+| [`ia-screen-sheets`](./skills/ia-screen-sheets/SKILL.md) | **Deduced Screen Sheets** | Generates detailed cross-cutting screen inventories for every screen (Section 7). |
 | [`ia-tracking`](./skills/ia-tracking/SKILL.md) | **Tracking Plan** | Instruments conversion funnels, custom analytics events, and return keys (Section 5). |
 | [`ia-qa-uat`](./skills/ia-qa-uat/SKILL.md) | **QA & UAT Test Plans** | Step-by-step test suites, context assertions, confidence status progression (Section 6). |
 | [`ia-audit`](./skills/ia-audit/SKILL.md) | **Audit & Consistency** | Automated detection of broken links, grammar violations, and normative rules (C1-C15, R-01-R-72). |

@@ -1,13 +1,13 @@
 ---
-name: ia-arborescence
+name: ia-sitemap
 description: >-
-  Information Architecture Part 1 modeling skill (Arborescence / Page Hierarchy).
+  Information Architecture Part 1 modeling skill (Sitemap / Page Hierarchy).
   Used to create, update, structure, and verify the hierarchical tree,
   Markdown reference tables (pages, variantes, modules, composants_page, renvois, roles),
   canonical URL conventions, and associated Mermaid diagrams.
 ---
 
-# Skill: IA Arborescence (Part 1)
+# Skill: IA Sitemap (Part 1)
 
 This skill implements the normative specification:
 [Part 1: Arborescence Specification (v0.4)](../../specs/spec-arborescence.md).

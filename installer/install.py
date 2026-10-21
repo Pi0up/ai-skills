@@ -33,11 +33,11 @@ PLUGIN_NAME = "information-architecture"
 
 SKILLS_NAMES = [
     "ia-orchestrator",
-    "ia-cadrage",
-    "ia-arborescence",
+    "ia-scoping",
+    "ia-sitemap",
     "ia-userflows",
     "ia-audit",
-    "ia-fiches-ecran",
+    "ia-screen-sheets",
     "ia-tracking",
     "ia-qa-uat",
 ]

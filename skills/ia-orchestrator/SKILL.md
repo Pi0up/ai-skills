@@ -25,12 +25,12 @@ This skill orchestrates the end-to-end Information Architecture methodology in a
 ## Logical Execution Workflow
 
 ```
-1. Scoping & Extraction   ==>  2. Part 1: Arborescence   ==>  3. Part 2: Userflows
-(skill: ia-cadrage)             (skill: ia-arborescence)       (skill: ia-userflows)
+1. Scoping & Extraction   ==>  2. Part 1: Sitemap         ==>  3. Part 2: Userflows
+(skill: ia-scoping)             (skill: ia-sitemap)            (skill: ia-userflows)
                                           ||                             ||
                                           \/                             \/
 5. Audit & Consistency    <==  4. Derived Deliverables   <== Synchronize Registry
-(skill: ia-audit)               (ia-fiches-ecran, ia-tracking,  (ia_tools sync-registry)
+(skill: ia-audit)               (ia-screen-sheets, ia-tracking, (ia_tools sync-registry)
                                  ia-qa-uat)
 ```
 
@@ -43,11 +43,11 @@ This skill orchestrates the end-to-end Information Architecture methodology in a
 2. Confirm the requested **scope**:
    - *Global*: entire application ecosystem.
    - *Scoped*: specific functional sub-domain (e.g., e-commerce catalog, account management) or targeted use case (e.g., `UC-DOSSIER`).
-3. If input material is incomplete, informal, or unstructured, immediately activate skill `ia-cadrage`.
+3. If input material is incomplete, informal, or unstructured, immediately activate skill `ia-scoping`.
 4. **Mutualization Duty and Alert (C15)**: Actively detect potential screen duplication for logically related entities. If two candidate pages share the same business entity and layout without documented functional justification, proactively alert the user and prompt for arbitration to mutualize them under a canonical page with variants.
 
 ### Step 2: Build the Arborescence (Part 1)
-Activate skill `ia-arborescence`:
+Activate skill `ia-sitemap`:
 1. Create or update reference tables in `arborescence/` (or project root):
    - `roles.md` (unique role codes, including mandatory `ANONYMOUS`)
    - `pages.md` (template codes `HOME`, `L`, `C`, `F`, `D`, `E`, `H`, hierarchical canonical URLs, access rights, `FEAT-XXX` capabilities; **strictly single parent, absolute prohibition of multi-parenting**)
@@ -76,7 +76,7 @@ Activate skill `ia-userflows`:
 
 ### Step 5: Generate Derived Deliverables
 Depending on project requirements:
-- **Deduced Screen Sheets**: activate `ia-fiches-ecran` (`python -m ia_tools.cli extract-screens`).
+- **Deduced Screen Sheets**: activate `ia-screen-sheets` (`python -m ia_tools.cli extract-screens`).
 - **Tracking & Observability Plan**: activate `ia-tracking`.
 - **QA / UAT Test Notebook**: activate `ia-qa-uat`.
 

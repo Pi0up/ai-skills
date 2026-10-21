@@ -1,5 +1,5 @@
 ---
-name: ia-fiches-ecran
+name: ia-screen-sheets
 description: >-
   Screen sheet deduction and generation skill (Section 7 of spec-userflows.md).
   Used to extract detailed synthetic sheets for each screen,

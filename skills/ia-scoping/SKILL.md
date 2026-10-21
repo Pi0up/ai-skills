@@ -1,5 +1,5 @@
 ---
-name: ia-cadrage
+name: ia-scoping
 description: >-
   Scoping and initial extraction skill for Information Architecture.
   Used when a specification is partial, incomplete, or unstructured (brief, user stories, existing codebase)
