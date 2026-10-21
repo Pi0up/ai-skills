@@ -4,10 +4,10 @@
   "version": "0.3.0",
   "skills": [
     "ia-orchestrator",
-    "ia-cadrage",
-    "ia-arborescence",
+    "ia-scoping",
+    "ia-sitemap",
     "ia-userflows",
-    "ia-fiches-ecran",
+    "ia-screen-sheets",
     "ia-tracking",
     "ia-qa-uat",
     "ia-audit"
