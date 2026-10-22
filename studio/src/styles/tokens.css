@@ -1,0 +1,139 @@
+/* ==========================================================================
+   Design System Tokens — Spec v1.2 (Section 3.2 & Annexe B)
+   ========================================================================== */
+
+:root, [data-theme="light"] {
+  /* Interface utilisateur */
+  --bg-app: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-inspector: #ffffff;
+  --bg-canvas: #f5f5f5;
+  --border-color: #e2e8f0;
+  --border-focus: #2563eb;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-subtle: #94a3b8;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-subtle: rgba(37, 99, 235, 0.1);
+  --badge-sitemap: #7c3aed;
+  --badge-userflow: #0284c7;
+  --badge-bg: rgba(0, 0, 0, 0.06);
+  --grid-dot: #cfcfcf;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.18);
+
+  /* Canvas Diagramme */
+  --dg-canvas: #f5f5f5;
+  --dg-dot: #cfcfcf;
+  --dg-frame: #ffffff;
+  --dg-frame-border: #e5e5e5;
+  --dg-level-line: #d9d9d9;
+
+  /* Carte Page (Spec Section 3.2) */
+  --dg-card: #ffffff;
+  --dg-card-border: #d4d4d4;
+  --dg-radius: 5px;
+  --dg-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  --dg-card-w: 200px;
+  --dg-card-h: 118px;
+
+  /* Accents de Carte */
+  --dg-home: #3232f5;
+  --dg-fill-state: #dbe6ec;
+  --dg-fill-state-border: #c5d3db;
+  --dg-fill-accent: #ebebfb;
+  --dg-fill-accent-border: #d6d6f2;
+  --dg-stack-1: #f3f3f3;
+  --dg-stack-2: #e8e8e8;
+
+  /* Textes Carte */
+  --dg-title: #222222;
+  --dg-url: #6b6b6b;
+  --dg-muted: #a8a8a8;
+  --dg-code: #333333;
+  --dg-type: #777777;
+
+  /* Liens */
+  --dg-edge: #666666;
+  --dg-edge-cross: #a3a3a3;
+
+  /* Entités Userflow */
+  --dg-call: #8b4dff;
+  --dg-ext: #ff9500;
+  --dg-att: #8a8f9b;
+
+  /* Palette de Tags */
+  --tag-blue: #0f5bff;
+  --tag-red: #f4153e;
+  --tag-gray: #8a8f9b;
+  --tag-green: #7bcc0f;
+  --tag-orange: #ff8a14;
+
+  /* Bulles d'Icônes */
+  --bubble-peach: #fdd3b0;
+  --bubble-amber: #fcc36b;
+  --bubble-blue: #a6d3f6;
+  --bubble-lavender: #d2c5f4;
+  --bubble-ink: #2b3a55;
+  --marker-violet: #b5a1ee;
+  --marker-slate: #5d6475;
+  --marker-green: #4a9a2c;
+  --order-circle: #b7a6ea;
+
+  /* Géométrie & Typographie */
+  --dg-gap-x: 48px;
+  --dg-gap-y: 72px;
+  --dg-flow-gap: 88px;
+  --dg-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+[data-theme="dark"] {
+  /* Interface Sombre */
+  --bg-app: #0f172a;
+  --bg-sidebar: #1e293b;
+  --bg-inspector: #1e293b;
+  --bg-canvas: #090d16;
+  --border-color: #334155;
+  --border-focus: #3b82f6;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-subtle: rgba(59, 130, 246, 0.15);
+  --badge-sitemap: #8b5cf6;
+  --badge-userflow: #0ea5e9;
+  --badge-bg: rgba(255, 255, 255, 0.08);
+  --grid-dot: #1e293b;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 14px 32px rgba(0, 0, 0, 0.65);
+
+  /* Canvas & Carte Sombre */
+  --dg-canvas: #090d16;
+  --dg-dot: #1e293b;
+  --dg-frame: #111827;
+  --dg-frame-border: #1f2a3d;
+  --dg-level-line: #1e293b;
+
+  --dg-card: #1e293b;
+  --dg-card-border: #334155;
+  --dg-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --dg-home: #818cf8;
+  --dg-fill-state: #1e3a4a;
+  --dg-fill-state-border: #2b5568;
+  --dg-fill-accent: #2a2a52;
+  --dg-fill-accent-border: #3b3b72;
+  --dg-stack-1: #182235;
+  --dg-stack-2: #131c2c;
+
+  --dg-title: #f1f5f9;
+  --dg-url: #94a3b8;
+  --dg-muted: #64748b;
+  --dg-code: #cbd5e1;
+  --dg-type: #94a3b8;
+  --dg-edge: #94a3b8;
+  --dg-edge-cross: #64748b;
+}

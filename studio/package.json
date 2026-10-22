@@ -1,0 +1,25 @@
+{
+  "name": "information-architecture-studio",
+  "version": "1.2.0",
+  "description": "Information Architecture Studio - Unified Standalone Visualizer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node -e \"import('fs').then(fs => fs.copyFileSync('dist/index.html', 'dist/preview.html'))\"",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "information-architecture",
+    "sitemap",
+    "userflows",
+    "mermaid",
+    "visualizer"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^6.2.0",
+    "vite-plugin-singlefile": "^2.1.0",
+    "vitest": "^3.0.0"
+  }
+}

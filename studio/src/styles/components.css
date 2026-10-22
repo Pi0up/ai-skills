@@ -1,0 +1,427 @@
+/* ==========================================================================
+   Components Styles — Cartes, Boutons, Menus, Symboles & SVG
+   ========================================================================== */
+
+/* 1. Google Material Symbols */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-block;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  vertical-align: middle;
+  user-select: none;
+}
+
+.icon-sm { font-size: 14px; }
+.icon-md { font-size: 18px; }
+.icon-lg { font-size: 24px; }
+
+/* 2. Boutons d'Action & Outils */
+.btn-tool {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  font-weight: 500;
+}
+
+.btn-tool:hover {
+  background: var(--border-color);
+}
+
+.btn-tool.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-tool.primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-zoom {
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.btn-zoom:hover {
+  background: var(--border-color);
+}
+
+/* 3. Menus Déroulants (Dropdowns) */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  border-radius: 8px;
+  padding: 6px 0;
+  min-width: 200px;
+  z-index: 100;
+  animation: fadeIn 0.15s ease;
+}
+
+.dropdown.open .dropdown-content {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  text-decoration: none;
+}
+
+.dropdown-item:hover {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.layer-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.layer-option:hover {
+  background: var(--bg-app);
+}
+
+/* 4. Liste des Diagrammes dans la Barre Latérale */
+.diagram-item {
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  border: 1px solid transparent;
+  background: var(--bg-app);
+  transition: all 0.15s ease;
+}
+
+.diagram-item:hover {
+  border-color: var(--border-color);
+}
+
+.diagram-item.active {
+  border-color: var(--primary);
+  background: var(--primary-subtle);
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.item-title {
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.badge-sitemap { background: var(--badge-sitemap); color: #fff; }
+.badge-userflow { background: var(--badge-userflow); color: #fff; }
+
+.item-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 5. Éléments SVG du Rendu Propre */
+svg.dg-canvas {
+  overflow: visible;
+  font-family: var(--dg-font);
+}
+
+/* Carte Page Standard */
+g.dg-card {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+g.dg-card:hover rect.card-main {
+  filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.2));
+}
+
+g.dg-card.selected rect.card-main {
+  stroke: var(--primary) !important;
+  stroke-width: 2.5px !important;
+}
+
+/* Carte ACT sans bordure (Point 9 validé) */
+g.dg-card.act-card rect.card-main {
+  fill: rgba(0, 0, 0, 0.03);
+  stroke: none !important;
+}
+
+[data-theme="dark"] g.dg-card.act-card rect.card-main {
+  fill: rgba(255, 255, 255, 0.04);
+}
+
+g.dg-card.act-card:hover rect.card-main {
+  fill: rgba(37, 99, 235, 0.08);
+}
+
+/* Liens SVG (<path>) */
+g.dg-edge path {
+  stroke: var(--dg-edge);
+  stroke-width: 1.5px;
+  fill: none;
+  transition: stroke 0.15s ease, stroke-width 0.15s ease;
+}
+
+g.dg-edge.cross path {
+  stroke: var(--dg-edge-cross);
+  stroke-dasharray: 6 4;
+}
+
+g.dg-edge.call path { stroke: var(--dg-call); }
+g.dg-edge.ext path { stroke: var(--dg-ext); }
+
+g.dg-edge:hover path {
+  stroke: var(--primary);
+  stroke-width: 2.5px;
+}
+
+/* Lignes de Niveau */
+g.level-lines line {
+  stroke: var(--dg-level-line);
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+}
+
+g.level-lines text {
+  fill: var(--dg-muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Pastilles Chips (ATT avec sablier) */
+g.dg-chip {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+g.dg-chip:hover { transform: scale(1.05); }
+
+/* Non couvert (Calque Couverture) */
+g.dg-card.uncovered rect.card-main {
+  stroke: #ef4444 !important;
+  stroke-width: 2px !important;
+  stroke-dasharray: 5 3 !important;
+}
+
+/* Atténuation Rôle */
+g.dg-card.dimmed, g.dg-chip.dimmed {
+  opacity: 0.25;
+}
+
+/* Animation Pulsation */
+@keyframes cardPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+g.dg-card.pulse {
+  animation: cardPulse 1.2s ease-in-out;
+}
+
+/* 6. Carte de Survol (Hover Card §6.1) */
+#hover-card {
+  position: fixed;
+  display: none;
+  width: 300px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  border-radius: 8px;
+  padding: 12px 14px;
+  z-index: 1000;
+  pointer-events: auto;
+  font-size: 12px;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 6px;
+}
+
+.hover-code {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.hover-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--border-color);
+  color: var(--text-muted);
+}
+
+.hover-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.hover-url {
+  color: var(--dg-url);
+  font-family: monospace;
+  font-size: 11px;
+  margin-bottom: 8px;
+}
+
+.hover-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.hover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+}
+
+.hover-action-btn {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hover-action-btn:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+/* 7. Boutons de Navigation dans l'Inspecteur (Parent / Enfants) */
+.node-nav-group {
+  margin-top: 14px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+.node-nav-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.node-nav-btn {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.node-nav-btn:hover {
+  background: var(--primary-subtle);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.node-nav-code {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.node-nav-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}

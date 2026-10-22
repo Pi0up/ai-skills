@@ -39,6 +39,10 @@ nosetests.xml
 coverage.xml
 *.cover
 
+# Node / JS
+node_modules/
+.vite/
+
 # Generated deliverables
 generated/
 generes/

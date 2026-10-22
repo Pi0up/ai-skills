@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Information Architecture Studio — Visualiseur Unifié v1.2</title>
+
+  <!-- Google Material Symbols Outlined (CDN) — Point 2 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <!-- Mermaid.js v10 (Repli Vue Brute uniquement) -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+  <!-- Feuilles de Style Modulaires (Vite injectera/inlinera en dist) -->
+  <link rel="stylesheet" href="./styles/tokens.css">
+  <link rel="stylesheet" href="./styles/layout.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <link rel="stylesheet" href="./styles/print.css">
+</head>
+<body data-theme="light">
+
+  <!-- 1. Panneau Latéral Gauche -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-title">
+        <span class="material-symbols-outlined icon-md" style="color:var(--primary);">hub</span>
+        <span>Information Architecture</span>
+        <span class="brand-badge">STUDIO</span>
+      </div>
+      <button class="btn-tool" id="btn-theme" title="Basculer Thème">
+        <span class="material-symbols-outlined icon-sm">dark_mode</span>
+      </button>
+    </div>
+
+    <div class="folder-controls">
+      <button class="btn-tool primary" id="btn-open-folder">
+        <span class="material-symbols-outlined icon-sm">folder_open</span>
+        Dossier
+      </button>
+      <button class="btn-tool" id="btn-refresh" title="Actualiser">
+        <span class="material-symbols-outlined icon-sm">refresh</span>
+      </button>
+      <input type="file" id="fallback-input" webkitdirectory directory multiple style="display:none">
+    </div>
+
+    <div class="search-box">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text" id="search-input" class="search-input" placeholder="Rechercher diagramme ou code...">
+    </div>
+
+    <div class="filter-pills">
+      <button class="pill active" data-filter="all">Tous</button>
+      <button class="pill" data-filter="sitemap">Arbos</button>
+      <button class="pill" data-filter="userflow">Parcours</button>
+    </div>
+
+    <div class="filter-roles-bar">
+      <span>Rôle :</span>
+      <select id="role-filter" class="select-role">
+        <option value="ALL">Tous les rôles</option>
+      </select>
+    </div>
+
+    <div class="sidebar-list" id="diagram-list">
+      <!-- Rempli dynamiquement -->
+    </div>
+  </aside>
+
+  <!-- 2. Zone Principale & Viewport -->
+  <main id="main-viewport">
+    <!-- Barre Supérieure -->
+    <div class="top-toolbar">
+      <div class="toolbar-left">
+        <button class="btn-tool" id="btn-toggle-sidebar" title="Masquer / Afficher panneau latéral">
+          <span class="material-symbols-outlined icon-sm">menu</span>
+        </button>
+        <span class="active-diagram-title" id="active-title">Chargement...</span>
+        <span class="item-badge badge-sitemap" id="active-kind-badge">SITEMAP</span>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Menu Déroulant Export (Point 11) -->
+        <div class="dropdown" id="export-dropdown-wrapper">
+          <button class="btn-tool primary" id="btn-export-dropdown">
+            <span class="material-symbols-outlined icon-sm">download</span>
+            Exporter ▾
+          </button>
+          <div class="dropdown-content" id="export-dropdown-content">
+            <div class="dropdown-item" id="export-svg">
+              <span class="material-symbols-outlined icon-sm">draw</span>
+              SVG vectoriel (.svg)
+            </div>
+            <div class="dropdown-item" id="export-png">
+              <span class="material-symbols-outlined icon-sm">image</span>
+              Image PNG standard (.png)
+            </div>
+            <div class="dropdown-item" id="export-hd">
+              <span class="material-symbols-outlined icon-sm">photo_size_select_actual</span>
+              Image PNG Haute Définition (.png)
+            </div>
+            <div class="dropdown-item" id="export-print" style="border-top:1px solid var(--border-color);">
+              <span class="material-symbols-outlined icon-sm">print</span>
+              Imprimer le diagramme
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewport Canvas -->
+    <div class="canvas-viewport" id="canvas-viewport">
+      <!-- Bouton Retour au Parcours -->
+      <button id="back-to-flow-btn">
+        <span class="material-symbols-outlined icon-sm">arrow_back</span>
+        Retour au parcours
+      </button>
+
+      <!-- Barre d'Outils Flottante au-dessus du Canvas (Point 12) -->
+      <div class="canvas-floating-toolbar">
+        <!-- Dropdown Calques -->
+        <div class="dropdown" id="layers-dropdown-float">
+          <button class="btn-tool" id="btn-layers-float">
+            <span class="material-symbols-outlined icon-sm">layers</span>
+            Calques ▾
+          </button>
+          <div class="dropdown-content" style="left:0;right:auto;">
+            <label class="layer-option"><input type="checkbox" id="layer-levels" checked> Niveaux (arbo)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-renvois" checked> Renvois & modules</label>
+            <label class="layer-option"><input type="checkbox" id="layer-numbers"> Numérotation (01)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-avatars"> Avatars rôles</label>
+            <label class="layer-option"><input type="checkbox" id="layer-tags" checked> Tags (SP1...)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-coverage"> Couverture parcours</label>
+            <label class="layer-option"><input type="checkbox" id="layer-mermaid"> Vue Mermaid brute</label>
+          </div>
+        </div>
+
+        <button class="btn-tool" id="btn-legend-float">
+          <span class="material-symbols-outlined icon-sm">palette</span>
+          Légende
+        </button>
+
+        <button class="btn-tool" id="btn-diag-float">
+          <span class="material-symbols-outlined icon-sm">warning</span>
+          Diagnostics
+          <span id="diag-badge">0</span>
+        </button>
+
+        <div class="floating-divider"></div>
+
+        <button class="btn-zoom" id="btn-zoom-in" title="Zoom avant">
+          <span class="material-symbols-outlined icon-sm">zoom_in</span>
+        </button>
+        <button class="btn-zoom" id="btn-zoom-out" title="Zoom arrière">
+          <span class="material-symbols-outlined icon-sm">zoom_out</span>
+        </button>
+        <button class="btn-zoom" id="btn-zoom-fit" title="Ajuster à la vue">
+          <span class="material-symbols-outlined icon-sm">fit_screen</span>
+        </button>
+        <button class="btn-zoom" id="btn-zoom-reset" title="Échelle 100%">1:1</button>
+      </div>
+
+      <!-- Canevas SVG -->
+      <div id="svg-canvas-wrapper">
+        <div id="render-target"></div>
+      </div>
+
+      <!-- Panneau Légende Flottant -->
+      <div id="legend-panel">
+        <div style="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined icon-sm">palette</span>
+          Légende du Diagramme
+        </div>
+        <div id="legend-content"></div>
+      </div>
+
+      <!-- Inspecteur Modal Interactif (Point 5, 7, 14) -->
+      <div id="inspector-modal">
+        <div class="inspector-header">
+          <div style="font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined icon-sm" style="color:var(--primary);">info</span>
+            Propriétés & Navigation
+          </div>
+          <button class="btn-tool" id="btn-close-inspector" style="padding:4px 8px;">✕</button>
+        </div>
+        <div class="inspector-body" id="inspector-body">
+          <!-- Rempli dynamiquement -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Carte de Survol -->
+  <div id="hover-card"></div>
+
+  <!-- Modale Fiche Écran Markdown -->
+  <div class="modal-overlay" id="sheet-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="modal-sheet-title">Fiche Écran</span>
+        <button class="btn-tool" id="btn-close-sheet">✕</button>
+      </div>
+      <div class="modal-body" id="modal-sheet-content"></div>
+    </div>
+  </div>
+
+  <!-- Modale Diagnostics Structurels -->
+  <div class="modal-overlay" id="diag-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined icon-sm" style="color:#f59e0b;">warning</span>
+          Diagnostics Structurels (§11)
+        </span>
+        <button class="btn-tool" id="btn-close-diag">✕</button>
+      </div>
+      <div class="modal-body" id="modal-diag-content"></div>
+    </div>
+  </div>
+
+  <!-- Script d'Entrée Modulaire -->
+  <script type="module" src="./scripts/app.js"></script>
+</body>
+</html>

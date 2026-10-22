@@ -1,0 +1,47 @@
+/* ==========================================================================
+   Print Styles — Export & Impression (@media print)
+   ========================================================================== */
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #sidebar,
+  .top-toolbar,
+  .canvas-floating-toolbar,
+  #hover-card,
+  #back-to-flow-btn,
+  #inspector-modal,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  #main-viewport {
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  .canvas-viewport {
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  #svg-canvas-wrapper {
+    position: static !important;
+    transform: none !important;
+  }
+
+  svg.dg-canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+}
