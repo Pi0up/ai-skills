@@ -78,7 +78,7 @@ generated/
 ```
 
 ### 2.2 Sources de données ingérées
-1. **Diagrammes Mermaid (`*.mmd`)** : code Mermaid + meta `%%@` (§2.4). Un éventuel frontmatter YAML hérité est lu (clés `id`, `title`, `type`, `roles`, `tags`, `description`), les lignes `%%@file` primant en cas de conflit.
+1. **Diagrammes Mermaid (`*.mmd`)** : code Mermaid + meta `%%@` (§2.4). Les métadonnées sont portées exclusivement par les directives en commentaires `%%@file`, `%%@node`, `%%@edge` (politique de migration stricte vers `%%@file`, sans frontmatter YAML).
 2. **Registre `metadata.json`** : données **lourdes** indexées par `code` (`ctx_in`, `ctx_out`, signaux de tracking, rupture). Chargé à la demande (survol enrichi, inspecteur). La meta des `.mmd` ne porte que ce qui sert à **l'habillage et à la lecture du diagramme**.
 3. **Fiches écrans (`screen-sheets/screen-*.md`)** : entrées, sorties, fonctionnalités, contextes et événements d'un écran.
 
@@ -356,21 +356,15 @@ Les cas sont **cumulables** (ex. dynamique + variante + protégée). Précédenc
 
 Exemple des captures : `SP1` vert contour, `SP2` orange contour, `SP3` rouge contour, `MVP` dans les 10 combinaisons.
 
-**Avatars** — cercle ~28 px, anneau blanc 2 px, ombre légère, chevauchement −8 px. Pas de photo : initiales du rôle sur fond de couleur stable (hachage du code). Affichage activable (§5.2).
+**Avatars** — cercle ~28 px, anneau blanc 2 px, ombre légère, chevauchement −8 px. Pas de photo : initiales calculées avec repli automatique (priorité à `who=` si présent, sinon repli sur `roles=`) sur fond de couleur stable (hachage du rôle). Affichage activable via le calque « Avatars » (§5.2, masqué par défaut).
 
-**Marqueurs de flux** — pastilles du panneau components, à n'utiliser que dans les userflows :
+**Marqueurs d'arborescence** — pastilles réservées exclusivement aux arborescences (aucun marqueur sur les userflows, qui restent sobres et épurés) :
 
-| Marqueur | Forme | Lecture proposée |
+| Marqueur | Forme | Signification |
 | :--- | :--- | :--- |
-| ▼ 01 | triangle inversé violet | Entrée du parcours |
-| ▲ 01 | triangle violet | Sortie du parcours |
-| ● 01 | cercle violet | Numéro d'étape (`order`) |
-| ● personne | cercle ardoise | Un rôle |
-| ● groupe | cercle ardoise | Plusieurs rôles |
-| ● atterrissage | cercle ardoise, avion | Écran d'atterrissage (`atterrissage`) |
-| ◆ 01 | losange vert | Divergence / rejonction (`diverge` / `rejoin`) |
-
-> Les lectures des bulles et marqueurs sont **des interprétations des captures** : à confirmer (§13).
+| ● 01 | cercle violet | Numéro d'ordre (`order`), activable via le calque « Numérotation » |
+| ● personne | cercle ardoise | Un rôle associé |
+| ● groupe | cercle ardoise | Plusieurs rôles associés |
 
 ### 3.6 Liaisons
 
@@ -398,7 +392,7 @@ Un lien qui part d'un **CALL** prend la couleur violette ; un lien qui part d'un
 | `ACT` | **Pastille** (chip) posée sur le lien entre deux écrans | Texte = libellé (ex. « publier »). Si l'action n'est pas entre deux écrans, nœud pastille autonome. La référence `FEAT-xxx` est au survol |
 | `CALL` | Carte à **bordure violette 2 px**, fond blanc, titre en gras (`PF-… — titre`) | Lien sortant violet. Vue dépliée : cadre violet pointillé contenant le sous-parcours |
 | `EXT` | Carte à **bordure orange 2 px**, titre gras + sous-titre (`ref`) | Lien sortant orange. Point d'entrée de type notification, email, échange hors application |
-| `ATT` | Carte à **bordure grise pointillée**, glyphe sablier | **Proposition** : non présent dans les captures |
+| `ATT` | **Pastille** (chip) posée sur le lien | Similaire aux actions `ACT` : pastille allongée grise avec icône de sablier ⏳ (plus compact qu'une carte) |
 | Rupture ⏸ | Marqueur « pause » (cercle ardoise) en coin haut-gauche | Détails (mémoire, persistance, reprise, délai) au survol |
 
 **Cadres (frames)** : en vue d'ensemble d'un cas d'usage, les parcours sont regroupés par **rôle** dans des cadres blancs (rayon 8 px, bordure `--dg-frame-border`) munis d'une étiquette grise en haut-gauche (`flows / <rôle>`), sur le fond pointillé. Chaque parcours est une **ligne** précédée d'un titre `PF-xxx — titre` (9 px, `--dg-url`).
@@ -592,7 +586,7 @@ Le SVG exporté est celui du moteur de rendu (§4). Les textes sont dessinés en
 
 ## 9. Système de Thèmes
 
-Bascule instantanée par `document.body.dataset.theme = 'light' | 'dark'`. **Le thème par défaut est désormais le clair**, car il correspond au design system de référence.
+Bascule instantanée par `document.body.dataset.theme = 'light' | 'dark'`. **Au premier chargement, le thème est détecté automatiquement selon l'OS (`window.matchMedia('(prefers-color-scheme: dark)')`)**, avec mémorisation locale (`localStorage`) et bouton de bascule manuelle dans la barre d'outils.
 
 **Interface (hors diagramme)** — inchangé par rapport à la v1.0 :
 
@@ -696,21 +690,21 @@ Un clic sur une ligne du panneau centre le nœud concerné.
 
 ---
 
-## 13. Points à Confirmer
+## 13. Arbitrages et Décisions Validés
 
-| # | Sujet | Hypothèse retenue dans la spec |
+| # | Sujet | Décision validée |
 | :--- | :--- | :--- |
-| 1 | Fond **lavande** des pages `new/` (captures de l'arbo) | Modélisé par `tone=accent`, sens métier laissé ouvert |
-| 2 | **Bulles d'icône** (téléphone, personne, cible, « i ») | Lues comme `device`, `a11y`, `entry`, `info` (§3.5) |
-| 3 | **Avatars** sur les cartes | Lus comme personnes / rôles associés (`who`), rendus en initiales |
-| 4 | **Marqueurs de flux** (triangles, losange, pastilles ardoise) | Lus comme entrée, sortie, étape, rôle(s), atterrissage, bifurcation (§3.5) |
-| 5 | **Tags** `SP1/SP2/SP3`, `MVP` | Tags libres, couleur et style déclarés par `%%@tag` |
-| 6 | Type **`E`** (pages techniques 403/404/erreur) | Conservé car présent dans les fichiers existants ; hors liste `HOME, H, L, F, C, D` |
-| 7 | Rôle non connecté | `ANONYMOUS` utilisé tel quel par les fichiers existants ; `PUBLIC` / « anonyme » à trancher |
-| 8 | **ATT** | Style proposé (bordure grise pointillée, sablier) : absent des captures |
-| 9 | Frontmatter YAML | Toléré en lecture ; sa compatibilité avec le lecteur Mermaid cible est à vérifier |
-| 10 | Thème **clair par défaut** | Changement de la v1.0 (sombre) ; sombre dérivé non calibré |
-| 11 | Écran du panneau « components » : pastille d'ordre (`01`) | Affichée uniquement via le calque « Numérotation » |
+| 1 | Fond **lavande** (`tone=accent`) | **Accentuation générique (`tone=accent`)** : utilisable librement via la directive `%%@node` sur n'importe quelle page ou écran à mettre en valeur (création, page clé, point critique). |
+| 2 | **Bulles d'icône** | **Registre standard validé des 5 icônes** : `device` (pêche), `a11y` (ambre), `entry` (bleu), `info` (lavande) et `lock` automatique (ardoise si `access=protected`). |
+| 3 | **Avatars** (`who`) | **Initiales calculées avec repli automatique** : priorité à `who=` si précisé, sinon repli sur `roles=` ; cercles avec anneau blanc et couleur stable, activables via le calque « Avatars » (désactivé par défaut). |
+| 4 | **Marqueurs de flux** | **Pas de marqueurs sur les userflows, uniquement sur l'arborescence** : les userflows restent sobres et épurés, sans triangles ni losanges. |
+| 5 | **Tags** (`%%@tag` et `tags=`) | **Palette standard de 5 couleurs** : bleu, rouge, gris, vert, orange ; styles `outline` (par défaut) et `fill` ; repli gris contour si non déclaré ; max 3 visibles puis « +n ». |
+| 6 | Type **`E`** (pages techniques) | **Officialisé dans les templates canoniques** (`HOME`, `H`, `L`, `F`, `C`, `D`, `E`) avec « Technique » comme libellé par défaut. |
+| 7 | Rôle public | **`ANONYMOUS` retenu comme standard canonique** (avec alias toléré pour `PUBLIC`) pour préserver la rétrocompatibilité des fichiers et tests existants. |
+| 8 | **ATT** (Attente / asynchrone) | **Format pastille (chip)** : posée sur le lien comme les actions `ACT`, pastille allongée grise avec icône sablier ⏳ (plus compact qu'une carte). |
+| 9 | Métadonnées de fichier | **Migration stricte vers `%%@file`** : suppression progressive des frontmatters YAML existants au profit des directives `%%@file`, simplifiant le parseur sur `%%@` uniquement. |
+| 10 | Thème initial | **Détection automatique selon l'OS (`prefers-color-scheme`)** : adopte le thème système au premier chargement, avec mémorisation locale (`localStorage`) et bouton de bascule manuelle instantanée (clair / sombre). |
+| 11 | Pastille d'ordre (`(01)`) | **Masquée par défaut, activable via le calque « Numérotation » sur l'arborescence uniquement** (exclue des userflows). |
 
 ---
 
