@@ -33,14 +33,15 @@ export function layoutSitemap(ast, options = {}) {
     }
   });
 
-  // Isolation des modules transverses (MOD ou code M###)
+  // Isolation des modules transverses et des éléments rattachés
   const isModule = (id) => {
     const n = ast.nodes[id];
     return n && (n.type === 'MOD' || (n.code && n.code.startsWith('M')));
   };
+  const isAttached = (id) => ast.edges.some((e) => e.dst === id && e.kind === 'attach');
 
-  // Identification des racines
-  let roots = allNodeIds.filter((id) => incomingNav[id] === 0 && !isModule(id));
+  // Identification des racines (exclut les modules et les éléments rattachés)
+  let roots = allNodeIds.filter((id) => incomingNav[id] === 0 && !isModule(id) && !isAttached(id));
   // Place HOME en première racine prioritaire
   roots.sort((a, b) => {
     const na = ast.nodes[a];

@@ -64,7 +64,7 @@ export function parseKeyValues(str, target) {
   while ((match = regex.exec(str)) !== null) {
     const k = match[1];
     const v = match[2] !== undefined ? match[2] : (match[3] !== undefined ? match[3] : match[4]);
-    if (v && v.includes(',') && !k.includes('label') && !k.includes('title')) {
+    if (k === 'tags' || k === 'roles' || (v && v.includes(',') && !k.includes('label') && !k.includes('title'))) {
       target[k] = v.split(',').map((s) => s.trim());
     } else {
       target[k] = v;

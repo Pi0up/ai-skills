@@ -38,8 +38,9 @@ export function computeHierarchyUrls(ast) {
     }
   });
 
-  // Trouve la racine HOME
-  const rootIds = Object.keys(ast.nodes).filter((id) => !parentMap[id]);
+  // Trouve les racines hiérarchiques (exclut les éléments rattachés)
+  const isAttached = (id) => ast.edges.some((e) => e.dst === id && e.kind === 'attach');
+  const rootIds = Object.keys(ast.nodes).filter((id) => !parentMap[id] && !isAttached(id));
 
   function traverse(nodeId, currentChain) {
     const node = ast.nodes[nodeId];

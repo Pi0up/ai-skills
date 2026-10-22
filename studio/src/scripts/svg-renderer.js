@@ -169,8 +169,11 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   }
 
   // Styles de base de carte
-  let cardClass = `dg-card ${isDimmed ? 'dimmed' : ''} ${isUncovered ? 'uncovered' : ''}`;
-  if (isAct) cardClass += ' act-card';
+  const cardClasses = ['dg-card'];
+  if (isDimmed) cardClasses.push('dimmed');
+  if (isUncovered) cardClasses.push('uncovered');
+  if (isAct) cardClasses.push('act-card');
+  const cardClass = cardClasses.join(' ');
 
   let strokeColor = 'var(--dg-card-border)';
   let strokeWidth = '1';
