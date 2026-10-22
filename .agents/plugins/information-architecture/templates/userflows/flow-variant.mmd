@@ -1,36 +1,22 @@
----
-title: Flow Variant - PF-DOSSIER-VAR-ASSIST
-type: userflow
-id: PF-DOSSIER-VAR-ASSIST
-version: 1.0.0
-roles: [USER]
-tags: [userflow, variant, assistance]
-description: Template de parcours avec variante et rupture déclarée (⏸)
----
+%%@file id=PF-DOSSIER-VAR-ASSIST project=DOSSIER kind=userflow view=collapsed uc=UC-DOSSIER obj=OBJ-DOSSIER-01 statut=variante roles=MANAGER title="Parcours Variante : Assistance Téléphonique" version="1.1" diverge=PF-DOSSIER-NOM@1 rejoint=PF-DOSSIER-NOM@4
+%%@node ND010 code=C010:EDIT type=ECR order=1
+%%@node ND030 ref=FEAT-DEMANDER-AIDE type=ACT order=2
+%%@node ND031 code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND020 persist=external delay=24h order=3
+%%@node ND020 code=C010 type=ECR order=4
+%%@edge ND010>ND030 kind=diverge
+%%@edge ND030>ND031 kind=variant
+%%@edge ND031>ND020 kind=rejoin
 flowchart LR
 
     %% --------------------------------------------------------------------------
-    %% Parcours Nominal : PF-DOSSIER-NOM (Trait plein)
-    %% Contexte d'entrée : Données complètes
-    %% --------------------------------------------------------------------------
-    ND010(["ND-010 ECR C010:EDIT"])
-    ND011["ND-011 ACT FEAT-VALIDER-INFOS"]
-    ND020(["ND-020 ECR C010"])
-    ND021["ND-021 ACT FEAT-SOUMETTRE"]
-
-    ND010 --> ND011
-    ND011 --> ND020
-    ND020 --> ND021
-
-    %% --------------------------------------------------------------------------
-    %% Parcours Variante : PF-DOSSIER-VAR-ASSIST (Trait pointillé)
-    %% diverge_de: PF-DOSSIER-NOM@1 | rejoint: PF-DOSSIER-NOM@4
+    %% Parcours Variante Linéaire : PF-DOSSIER-VAR-ASSIST (Fichier Brut Séparé)
+    %% Diverge de PF-DOSSIER-NOM@1 (ND010) et rejoint PF-DOSSIER-NOM@4 (ND020)
     %% Contexte d'entrée : Pièces manquantes + assistance demandée
-    %% Inclut un événement hors application observable de manière indirecte (EXT avec clé de retour) + rupture ⏸
+    %% Inclut un événement externe hors application avec rupture déclarée (⏸)
     %% --------------------------------------------------------------------------
-    ND030["ND-030 ACT FEAT-DEMANDER-AIDE"]
-    ND031[/"ND-031 EXT Échange téléphonique conseiller ⏸"/]
+    ND010(["ND-010 · C010:EDIT (Point de divergence)"])
+    ND030["ND-030 · Demande d'aide conseiller"]
+    ND031[/"ND-031 · Échange téléphonique conseiller ⏸"/]
+    ND020(["ND-020 · C010 (Point de rejonction)"])
 
-    ND010 -. "diverge_de @1" .-> ND030
-    ND030 -.-> ND031
-    ND031 -. "rejoint @4 (Clé de retour)" .-> ND020
+    ND010 -. "diverge @1" .-> ND030 -.-> ND031 -. "rejoint @4" .-> ND020
