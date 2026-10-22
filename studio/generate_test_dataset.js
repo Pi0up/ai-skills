@@ -104,6 +104,8 @@ files['sitemap-detailed.mmd'] = `%%@file id=sitemap-detailed project=ECO-STAYS k
 %%@node M001 code=M001 type=MOD scope=ALL order=1 tags=MVP
 %%@node M002 code=M002 type=MOD scope=AUTH order=2 tags=SP1
 %%@node M003 code=M003 type=MOD scope=@ADMIN order=3 tags=AUDIT who=ADMIN
+%%@node EXT_3DSECURE code=EXT-3DSECURE type=EXT access=protected roles=VOYAGEUR,ADMIN url=ext://banque-partenaire/3ds order=1 who=VOYAGEUR
+%%@node EXT_CONSEIL code=EXT-CONSEIL type=EXT access=protected roles=HOTE,ADMIN url=ext://visio-conseil/rdv order=2 who=HOTE
 %%@edge HOME>H001 kind=navigation
 %%@edge H001>L002 kind=navigation
 %%@edge L002>C002 kind=navigation
@@ -129,6 +131,8 @@ files['sitemap-detailed.mmd'] = `%%@file id=sitemap-detailed project=ECO-STAYS k
 %%@edge L001>M001 kind=invoke
 %%@edge F001>M002 kind=invoke
 %%@edge D002>M003 kind=invoke
+%%@edge F001>EXT_3DSECURE kind=action ref=FEAT-SAISIE-CB
+%%@edge F002>EXT_CONSEIL kind=action ref=FEAT-DEMANDE-LABEL
 flowchart TD
   HOME(["HOME · Accueil & Sélections Éco-Responsables"])
   H001["H001 · Espace Voyageur"]
@@ -156,6 +160,8 @@ flowchart TD
   M001>"M001 · FAQ & Assistant Éco-Guide"]
   M002>"M002 · Sélecteur Rapide de Dates"]
   M003>"M003 · Tiroir Modération Express"]
+  EXT_3DSECURE[/"EXT-3DSECURE · Challenge 3D-Secure banque"/]
+  EXT_CONSEIL[/"EXT-CONSEIL · Audit & échange visio avec conseiller éco"/]
 
   HOME --> H001
   H001 --> L002
@@ -182,6 +188,8 @@ flowchart TD
   L001 -.-> M001
   F001 -.-> M002
   D002 -.-> M003
+  F001 -.-> EXT_3DSECURE
+  F002 -.-> EXT_CONSEIL
 `;
 
 // 3. sitemap-by-role-admin.mmd
@@ -835,10 +843,81 @@ files['metadata.json'] = JSON.stringify({
     "tracking": {
       "events": ["mod_drawer_opened", "quick_approval_executed"]
     }
+  },
+  "EXT-3DSECURE": {
+    "code": "EXT-3DSECURE",
+    "title": "Challenge 3D-Secure banque",
+    "template": "EXT",
+    "subtype": "service_externe",
+    "access": "protected",
+    "roles": ["VOYAGEUR", "ADMIN"],
+    "url": "ext://banque-partenaire/3ds",
+    "fournisseur": "Banque Partenaire",
+    "rupture": {
+      "break": true,
+      "delay": "5m",
+      "persist": "volatile",
+      "resume": "ND_P04"
+    },
+    "tracking": {
+      "events": ["3ds_challenge_started", "3ds_challenge_completed"]
+    }
+  },
+  "EXT-CONSEIL": {
+    "code": "EXT-CONSEIL",
+    "title": "Audit & échange visio avec conseiller éco",
+    "template": "EXT",
+    "subtype": "service_externe",
+    "access": "protected",
+    "roles": ["HOTE", "ADMIN"],
+    "url": "ext://visio-conseil/rdv",
+    "fournisseur": "Organisme Éco-Label",
+    "rupture": {
+      "break": true,
+      "delay": "48h",
+      "persist": "external",
+      "resume": "ND_C001_PREV"
+    },
+    "tracking": {
+      "events": ["advisory_session_scheduled", "advisory_session_completed"]
+    }
   }
 }, null, 2);
 
 const extraSheets = {
+  'screen-EXT-3DSECURE.md': `# Fiche Écran Déduite : EXT-3DSECURE
+
+> Fiche synthétique croisant arborescence et parcours utilisateurs (spec-userflows.md Section 7).
+
+- **Référence Canonique** : \`EXT-3DSECURE\`
+- **Type de Composant** : Service Externe (\`EXT\`)
+- **URL Externe** : \`ext://banque-partenaire/3ds\`
+- **Fournisseur** : Banque Partenaire
+- **Rôles Autorisés** : \`VOYAGEUR\`, \`ADMIN\`
+- **Importance Calculée** : Haute (Validation bancaire requise)
+
+## 1. Contexte d'Usage & États Observables
+- **Déclencheur d'Entrée** : Formulaire de paiement (\`F001:PAY\`) via \`FEAT-SAISIE-CB\`
+- **Rupture Déclarée ⏸** : 5m (Mémoire volatile, reprise vers attente webhook bancaire)
+- **Signaux de Tracking** : \`3ds_challenge_started\`, \`3ds_challenge_completed\`
+`,
+  'screen-EXT-CONSEIL.md': `# Fiche Écran Déduite : EXT-CONSEIL
+
+> Fiche synthétique croisant arborescence et parcours utilisateurs (spec-userflows.md Section 7).
+
+- **Référence Canonique** : \`EXT-CONSEIL\`
+- **Type de Composant** : Service Externe (\`EXT\`)
+- **URL Externe** : \`ext://visio-conseil/rdv\`
+- **Fournisseur** : Organisme Éco-Label
+- **Rôles Autorisés** : \`HOTE\`, \`ADMIN\`
+- **Importance Calculée** : Moyenne (Accompagnement labellisation éco-habitat)
+
+## 1. Contexte d'Usage & États Observables
+- **Déclencheur d'Entrée** : Dépôt d'annonce (\`F002\`) via \`FEAT-DEMANDE-LABEL\`
+- **Rupture Déclarée ⏸** : 48h (Mémoire externe, reprise vers prévisualisation annonce)
+- **Signaux de Tracking** : \`advisory_session_scheduled\`, \`advisory_session_completed\`
+`,
+
   'screen-HOME.md': `# Fiche Écran Déduite : HOME
 
 > Fiche synthétique croisant arborescence et parcours utilisateurs (spec-userflows.md Section 7).

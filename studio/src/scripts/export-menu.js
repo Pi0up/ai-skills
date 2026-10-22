@@ -1,7 +1,7 @@
 /**
  * Menu Déroulant d'Exportation (SVG, PNG, PNG HD, Impression) — Spec v1.3 Point 11
- * Exporte un cadrage net et précis du diagramme avec résolution des variables CSS
- * sans les barres d'outils ni les contrôles de zoom.
+ * Exporte un cadrage net et précis du diagramme avec résolution des variables CSS,
+ * typographies préservées, icônes vectorielles natives, sans les barres d'outils ni les contrôles de zoom.
  */
 
 export function setupExportMenu(dom, getCurrentDiagramFn) {
@@ -36,7 +36,7 @@ export function setupExportMenu(dom, getCurrentDiagramFn) {
   });
 }
 
-function buildStandaloneSvgString(dom) {
+export function buildStandaloneSvgString(dom) {
   const svgEl = dom.svgWrapper.querySelector('svg');
   if (!svgEl) return null;
 
@@ -72,6 +72,31 @@ function buildStandaloneSvgString(dom) {
     content.removeAttribute('transform');
   }
 
+  const fontStack = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  const monoStack = "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+
+  // Injection d'une feuille de style CSS autonome dans <defs>
+  let defs = clone.querySelector('defs');
+  if (!defs) {
+    defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    clone.insertBefore(defs, clone.firstChild);
+  }
+
+  const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+  styleEl.textContent = `
+    svg { font-family: ${fontStack}; }
+    text { font-family: ${fontStack}; }
+    text[font-family="monospace"] { font-family: ${monoStack} !important; }
+    .dg-canvas { overflow: visible; font-family: ${fontStack}; }
+    g.dg-card { cursor: pointer; }
+    g.dg-edge path { stroke-width: 1.5px; fill: none; }
+    g.dg-edge.cross path { stroke-dasharray: 6 4; }
+    g.level-lines line { stroke-dasharray: 4 4; stroke-width: 1px; }
+    svg.dg-icon { overflow: visible; }
+  `;
+  defs.appendChild(styleEl);
+  clone.setAttribute('font-family', fontStack);
+
   const serializer = new XMLSerializer();
   let svgStr = serializer.serializeToString(clone);
 
@@ -104,7 +129,13 @@ export function exportSvg(dom, diag) {
   URL.revokeObjectURL(url);
 }
 
-export function exportRaster(dom, diag, scaleFactor = 1.0) {
+export async function exportRaster(dom, diag, scaleFactor = 1.0) {
+  if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+    try {
+      await document.fonts.ready;
+    } catch (_) {}
+  }
+
   const res = buildStandaloneSvgString(dom);
   if (!res) return;
 
@@ -112,9 +143,13 @@ export function exportRaster(dom, diag, scaleFactor = 1.0) {
   const img = new Image();
   img.onload = () => {
     const canvas = document.createElement('canvas');
-    canvas.width = expW * scaleFactor;
-    canvas.height = expH * scaleFactor;
+    canvas.width = Math.round(expW * scaleFactor);
+    canvas.height = Math.round(expH * scaleFactor);
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     const isDark = document.body.dataset.theme === 'dark';
     ctx.fillStyle = isDark ? '#090d16' : '#ffffff';

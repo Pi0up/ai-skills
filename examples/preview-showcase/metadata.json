@@ -696,5 +696,55 @@
         "quick_approval_executed"
       ]
     }
+  },
+  "EXT-3DSECURE": {
+    "code": "EXT-3DSECURE",
+    "title": "Challenge 3D-Secure banque",
+    "template": "EXT",
+    "subtype": "service_externe",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "url": "ext://banque-partenaire/3ds",
+    "fournisseur": "Banque Partenaire",
+    "rupture": {
+      "break": true,
+      "delay": "5m",
+      "persist": "volatile",
+      "resume": "ND_P04"
+    },
+    "tracking": {
+      "events": [
+        "3ds_challenge_started",
+        "3ds_challenge_completed"
+      ]
+    }
+  },
+  "EXT-CONSEIL": {
+    "code": "EXT-CONSEIL",
+    "title": "Audit & échange visio avec conseiller éco",
+    "template": "EXT",
+    "subtype": "service_externe",
+    "access": "protected",
+    "roles": [
+      "HOTE",
+      "ADMIN"
+    ],
+    "url": "ext://visio-conseil/rdv",
+    "fournisseur": "Organisme Éco-Label",
+    "rupture": {
+      "break": true,
+      "delay": "48h",
+      "persist": "external",
+      "resume": "ND_C001_PREV"
+    },
+    "tracking": {
+      "events": [
+        "advisory_session_scheduled",
+        "advisory_session_completed"
+      ]
+    }
   }
 }

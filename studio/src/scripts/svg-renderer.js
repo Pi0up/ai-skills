@@ -1,8 +1,10 @@
 /**
  * Moteur de Rendu SVG Vectoriel Natif (Spec v1.3)
  * Élimine la pixellisation via un rendu vectoriel SVG pur, canevas infini,
- * icônes Material Symbols, cartes ACT sans bordure, titre sur deux lignes, et tracés visibles.
+ * icônes vectorielles SVG natives (sans dépendance webfont), cartes ACT sans bordure, titre sur deux lignes, et tracés visibles.
  */
+
+import { renderIconSvg } from './icons.js';
 
 export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
   const isSitemap = ast.meta.kind === 'sitemap';
@@ -58,6 +60,15 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
     svg += `<g class="module-band">
       <rect x="30" y="${bandY}" width="${width - 60}" height="${cardH + 50}" fill="none" stroke="var(--border-color)" stroke-dasharray="4 4" rx="8" />
       <text x="44" y="${bandY + 18}" fill="var(--dg-muted)" font-size="11" font-weight="700">MODULES TRANSVERSES (HORS ARBRE)</text>
+    </g>`;
+  }
+
+  // 3.bis Cadre des Services Externes (Hors Arbre)
+  if (isSitemap && layout.externalCount > 0) {
+    const bandY = layout.bottomExternalsY - 24;
+    svg += `<g class="external-band">
+      <rect x="30" y="${bandY}" width="${width - 60}" height="${cardH + 50}" fill="none" stroke="var(--dg-ext)" stroke-dasharray="6 4" rx="8" />
+      <text x="44" y="${bandY + 18}" fill="var(--dg-ext)" font-size="11" font-weight="700">SERVICES EXTERNES (HORS ARBRE)</text>
     </g>`;
   }
 
@@ -306,15 +317,16 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
 
   // Icône d'Action ACT ou ATT
   if (isAct) {
-    svg += `<text x="14" y="26" class="material-symbols-outlined" fill="var(--primary)" font-size="20">ads_click</text>`;
+    svg += renderIconSvg('ads_click', { x: 14, y: 10, size: 18, fill: 'var(--primary)' });
     svg += `<text x="38" y="22" fill="var(--primary)" font-size="10" font-weight="700">ACTION</text>`;
   } else if (isAtt) {
-    svg += `<text x="14" y="26" class="material-symbols-outlined" fill="var(--dg-att)" font-size="20">schedule</text>`;
+    svg += renderIconSvg('schedule', { x: 14, y: 10, size: 18, fill: 'var(--dg-att)' });
     svg += `<text x="38" y="22" fill="var(--dg-att)" font-size="10" font-weight="700">ATTENTE</text>`;
   } else {
-    // 1. URL Relative
-    svg += `<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${escapeXml(truncate(relativeUrl, 18))}</text>`;
-    svg += `<text x="12" y="31" fill="var(--dg-muted)" font-size="8">${urlMode}</text>`;
+    // 1. URL Relative / Externe
+    const dispUrl = isExt ? (effUrl || relativeUrl) : relativeUrl;
+    svg += `<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${escapeXml(truncate(dispUrl, 18))}</text>`;
+    svg += `<text x="12" y="31" fill="var(--dg-muted)" font-size="8">${isExt ? 'Externe' : urlMode}</text>`;
   }
 
   // 2. Titre sur 2 Lignes sans ID Répété
@@ -332,7 +344,7 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   const hasBreak = node.break === 'yes' || rawTitle.includes('⏸') || (node.rawLabel && node.rawLabel.includes('⏸'));
   if (hasBreak) {
     svg += `<circle cx="4" cy="4" r="11" fill="#5d6475" stroke="#ffffff" stroke-width="1.5" />`;
-    svg += `<text x="4" y="8" class="material-symbols-outlined" fill="#ffffff" font-size="12" text-anchor="middle">pause</text>`;
+    svg += renderIconSvg('pause', { x: -2, y: -2, size: 12, fill: '#ffffff' });
   }
 
   // 3. Pastille d'Ordre (sitemap uniquement, si calque activé)
@@ -343,11 +355,11 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   }
 
   // 4. Code & Type/Subtype (Bas-droite)
-  const displayedSubtype = isAtt ? 'Attente' : (isAct ? 'Action' : subtype);
+  const displayedSubtype = isAtt ? 'Attente' : (isAct ? 'Action' : (isExt ? 'Externe' : subtype));
   svg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${escapeXml(code)}</text>`;
   svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${escapeXml(displayedSubtype)}</text>`;
 
-  // 5. Bulles d'Icônes Material Symbols (Coin Haut-Gauche débordant)
+  // 5. Bulles d'Icônes Vectorielles (Coin Haut-Gauche débordant)
   if (!isAct && !isAtt) {
     const bubbles = [];
     if (node.icon) {
@@ -369,7 +381,7 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
 
       const iconFill = b === 'lock' ? '#ffffff' : '#2b3a55';
       svg += `<circle cx="${bx + 12}" cy="${by + 12}" r="13" fill="${bColor}" stroke="#ffffff" stroke-width="1.5" />`;
-      svg += `<text x="${bx + 12}" y="${by + 17}" class="material-symbols-outlined" fill="${iconFill}" font-size="14" text-anchor="middle">${matSymbol}</text>`;
+      svg += renderIconSvg(matSymbol, { x: bx + 5, y: by + 5, size: 14, fill: iconFill });
     });
   }
 

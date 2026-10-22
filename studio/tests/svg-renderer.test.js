@@ -18,7 +18,7 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
     expect(svg).toContain('fill="url(#canvas-dots)"');
   });
 
-  it('génère des cartes ACT sans bordure avec icône Material Symbol ads_click (Point 9)', () => {
+  it('génère des cartes ACT sans bordure avec icône vectorielle native (Point 9)', () => {
     const ast = {
       meta: { kind: 'userflow' },
       nodes: {
@@ -37,8 +37,33 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
 
     const svg = renderSvgCanvas(ast, layout, state);
     expect(svg).toContain('class="dg-card act-card');
-    expect(svg).toContain('ads_click');
+    expect(svg).toContain('dg-icon');
     expect(svg).toContain('stroke="none"');
+  });
+
+  it('génère le bandeau des Services Externes dans l\'arborescence', () => {
+    const ast = {
+      meta: { kind: 'sitemap' },
+      nodes: {
+        EXT1: { id: 'EXT1', code: 'EXT-3DSECURE', type: 'EXT', label: 'Challenge bancaire' },
+      },
+      edges: [],
+    };
+    const layout = {
+      width: 1000,
+      height: 600,
+      positions: {
+        EXT1: { x: 50, y: 400, w: 200, h: 118, isExternal: true },
+      },
+      externalCount: 1,
+      bottomExternalsY: 400,
+    };
+    const state = { layers: { levels: false, renvois: false, numbers: false, avatars: false, tags: false, coverage: false } };
+
+    const svg = renderSvgCanvas(ast, layout, state);
+    expect(svg).toContain('class="external-band"');
+    expect(svg).toContain('SERVICES EXTERNES (HORS ARBRE)');
+    expect(svg).toContain('EXT-3DSECURE');
   });
 
   it('génère les liens de userflow en éléments <path> avec flèches visibles (Point 8)', () => {

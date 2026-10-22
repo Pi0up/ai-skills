@@ -27,7 +27,7 @@ describe('Jeu de données de test exhaustif : ECO-STAYS', () => {
       'HOME', 'H001', 'H002', 'L001', 'L001!filtres', 'L002', 'L002!annulation', 'L003',
       'C001', 'C001!galerie', 'C001#avis', 'C001#eco-impact', 'C001@ADMIN', 'C001:PREVIEW', 'C001@ADMIN:EDIT',
       'C002', 'F001', 'F001:RECAP', 'F001:PAY', 'F002', 'D001', 'D002', 'E404', 'E403',
-      'M001', 'M002', 'M003',
+      'M001', 'M002', 'M003', 'EXT-3DSECURE', 'EXT-CONSEIL',
     ];
     for (const code of expectedCodes) {
       expect(meta[code], `Le code ${code} doit exister dans metadata.json`).toBeDefined();
@@ -36,10 +36,10 @@ describe('Jeu de données de test exhaustif : ECO-STAYS', () => {
     }
   });
 
-  it('vérifie que les 27 fiches écrans existent', () => {
+  it('vérifie que les 29 fiches écrans existent (dont les services externes)', () => {
     expect(fs.existsSync(sheetsDir)).toBe(true);
     const files = fs.readdirSync(sheetsDir);
-    expect(files.length).toBe(27);
+    expect(files.length).toBe(29);
   });
 
   it('parse et valide tous les diagrammes Arborescence', () => {
@@ -85,6 +85,13 @@ describe('Jeu de données de test exhaustif : ECO-STAYS', () => {
     expect(attachedEdges.length).toBeGreaterThanOrEqual(5); // filtres, galerie, avis, eco-impact, annulation
     expect(invokeEdges.length).toBeGreaterThanOrEqual(3);   // M001, M002, M003
     expect(actionEdges.length).toBeGreaterThanOrEqual(3);   // renvois fonctionnels
+
+    // Services externes
+    expect(ast.nodes['EXT_3DSECURE']).toBeDefined();
+    expect(ast.nodes['EXT_CONSEIL']).toBeDefined();
+    const layout = layoutSitemap(ast);
+    expect(layout.externalCount).toBe(2);
+    expect(layout.positions['EXT_3DSECURE'].isExternal).toBe(true);
   });
 
   it('parse et valide tous les parcours Userflow et l\'assemblage vertical par Use Case (UC)', () => {

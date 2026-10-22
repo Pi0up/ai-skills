@@ -44,4 +44,27 @@ describe('Layout Sitemap - Placement Côte à Côte des Frères (Point 4)', () =
     // 4. Aucun nœud frère au niveau 1 ne doit être positionné sous L001 (Y identique)
     expect(pos.D001.y).toBeLessThan(pos.C001.y);
   });
+
+  it('isole les services externes (EXT) en bandeau hors-arbre sans les traiter comme racines', () => {
+    const ast = {
+      meta: { kind: 'sitemap' },
+      nodes: {
+        HOME: { id: 'HOME', code: 'HOME', type: 'HOME' },
+        L001: { id: 'L001', code: 'L001', type: 'L' },
+        M001: { id: 'M001', code: 'M001', type: 'MOD' },
+        EXT_3DS: { id: 'EXT_3DS', code: 'EXT-3DSECURE', type: 'EXT' },
+      },
+      edges: [
+        { src: 'HOME', dst: 'L001', kind: 'navigation' },
+        { src: 'L001', dst: 'M001', kind: 'invoke' },
+        { src: 'L001', dst: 'EXT_3DS', kind: 'action' },
+      ],
+    };
+
+    const result = layoutSitemap(ast);
+    expect(result.externalCount).toBe(1);
+    expect(result.bottomExternalsY).toBeGreaterThan(result.positions.L001.y);
+    expect(result.positions.EXT_3DS.isExternal).toBe(true);
+    expect(result.positions.EXT_3DS.y).toBe(result.bottomExternalsY);
+  });
 });

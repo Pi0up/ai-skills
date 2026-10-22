@@ -1,6 +1,8 @@
 /**
- * Algorithme de Layout Arborescence (Arbre Hiérarchique Compact avec Bounding Boxes) — Spec v1.2
- * Résout le problème de superposition des frères : les sous-arbres sont garantis côte à côte.
+ * Algorithme de Layout Arborescence (Arbre Hiérarchique Compact avec Bounding Boxes) — Spec v1.3
+ * - Résout le problème de superposition des frères : les sous-arbres sont garantis côte à côte.
+ * - Isole les modules transverses (M###) en bandeau bas.
+ * - Isole les services externes (EXT-###) en bandeau bas dédié avec bordure orange (--dg-ext).
  */
 
 export function layoutSitemap(ast, options = {}) {
@@ -33,15 +35,21 @@ export function layoutSitemap(ast, options = {}) {
     }
   });
 
-  // Isolation des modules transverses et des éléments rattachés
+  // Isolation des modules transverses, des services externes et des éléments rattachés
   const isModule = (id) => {
     const n = ast.nodes[id];
     return n && (n.type === 'MOD' || (n.code && n.code.startsWith('M')));
   };
+
+  const isExternal = (id) => {
+    const n = ast.nodes[id];
+    return n && (n.type === 'EXT' || (n.code && n.code.startsWith('EXT')) || id.startsWith('EXT'));
+  };
+
   const isAttached = (id) => ast.edges.some((e) => e.dst === id && e.kind === 'attach');
 
-  // Identification des racines (exclut les modules et les éléments rattachés)
-  let roots = allNodeIds.filter((id) => incomingNav[id] === 0 && !isModule(id) && !isAttached(id));
+  // Identification des racines (exclut les modules, les services externes et les éléments rattachés)
+  let roots = allNodeIds.filter((id) => incomingNav[id] === 0 && !isModule(id) && !isExternal(id) && !isAttached(id));
   // Place HOME en première racine prioritaire
   roots.sort((a, b) => {
     const na = ast.nodes[a];
@@ -60,7 +68,7 @@ export function layoutSitemap(ast, options = {}) {
   function computeSubtreeWidth(nodeId) {
     const attachedCount = (attachedMap[nodeId] || []).length;
     const selfWidth = cardW + attachedCount * (cardW + 30);
-    const children = (childrenMap[nodeId] || []).filter((c) => !isModule(c));
+    const children = (childrenMap[nodeId] || []).filter((c) => !isModule(c) && !isExternal(c));
 
     if (children.length === 0) {
       subtreeWidths[nodeId] = selfWidth;
@@ -86,7 +94,7 @@ export function layoutSitemap(ast, options = {}) {
   function placeSubtree(nodeId, leftX, level) {
     if (level > maxLevel) maxLevel = level;
     const totalW = subtreeWidths[nodeId] || cardW;
-    const children = (childrenMap[nodeId] || []).filter((c) => !isModule(c));
+    const children = (childrenMap[nodeId] || []).filter((c) => !isModule(c) && !isExternal(c));
     const attachedCount = (attachedMap[nodeId] || []).length;
     const selfW = cardW + attachedCount * (cardW + 30);
 
@@ -98,22 +106,18 @@ export function layoutSitemap(ast, options = {}) {
       });
 
       // Centre les enfants sous le parent ou centre le parent sur les enfants
-      let currentChildX = leftX;
+      if (childrenTotalWidth > selfW) {
+        nodeX = leftX + (childrenTotalWidth - selfW) / 2;
+      }
+      let childLeftX = leftX;
       if (selfW > childrenTotalWidth) {
-        currentChildX = leftX + (selfW - childrenTotalWidth) / 2;
-        nodeX = leftX;
+        childLeftX = leftX + (selfW - childrenTotalWidth) / 2;
       }
 
-      children.forEach((cId) => {
-        placeSubtree(cId, currentChildX, level + 1);
-        currentChildX += subtreeWidths[cId] + gapX;
+      children.forEach((cId, idx) => {
+        placeSubtree(cId, childLeftX, level + 1);
+        childLeftX += (subtreeWidths[cId] || cardW) + gapX;
       });
-
-      if (childrenTotalWidth >= selfW) {
-        const firstChildPos = positions[children[0]];
-        const lastChildPos = positions[children[children.length - 1]];
-        nodeX = (firstChildPos.x + lastChildPos.x) / 2;
-      }
     }
 
     const nodeY = startMarginY + level * (cardH + gapY);
@@ -147,18 +151,39 @@ export function layoutSitemap(ast, options = {}) {
 
   // Placement des modules transverses en pied de diagramme
   const moduleIds = allNodeIds.filter(isModule);
-  const bottomModulesY = startMarginY + (maxLevel + 1) * (cardH + gapY) + 30;
+  const externalIds = allNodeIds.filter(isExternal);
 
-  moduleIds.forEach((mId, idx) => {
-    positions[mId] = {
-      x: startMarginX + idx * (cardW + gapX),
-      y: bottomModulesY,
-      level: maxLevel + 1,
-      w: cardW,
-      h: cardH,
-      isModule: true,
-    };
-  });
+  let bottomY = startMarginY + (maxLevel + 1) * (cardH + gapY) + 30;
+  const bottomModulesY = bottomY;
+
+  if (moduleIds.length > 0) {
+    moduleIds.forEach((mId, idx) => {
+      positions[mId] = {
+        x: startMarginX + idx * (cardW + gapX),
+        y: bottomModulesY,
+        level: maxLevel + 1,
+        w: cardW,
+        h: cardH,
+        isModule: true,
+      };
+    });
+    bottomY += cardH + gapY;
+  }
+
+  // Placement des services externes en pied de diagramme
+  const bottomExternalsY = bottomY;
+  if (externalIds.length > 0) {
+    externalIds.forEach((eId, idx) => {
+      positions[eId] = {
+        x: startMarginX + idx * (cardW + gapX),
+        y: bottomExternalsY,
+        level: maxLevel + (moduleIds.length > 0 ? 2 : 1),
+        w: cardW,
+        h: cardH,
+        isExternal: true,
+      };
+    });
+  }
 
   // Calcul des dimensions totales du canevas
   let maxX = 1200;
@@ -194,5 +219,7 @@ export function layoutSitemap(ast, options = {}) {
     },
     moduleCount: moduleIds.length,
     bottomModulesY,
+    externalCount: externalIds.length,
+    bottomExternalsY,
   };
 }
