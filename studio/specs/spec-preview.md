@@ -24,6 +24,7 @@
 | 2 | **Centrage sur un nœud & suppression du rebond** | L'animation `.pulse` (`transform: scale`) écrasait l'attribut SVG `transform="translate(x,y)"` (faisant sauter le nœud en `(0,0)`), et `getBBox()` renvoyait `(0,0)` au lieu des coordonnées du canevas | **Centrage mathématique exact sans rebond** : Suppression de toute animation CSS `transform` / `pulse` sur les `<g class="dg-card">`. `centerOnNode` lit directement les coordonnées canevas (`data-x`, `data-y`, `data-w`, `data-h`) et compense la largeur de l'inspecteur latéral ouvert pour centrer le nœud dans la zone visible. |
 | 3 | **Non-redondance des titres avec la meta** | Les titres contenaient des mentions redondantes (`"Cas d'Usage : ..."`, `"Segment : ..."`, `"Variante"`, `"(Hub)"`, `"(Popin)"`) | **Titres métier purs** : Aucune mention de type ou de statut (`"Cas d'Usage"`, `"Segment"`, `"Variante"`, `"Nominal"`, `"Vue Repliée"`, `"(Hub)"`, `"(Popin)"`, `"(Modale)"`, `"(Ancre)"`) dans les libellés et titres ; ces informations sont portées exclusivement par la meta (`kind`, `view`, `statut`, `type`, `subtype`). |
 | 4 | **Optimisations mémoire & rendu** | Écouteurs d'événements individuels recréés à chaque rendu et fuite de `window.addEventListener('mousemove')` | **Délégation d'événements unique** sur le conteneur SVG (survol et clic), chargement parallèle (`Promise.all`) des fichiers et enrichissement O(1) des cartes `ECR` depuis l'arborescence. |
+| 5 | **Minification & Optimisation de production** | Bundle brut avec commentaires HTML/CSS, espaces multiples, polyfills de module inutiles et fichier `index.html` résiduel | **Chaîne d'optimisation automatisée** : Intégration de `html-minifier-terser` et plugin Vite post-build (`vite:minify-preview-html`). Retrait du loader de modules Vite (`removeViteModuleLoader: true`), suppression intégrale des commentaires et espaces HTML, minification en ligne CSS/JS, et émission directe de l'unique livrable `dist/preview.html` sans aucun `index.html` résiduel. |
 
 ---
 
@@ -749,6 +750,7 @@ Un clic sur une ligne du panneau centre le nœud concerné.
 | **REQ-PVW-23** | Replier / déplier un sous-arbre | Masque / montre les descendants, recalcule la mise en page | Could |
 | **REQ-PVW-24** | Surcharge des tokens | Fichier optionnel `preview.theme.json` remplaçant des tokens §3.2 | Could |
 | **REQ-PVW-25** | Mini-carte | Aperçu global cliquable des grands diagrammes | Could |
+| **REQ-PVW-26** | Minification & Bundle optimisé | Le build génère uniquement `dist/preview.html` minifié (HTML/CSS/JS optimisés, commentaires purgés, sans doublon `index.html`) | Must |
 
 ---
 
@@ -767,6 +769,7 @@ Un clic sur une ligne du panneau centre le nœud concerné.
 | 9 | Métadonnées de fichier | **Migration stricte vers `%%@file`** : suppression progressive des frontmatters YAML existants au profit des directives `%%@file`, simplifiant le parseur sur `%%@` uniquement. |
 | 10 | Thème initial | **Détection automatique selon l'OS (`prefers-color-scheme`)** : adopte le thème système au premier chargement, avec mémorisation locale (`localStorage`) et bouton de bascule manuelle instantanée (clair / sombre). |
 | 11 | Pastille d'ordre (`(01)`) | **Masquée par défaut, activable via le calque « Numérotation » sur l'arborescence uniquement** (exclue des userflows). |
+| 12 | **Minification et distribution unifiée** | **Minification automatique au build** : `dist/preview.html` est directement généré, inliné, épuré de tout loader de modules ou commentaires et minifié par `html-minifier-terser` sans fichier `index.html` résiduel. |
 
 ---
 
