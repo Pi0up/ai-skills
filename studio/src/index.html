@@ -26,6 +26,7 @@
         <span class="material-symbols-outlined icon-md" style="color:var(--primary);">hub</span>
         <span>Information Architecture</span>
         <span class="brand-badge">STUDIO</span>
+        <span class="meta-badge" id="sidebar-meta-badge" style="display:none;" title="Format & Version des Métadonnées"></span>
       </div>
       <button class="btn-tool" id="btn-theme" title="Basculer Thème">
         <span class="material-symbols-outlined icon-sm">dark_mode</span>
@@ -113,8 +114,8 @@
       <div class="empty-state" id="empty-state" style="display: none;">
         <span class="material-symbols-outlined empty-state__icon">folder_open</span>
         <div class="empty-state__title">Visualiseur d'Architecture de l'Information</div>
-        <div class="empty-state__text">
-          Sélectionnez le dossier contenant vos fichiers <code>.mmd</code> et <code>metadata.json</code> (ou glissez-déposez le dossier ici) pour explorer l'arborescence et les parcours.
+        <div class="empty-state__text" id="empty-state-text">
+          Sélectionnez le dossier contenant vos fichiers <code>.mmd</code> et <code>metadata.json</code> (ou glissez-déposez le dossier ou votre <code>metadata.json</code> ici) pour explorer l'arborescence et les parcours.
         </div>
         <button class="btn-tool primary" id="btn-welcome-open" style="padding: 10px 20px; font-size: 14px;">
           <span class="material-symbols-outlined icon-sm">folder_open</span>
@@ -157,13 +158,20 @@
             <span class="material-symbols-outlined icon-sm">layers</span>
             Calques ▾
           </button>
-          <div class="dropdown-content" style="left:0;right:auto;">
+          <div class="dropdown-content" style="left:0;right:auto;min-width:190px;">
+            <div class="layer-section-title">Arborescence</div>
             <label class="layer-option"><input type="checkbox" id="layer-levels" checked> Niveaux (arbo)</label>
             <label class="layer-option"><input type="checkbox" id="layer-renvois" checked> Renvois & modules</label>
             <label class="layer-option"><input type="checkbox" id="layer-numbers"> Numérotation (01)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-coverage"> Couverture parcours</label>
+
+            <div class="layer-section-title">Parcours (Userflows)</div>
+            <label class="layer-option"><input type="checkbox" id="layer-actions" checked> Actions (ACT)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-attentes" checked> Attentes (ATT)</label>
+
+            <div class="layer-section-title">Général</div>
             <label class="layer-option"><input type="checkbox" id="layer-avatars"> Avatars rôles</label>
             <label class="layer-option"><input type="checkbox" id="layer-tags" checked> Tags (SP1...)</label>
-            <label class="layer-option"><input type="checkbox" id="layer-coverage"> Couverture parcours</label>
             <label class="layer-option"><input type="checkbox" id="layer-mermaid"> Vue Mermaid brute</label>
           </div>
         </div>

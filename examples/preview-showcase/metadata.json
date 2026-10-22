@@ -1,186 +1,314 @@
 {
-  "HOME": {
-    "code": "HOME",
-    "title": "Accueil & Vitrine",
-    "url": "/",
-    "template": "HOME",
-    "access": "public",
-    "roles": ["ANONYMOUS", "CLIENT", "ADMIN"],
-    "ctx_in": {},
-    "ctx_out": { "utm_source": "STRING", "session_id": "UUID" },
-    "tracking": {
-      "pageview": "/home",
-      "events": ["click_search", "click_featured_room", "open_help"]
+  "$schema": "./schema-metadata.json",
+  "header": {
+    "format": "ia-metadata",
+    "version": "1.3.0",
+    "template_version": "1.3.0",
+    "project": "Exemple Showcase Réservation",
+    "updated_at": "2026-10-22"
+  },
+  "entities": {
+    "HOME": {
+      "code": "HOME",
+      "title": "Accueil & Vitrine",
+      "url": "/",
+      "template": "HOME",
+      "access": "public",
+      "roles": [
+        "ANONYMOUS",
+        "CLIENT",
+        "ADMIN"
+      ],
+      "ctx_in": {},
+      "ctx_out": {
+        "utm_source": "STRING",
+        "session_id": "UUID"
+      },
+      "tracking": {
+        "pageview": "/home",
+        "events": [
+          "click_search",
+          "click_featured_room",
+          "open_help"
+        ]
+      },
+      "notes": "Page d'entrée principale. Observabilité totale via pixel et GTM."
     },
-    "notes": "Page d'entrée principale. Observabilité totale via pixel et GTM."
-  },
-  "L001": {
-    "code": "L001",
-    "title": "Catalogue des Salles",
-    "url": "/rooms",
-    "template": "L",
-    "subtype": "datagrid",
-    "access": "public",
-    "roles": ["ANONYMOUS", "CLIENT", "ADMIN"],
-    "ctx_in": { "city": "STRING", "capacity_min": "INTEGER" },
-    "ctx_out": { "selected_room_id": "INTEGER", "filter_count": "INTEGER" },
-    "tracking": {
-      "pageview": "/rooms",
-      "events": ["filter_applied", "sort_changed", "room_card_click"]
+    "L001": {
+      "code": "L001",
+      "title": "Catalogue des Salles",
+      "url": "/rooms",
+      "template": "L",
+      "subtype": "datagrid",
+      "access": "public",
+      "roles": [
+        "ANONYMOUS",
+        "CLIENT",
+        "ADMIN"
+      ],
+      "ctx_in": {
+        "city": "STRING",
+        "capacity_min": "INTEGER"
+      },
+      "ctx_out": {
+        "selected_room_id": "INTEGER",
+        "filter_count": "INTEGER"
+      },
+      "tracking": {
+        "pageview": "/rooms",
+        "events": [
+          "filter_applied",
+          "sort_changed",
+          "room_card_click"
+        ]
+      },
+      "notes": "Indicateur de temps de réponse et pagination instrumentés."
     },
-    "notes": "Indicateur de temps de réponse et pagination instrumentés."
-  },
-  "L001!filtres": {
-    "code": "L001!filtres",
-    "title": "Filtres Avancés (Popin)",
-    "template": "DLG",
-    "access": "public",
-    "roles": ["ANONYMOUS", "CLIENT", "ADMIN"],
-    "ctx_in": { "current_filters": "OBJECT" },
-    "ctx_out": { "updated_filters": "OBJECT" },
-    "tracking": {
-      "events": ["dialog_open", "filter_reset", "filters_submit"]
-    }
-  },
-  "C001": {
-    "code": "C001",
-    "title": "Fiche Détail Salle",
-    "url": "/rooms/[id]",
-    "template": "C",
-    "subtype": "fiche",
-    "access": "public",
-    "roles": ["ANONYMOUS", "CLIENT", "ADMIN"],
-    "dynamic": true,
-    "ctx_in": { "room_id": "INTEGER" },
-    "ctx_out": { "booking_slot_id": "STRING", "daily_rate": "NUMBER" },
-    "tracking": {
-      "pageview": "/rooms/:id",
-      "events": ["gallery_view", "scroll_to_reviews", "cta_booking_click"]
+    "L001!filtres": {
+      "code": "L001!filtres",
+      "title": "Filtres Avancés (Popin)",
+      "template": "DLG",
+      "access": "public",
+      "roles": [
+        "ANONYMOUS",
+        "CLIENT",
+        "ADMIN"
+      ],
+      "ctx_in": {
+        "current_filters": "OBJECT"
+      },
+      "ctx_out": {
+        "updated_filters": "OBJECT"
+      },
+      "tracking": {
+        "events": [
+          "dialog_open",
+          "filter_reset",
+          "filters_submit"
+        ]
+      }
     },
-    "notes": "Écran critique du tunnel de conversion. Observabilité renforcée."
-  },
-  "C001#avis": {
-    "code": "C001#avis",
-    "title": "Section Avis Clients",
-    "template": "ANC",
-    "url": "/rooms/[id]#avis",
-    "access": "public",
-    "roles": ["ANONYMOUS", "CLIENT", "ADMIN"],
-    "tracking": {
-      "events": ["scroll_view_reviews", "filter_ratings"]
-    }
-  },
-  "F001": {
-    "code": "F001",
-    "title": "Tunnel de Réservation",
-    "url": "/booking/[id]",
-    "template": "F",
-    "subtype": "stepper",
-    "access": "protected",
-    "roles": ["CLIENT", "ADMIN"],
-    "ctx_in": { "room_id": "INTEGER", "slot_id": "STRING", "auth_token": "JWT" },
-    "ctx_out": { "reservation_id": "UUID", "total_price": "NUMBER" },
-    "tracking": {
-      "pageview": "/booking/:id",
-      "funnel_step": "step_1_options",
-      "events": ["option_added", "submit_booking_step"]
+    "C001": {
+      "code": "C001",
+      "title": "Fiche Détail Salle",
+      "url": "/rooms/[id]",
+      "template": "C",
+      "subtype": "fiche",
+      "access": "public",
+      "roles": [
+        "ANONYMOUS",
+        "CLIENT",
+        "ADMIN"
+      ],
+      "dynamic": true,
+      "ctx_in": {
+        "room_id": "INTEGER"
+      },
+      "ctx_out": {
+        "booking_slot_id": "STRING",
+        "daily_rate": "NUMBER"
+      },
+      "tracking": {
+        "pageview": "/rooms/:id",
+        "events": [
+          "gallery_view",
+          "scroll_to_reviews",
+          "cta_booking_click"
+        ]
+      },
+      "notes": "Écran critique du tunnel de conversion. Observabilité renforcée."
     },
-    "notes": "Accès restreint aux utilisateurs connectés."
-  },
-  "F001:RECAP": {
-    "code": "F001:RECAP",
-    "title": "Récapitulatif Avant Paiement",
-    "url": "/booking/[id]/recap",
-    "template": "F",
-    "subtype": "recap",
-    "access": "protected",
-    "roles": ["CLIENT", "ADMIN"],
-    "ctx_in": { "reservation_id": "UUID" },
-    "ctx_out": { "payment_intent_id": "STRING" },
-    "tracking": {
-      "funnel_step": "step_2_recap",
-      "events": ["coupon_applied", "confirm_recap_click"]
-    }
-  },
-  "F002": {
-    "code": "F002",
-    "title": "Créer une Nouvelle Salle",
-    "url": "/rooms/new",
-    "template": "F",
-    "subtype": "formulaire",
-    "access": "protected",
-    "roles": ["ADMIN"],
-    "tone": "accent",
-    "ctx_in": { "auth_token": "JWT" },
-    "ctx_out": { "new_room_id": "INTEGER" },
-    "tracking": {
-      "pageview": "/rooms/new",
-      "events": ["room_created", "photo_uploaded"]
-    }
-  },
-  "D001": {
-    "code": "D001",
-    "title": "Tableau de Bord",
-    "url": "/dashboard",
-    "template": "D",
-    "subtype": "dashboard",
-    "access": "protected",
-    "roles": ["CLIENT", "ADMIN"],
-    "ctx_in": { "user_id": "UUID" },
-    "ctx_out": {},
-    "tracking": {
-      "pageview": "/dashboard",
-      "events": ["download_invoice", "cancel_booking_request"]
-    }
-  },
-  "E404": {
-    "code": "E404",
-    "title": "Page Introuvable",
-    "url": "/404",
-    "template": "E",
-    "subtype": "erreur-404",
-    "access": "public",
-    "roles": ["ANONYMOUS", "CLIENT", "ADMIN"],
-    "ctx_in": {},
-    "ctx_out": {},
-    "tracking": {
-      "pageview": "/404",
-      "events": ["error_404_viewed", "redirect_home_click"]
-    }
-  },
-  "M001": {
-    "code": "M001",
-    "title": "Centre d'Aide & FAQ",
-    "template": "MOD",
-    "scope": "ALL",
-    "access": "public",
-    "roles": ["ANONYMOUS", "CLIENT", "ADMIN"],
-    "tracking": {
-      "events": ["help_opened", "faq_searched", "contact_click"]
-    }
-  },
-  "M002": {
-    "code": "M002",
-    "title": "Panier & Sélection Rapide",
-    "template": "MOD",
-    "scope": "AUTH",
-    "access": "protected",
-    "roles": ["CLIENT", "ADMIN"],
-    "tracking": {
-      "events": ["cart_drawer_opened", "item_removed"]
-    }
-  },
-  "ND_BREAK_ASSIST": {
-    "code": "EXT-SUPPORT",
-    "title": "Échange Téléphonique Conseiller",
-    "template": "EXT",
-    "obs": "none",
-    "break": {
-      "is_break": true,
-      "resume_node": "F001:RECAP",
-      "persistence": "external",
-      "delay": "24h"
+    "C001#avis": {
+      "code": "C001#avis",
+      "title": "Section Avis Clients",
+      "template": "ANC",
+      "url": "/rooms/[id]#avis",
+      "access": "public",
+      "roles": [
+        "ANONYMOUS",
+        "CLIENT",
+        "ADMIN"
+      ],
+      "tracking": {
+        "events": [
+          "scroll_view_reviews",
+          "filter_ratings"
+        ]
+      }
     },
-    "notes": "Rupture de flux synchrone : rappel sous 24h par le conseiller pour ajuster le devis personnalisé."
+    "F001": {
+      "code": "F001",
+      "title": "Tunnel de Réservation",
+      "url": "/booking/[id]",
+      "template": "F",
+      "subtype": "stepper",
+      "access": "protected",
+      "roles": [
+        "CLIENT",
+        "ADMIN"
+      ],
+      "ctx_in": {
+        "room_id": "INTEGER",
+        "slot_id": "STRING",
+        "auth_token": "JWT"
+      },
+      "ctx_out": {
+        "reservation_id": "UUID",
+        "total_price": "NUMBER"
+      },
+      "tracking": {
+        "pageview": "/booking/:id",
+        "funnel_step": "step_1_options",
+        "events": [
+          "option_added",
+          "submit_booking_step"
+        ]
+      },
+      "notes": "Accès restreint aux utilisateurs connectés."
+    },
+    "F001:RECAP": {
+      "code": "F001:RECAP",
+      "title": "Récapitulatif Avant Paiement",
+      "url": "/booking/[id]/recap",
+      "template": "F",
+      "subtype": "recap",
+      "access": "protected",
+      "roles": [
+        "CLIENT",
+        "ADMIN"
+      ],
+      "ctx_in": {
+        "reservation_id": "UUID"
+      },
+      "ctx_out": {
+        "payment_intent_id": "STRING"
+      },
+      "tracking": {
+        "funnel_step": "step_2_recap",
+        "events": [
+          "coupon_applied",
+          "confirm_recap_click"
+        ]
+      }
+    },
+    "F002": {
+      "code": "F002",
+      "title": "Créer une Nouvelle Salle",
+      "url": "/rooms/new",
+      "template": "F",
+      "subtype": "formulaire",
+      "access": "protected",
+      "roles": [
+        "ADMIN"
+      ],
+      "tone": "accent",
+      "ctx_in": {
+        "auth_token": "JWT"
+      },
+      "ctx_out": {
+        "new_room_id": "INTEGER"
+      },
+      "tracking": {
+        "pageview": "/rooms/new",
+        "events": [
+          "room_created",
+          "photo_uploaded"
+        ]
+      }
+    },
+    "D001": {
+      "code": "D001",
+      "title": "Tableau de Bord",
+      "url": "/dashboard",
+      "template": "D",
+      "subtype": "dashboard",
+      "access": "protected",
+      "roles": [
+        "CLIENT",
+        "ADMIN"
+      ],
+      "ctx_in": {
+        "user_id": "UUID"
+      },
+      "ctx_out": {},
+      "tracking": {
+        "pageview": "/dashboard",
+        "events": [
+          "download_invoice",
+          "cancel_booking_request"
+        ]
+      }
+    },
+    "E404": {
+      "code": "E404",
+      "title": "Page Introuvable",
+      "url": "/404",
+      "template": "E",
+      "subtype": "erreur-404",
+      "access": "public",
+      "roles": [
+        "ANONYMOUS",
+        "CLIENT",
+        "ADMIN"
+      ],
+      "ctx_in": {},
+      "ctx_out": {},
+      "tracking": {
+        "pageview": "/404",
+        "events": [
+          "error_404_viewed",
+          "redirect_home_click"
+        ]
+      }
+    },
+    "M001": {
+      "code": "M001",
+      "title": "Centre d'Aide & FAQ",
+      "template": "MOD",
+      "scope": "ALL",
+      "access": "public",
+      "roles": [
+        "ANONYMOUS",
+        "CLIENT",
+        "ADMIN"
+      ],
+      "tracking": {
+        "events": [
+          "help_opened",
+          "faq_searched",
+          "contact_click"
+        ]
+      }
+    },
+    "M002": {
+      "code": "M002",
+      "title": "Panier & Sélection Rapide",
+      "template": "MOD",
+      "scope": "AUTH",
+      "access": "protected",
+      "roles": [
+        "CLIENT",
+        "ADMIN"
+      ],
+      "tracking": {
+        "events": [
+          "cart_drawer_opened",
+          "item_removed"
+        ]
+      }
+    },
+    "ND_BREAK_ASSIST": {
+      "code": "EXT-SUPPORT",
+      "title": "Échange Téléphonique Conseiller",
+      "template": "EXT",
+      "obs": "none",
+      "break": {
+        "is_break": true,
+        "resume_node": "F001:RECAP",
+        "persistence": "external",
+        "delay": "24h"
+      },
+      "notes": "Rupture de flux synchrone : rappel sous 24h par le conseiller pour ajuster le devis personnalisé."
+    }
   }
 }

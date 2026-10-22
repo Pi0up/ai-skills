@@ -5,12 +5,13 @@
 import { parseMermaidFile } from './parser.js';
 import { computeHierarchyUrls } from './url-resolver.js';
 import { layoutSitemap } from './layout-sitemap.js';
-import { layoutUserflow } from './layout-userflow.js';
+import { layoutUserflow, filterUserflowAst } from './layout-userflow.js';
 import { renderSvgCanvas } from './svg-renderer.js';
 import { PanZoomEngine } from './pan-zoom.js';
 import { NodeInspector } from './inspector.js';
 import { HoverCardManager } from './hover-card.js';
 import { setupExportMenu } from './export-menu.js';
+import { parseMetadata, CURRENT_TEMPLATE_VERSION } from './metadata-parser.js';
 
 class IaStudioApp {
   constructor() {
@@ -21,6 +22,8 @@ class IaStudioApp {
       diagrams: [],
       activeDiagram: null,
       metadata: {},
+      metadataHeader: null,
+      templateVersion: CURRENT_TEMPLATE_VERSION,
       screenSheets: {},
       globalIndex: {},
       diagnostics: [],
@@ -37,6 +40,8 @@ class IaStudioApp {
         avatars: false,
         tags: true,
         coverage: false,
+        actions: true,
+        attentes: true,
         mermaid: false,
       },
     };
@@ -45,7 +50,9 @@ class IaStudioApp {
       sidebar: document.getElementById('sidebar'),
       canvasViewport: document.getElementById('canvas-viewport'),
       emptyState: document.getElementById('empty-state'),
+      emptyStateText: document.getElementById('empty-state-text'),
       btnWelcomeOpen: document.getElementById('btn-welcome-open'),
+      sidebarMetaBadge: document.getElementById('sidebar-meta-badge'),
       svgWrapper: document.getElementById('svg-canvas-wrapper'),
       renderTarget: document.getElementById('render-target'),
       diagramList: document.getElementById('diagram-list'),
@@ -140,15 +147,24 @@ class IaStudioApp {
       }
     });
 
-    // Support du Glisser-Déposer (Drag & Drop) d'un dossier
+    // Support du Glisser-Déposer (Drag & Drop) d'un fichier metadata.json ou d'un dossier
     window.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      document.body.classList.add('drag-active');
+    });
+
+    window.addEventListener('dragleave', (e) => {
+      if (e.relatedTarget === null || e.clientX === 0 || e.clientY === 0) {
+        document.body.classList.remove('drag-active');
+      }
     });
 
     window.addEventListener('drop', async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      document.body.classList.remove('drag-active');
+
       if (e.dataTransfer && e.dataTransfer.items) {
         const items = Array.from(e.dataTransfer.items);
         const item = items[0];
@@ -169,9 +185,7 @@ class IaStudioApp {
       if (e.dataTransfer && e.dataTransfer.files) {
         const files = Array.from(e.dataTransfer.files);
         if (files.length > 0) {
-          this.cachedFileList = files;
-          this.activeDirHandle = null;
-          await this.loadFromFileList(files);
+          await this.handleDroppedFiles(files);
         }
       }
     });
@@ -216,6 +230,8 @@ class IaStudioApp {
       ['layer-avatars', 'avatars'],
       ['layer-tags', 'tags'],
       ['layer-coverage', 'coverage'],
+      ['layer-actions', 'actions'],
+      ['layer-attentes', 'attentes'],
       ['layer-mermaid', 'mermaid'],
     ];
     layerMap.forEach(([elId, prop]) => {
@@ -313,12 +329,20 @@ class IaStudioApp {
     this.state.diagrams = [];
     this.state.screenSheets = {};
     this.state.metadata = {};
+    this.state.metadataHeader = null;
 
     let metadataLoaded = false;
     try {
       const metaResp = await fetch('./metadata.json');
       if (metaResp.ok) {
-        this.state.metadata = await metaResp.json();
+        const rawJson = await metaResp.json();
+        const parsedMeta = parseMetadata(rawJson);
+        this.state.metadata = parsedMeta.entities;
+        this.state.metadataHeader = parsedMeta.header;
+        this.state.templateVersion = parsedMeta.templateVersion;
+        if (parsedMeta.diagnostics.length > 0) {
+          this.state.diagnostics.push(...parsedMeta.diagnostics);
+        }
         metadataLoaded = true;
       }
     } catch (e) {
@@ -414,22 +438,158 @@ class IaStudioApp {
     if (this.dom.svgWrapper) this.dom.svgWrapper.style.display = 'none';
     if (this.dom.activeTitle) this.dom.activeTitle.textContent = 'Aucun diagramme chargé';
     if (this.dom.activeBadge) this.dom.activeBadge.style.display = 'none';
+    if (this.dom.emptyStateText) {
+      this.dom.emptyStateText.innerHTML = `
+        Sélectionnez le dossier contenant vos fichiers <code>.mmd</code> et <code>metadata.json</code> (ou glissez-déposez le dossier ou votre <code>metadata.json</code> ici) pour explorer l'arborescence et les parcours.
+      `;
+    }
     this.updateSidebar();
+  }
+
+  updateEmptyStateWithMetadata() {
+    if (!this.dom.emptyState) return;
+    this.dom.emptyState.style.display = 'flex';
+    if (this.dom.svgWrapper) this.dom.svgWrapper.style.display = 'none';
+    if (this.dom.activeTitle) this.dom.activeTitle.textContent = 'Diagrammes en attente';
+    if (this.dom.activeBadge) this.dom.activeBadge.style.display = 'none';
+
+    const count = Object.keys(this.state.metadata).length;
+    const header = this.state.metadataHeader;
+    const format = header?.format || 'ia-metadata';
+    const version = header?.version || '1.0.0';
+    const tplVersion = header?.template_version || this.state.templateVersion || CURRENT_TEMPLATE_VERSION;
+    const project = header?.project ? ` · ${header.project}` : '';
+
+    if (this.dom.emptyStateText) {
+      this.dom.emptyStateText.innerHTML = `
+        <div style="color:var(--primary);font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <span class="material-symbols-outlined" style="font-size:20px;">task_alt</span>
+          Fichier metadata.json chargé (${count} entités${project})
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
+          Format : <code>${format}</code> · Version : <code>v${version}</code> · Templates : <code>v${tplVersion}</code>
+        </div>
+        <div>
+          Glissez-déposez maintenant vos fichiers <code>.mmd</code> sur cette fenêtre ou cliquez sur le bouton ci-dessous pour ouvrir le dossier.
+        </div>
+      `;
+    }
+    this.updateSidebar();
+  }
+
+  showToast(msg, type = 'info') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toast-container';
+      container.className = 'toast-container';
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <span class="material-symbols-outlined icon-sm">${type === 'error' ? 'error' : 'check_circle'}</span>
+      <span>${msg}</span>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('fade-out');
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  async handleDroppedFiles(files) {
+    const jsonFiles = files.filter((f) => f.name.endsWith('.json'));
+    const mmdFiles = files.filter((f) => f.name.endsWith('.mmd'));
+    const mdFiles = files.filter((f) => f.name.endsWith('.md'));
+
+    let metadataUpdated = false;
+
+    // 1. Traitement des fichiers JSON (metadata.json ou variantes)
+    for (const file of jsonFiles) {
+      try {
+        const text = await file.text();
+        const parsed = parseMetadata(text);
+        if (parsed && (Object.keys(parsed.entities).length > 0 || parsed.header)) {
+          this.state.metadata = { ...this.state.metadata, ...parsed.entities };
+          this.state.metadataHeader = parsed.header;
+          this.state.templateVersion = parsed.templateVersion;
+          if (parsed.diagnostics.length > 0) {
+            this.state.diagnostics.push(...parsed.diagnostics);
+          }
+
+          // Si le JSON contient des diagrammes Mermaid intégrés
+          if (parsed.raw?.diagrams && typeof parsed.raw.diagrams === 'object') {
+            for (const [diagName, diagContent] of Object.entries(parsed.raw.diagrams)) {
+              if (typeof diagContent === 'string') {
+                const fname = diagName.endsWith('.mmd') ? diagName : `${diagName}.mmd`;
+                this.state.diagrams = this.state.diagrams.filter((d) => d.filename !== fname);
+                this.state.diagrams.push(parseMermaidFile(diagContent, fname));
+              }
+            }
+          }
+
+          metadataUpdated = true;
+          const count = Object.keys(parsed.entities).length;
+          const verInfo = parsed.header?.version ? ` (v${parsed.header.version})` : '';
+          this.showToast(`Métadonnées chargées : ${count} entités${verInfo}`);
+        }
+      } catch (err) {
+        this.showToast(`Erreur lecture ${file.name} : ${err.message}`, 'error');
+      }
+    }
+
+    // 2. Traitement des fichiers .mmd
+    for (const file of mmdFiles) {
+      try {
+        const text = await file.text();
+        this.state.diagrams = this.state.diagrams.filter((d) => d.filename !== file.name);
+        this.state.diagrams.push(parseMermaidFile(text, file.name));
+      } catch (err) {
+        console.warn('Erreur parsing .mmd:', err);
+      }
+    }
+
+    // 3. Traitement des fiches écrans Markdown
+    for (const file of mdFiles) {
+      try {
+        const text = await file.text();
+        const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
+        this.state.screenSheets[code] = text;
+      } catch (err) {}
+    }
+
+    // Si on a des diagrammes (déjà en mémoire ou nouvellement ajoutés)
+    if (this.state.diagrams.length > 0) {
+      this.cachedFileList = files;
+      this.onDataReady();
+    } else if (metadataUpdated || this.state.metadataHeader || Object.keys(this.state.metadata).length > 0) {
+      this.updateEmptyStateWithMetadata();
+    } else {
+      this.showEmptyState();
+    }
   }
 
   async loadFromDirectoryHandle(dirHandle) {
     this.state.diagrams = [];
     this.state.screenSheets = {};
     this.state.metadata = {};
+    this.state.metadataHeader = null;
 
     for await (const entry of dirHandle.values()) {
       if (entry.kind === 'file' && entry.name.endsWith('.mmd')) {
         const file = await entry.getFile();
         const text = await file.text();
         this.state.diagrams.push(parseMermaidFile(text, entry.name));
-      } else if (entry.kind === 'file' && entry.name === 'metadata.json') {
+      } else if (entry.kind === 'file' && (entry.name === 'metadata.json' || entry.name.endsWith('.metadata.json'))) {
         const file = await entry.getFile();
-        this.state.metadata = JSON.parse(await file.text());
+        const parsed = parseMetadata(await file.text());
+        this.state.metadata = parsed.entities;
+        this.state.metadataHeader = parsed.header;
+        this.state.templateVersion = parsed.templateVersion;
+        if (parsed.diagnostics.length > 0) {
+          this.state.diagnostics.push(...parsed.diagnostics);
+        }
       } else if (entry.kind === 'directory' && entry.name === 'screen-sheets') {
         for await (const sheetEntry of entry.values()) {
           if (sheetEntry.kind === 'file' && sheetEntry.name.endsWith('.md')) {
@@ -451,13 +611,20 @@ class IaStudioApp {
     this.state.diagrams = [];
     this.state.screenSheets = {};
     this.state.metadata = {};
+    this.state.metadataHeader = null;
 
     for (let file of files) {
       if (file.name.endsWith('.mmd')) {
         const text = await file.text();
         this.state.diagrams.push(parseMermaidFile(text, file.name));
-      } else if (file.name === 'metadata.json') {
-        this.state.metadata = JSON.parse(await file.text());
+      } else if (file.name === 'metadata.json' || file.name.endsWith('.metadata.json')) {
+        const parsed = parseMetadata(await file.text());
+        this.state.metadata = parsed.entities;
+        this.state.metadataHeader = parsed.header;
+        this.state.templateVersion = parsed.templateVersion;
+        if (parsed.diagnostics.length > 0) {
+          this.state.diagnostics.push(...parsed.diagnostics);
+        }
       } else if (file.name.endsWith('.md') && (file.webkitRelativePath?.includes('screen-sheets') || file.name.startsWith('screen-'))) {
         const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
         this.state.screenSheets[code] = await file.text();
@@ -474,6 +641,19 @@ class IaStudioApp {
     if (this.dom.emptyState) this.dom.emptyState.style.display = 'none';
     if (this.dom.svgWrapper) this.dom.svgWrapper.style.display = 'inline-block';
     if (this.dom.activeBadge) this.dom.activeBadge.style.display = 'inline-block';
+
+    // Badge métadonnées dans la barre latérale
+    if (this.dom.sidebarMetaBadge) {
+      if (this.state.metadataHeader) {
+        const v = this.state.metadataHeader.version || '1.0';
+        const tpl = this.state.metadataHeader.template_version || '1.3';
+        this.dom.sidebarMetaBadge.style.display = 'inline-block';
+        this.dom.sidebarMetaBadge.textContent = `v${v}`;
+        this.dom.sidebarMetaBadge.title = `Format : ${this.state.metadataHeader.format || 'ia-metadata'}\nVersion données : ${v}\nVersion template : ${tpl}`;
+      } else {
+        this.dom.sidebarMetaBadge.style.display = 'none';
+      }
+    }
 
     this.buildGlobalIndex();
     this.updateSidebar();
@@ -560,15 +740,17 @@ class IaStudioApp {
 
     const urlMap = computeHierarchyUrls(diag);
     let layout;
+    let renderAst = diag;
 
     if (diag.meta.kind === 'sitemap') {
       layout = layoutSitemap(diag);
     } else {
-      layout = layoutUserflow(diag);
+      renderAst = filterUserflowAst(diag, this.state.layers);
+      layout = layoutUserflow(renderAst);
     }
 
     this.currentLayout = layout;
-    const svgString = renderSvgCanvas(diag, layout, this.state, urlMap);
+    const svgString = renderSvgCanvas(renderAst, layout, this.state, urlMap);
     this.dom.renderTarget.innerHTML = svgString;
 
     // Centrage et ajustement automatique du diagramme au chargement
@@ -581,14 +763,14 @@ class IaStudioApp {
       const nid = cardEl.getAttribute('data-id');
       cardEl.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.inspector.show(nid, diag, this.state, urlMap);
+        this.inspector.show(nid, renderAst, this.state, urlMap);
       });
     });
 
     // Attache la carte de survol
     this.hoverCard.attach(
       this.dom.renderTarget,
-      (nid) => diag.nodes[nid],
+      (nid) => renderAst.nodes[nid],
       (code) => this.state.metadata[code] || {},
       (code) => Boolean(this.state.screenSheets[code]),
       (nid) => urlMap[nid]?.relative || '/'
@@ -696,18 +878,28 @@ class IaStudioApp {
   }
 
   showDiagnosticsModal() {
+    const headerInfo = this.state.metadataHeader
+      ? `
+      <div style="padding:10px;border-left:4px solid var(--primary);background:var(--bg-app);margin-bottom:12px;border-radius:0 6px 6px 0;font-size:12px;">
+        <strong>MÉTADONNÉES</strong> : Format <code>${this.state.metadataHeader.format}</code> · Version <code>v${this.state.metadataHeader.version}</code> · Templates <code>v${this.state.metadataHeader.template_version}</code>
+      </div>
+    `
+      : '';
+
     if (this.state.diagnostics.length === 0) {
-      this.dom.diagModalContent.innerHTML = `<p style="color:#10b981;font-weight:600;">✓ Aucun problème structurel détecté.</p>`;
+      this.dom.diagModalContent.innerHTML = `${headerInfo}<p style="color:#10b981;font-weight:600;">✓ Aucun problème structurel détecté.</p>`;
     } else {
-      this.dom.diagModalContent.innerHTML = this.state.diagnostics
-        .map(
-          (d) => `
+      this.dom.diagModalContent.innerHTML =
+        headerInfo +
+        this.state.diagnostics
+          .map(
+            (d) => `
         <div style="padding:10px;border-left:4px solid ${d.level === 'error' ? '#ef4444' : '#f59e0b'};background:var(--bg-app);margin-bottom:8px;border-radius:0 6px 6px 0;">
           <strong>${d.level.toUpperCase()}</strong> : ${d.msg}
         </div>
       `
-        )
-        .join('');
+          )
+          .join('');
     }
     this.dom.diagModal.classList.add('active');
   }

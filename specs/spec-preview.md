@@ -27,6 +27,7 @@
 | 5 | **Alignement Y des Userflows** | Marches d'escalier / zigzags verticaux causés par `variant`/`diverge` | **Alignement horizontal strict sur l'axe Y** : les étapes du flux nominal et des parcours linéaires partagent une coordonnée `Y` strictement identique, avec couloirs dédiés pour les variantes. |
 | 6 | **Sémantique des Liaisons** | Lignes aux styles différents sans documentation dans la légende | **Spécification normative complète et swatches de légende** pour les 4 familles de liaisons (nominal/hiérarchie, variante/renvoi, CALL violet, EXT orange). |
 | 7 | **Chargement initial & repli dossier** | Découverte HTTP conditionnelle stricte ; pas de tentative d'ouverture sous `file://` | **Tentative systématique d'ouverture de `metadata.json`** à côté de `preview.html`. En cas d'échec ou d'absence de diagrammes, déclenchement et affichage automatique de la dialog d'ouverture de dossier (`showDirectoryPicker()` / dialogue de fichier). |
+| 8 | **Glisser-Déposer direct de `metadata.json` & Entête de version** | Glisser-déposer d'un fichier JSON seul non pris en charge ; métadonnées non versionnées | **Prise en charge du glisser-déposer de `metadata.json` seul ou avec `.mmd`** à tout moment. Entête normatif (`header`) avec `format`, `version` et `template_version` permettant au Studio d'adapter son comportement aux différentes versions de templates. Rétrocompatibilité totale avec l'ancien format dictionnaire direct. |
 
 ---
 
@@ -95,7 +96,15 @@ generated/
 
 ### 2.2 Sources de données ingérées
 1. **Diagrammes Mermaid (`*.mmd`)** : code Mermaid + meta `%%@` (§2.4). Les métadonnées sont portées exclusivement par les directives en commentaires `%%@file`, `%%@node`, `%%@edge` (politique de migration stricte vers `%%@file`, sans frontmatter YAML).
-2. **Registre `metadata.json`** : données **lourdes** indexées par `code` (`ctx_in`, `ctx_out`, signaux de tracking, rupture). Chargé à la demande (survol enrichi, inspecteur). La meta des `.mmd` ne porte que ce qui sert à **l'habillage et à la lecture du diagramme**.
+2. **Registre `metadata.json`** : données **lourdes** indexées par `code` (`ctx_in`, `ctx_out`, signaux de tracking, rupture). Chargé au démarrage, à la demande (survol enrichi, inspecteur) ou par glisser-déposer direct sur `preview.html`.
+   - **Entête normatif (`header`)** :
+     - `header.format` : Identifiant du format (par défaut `"ia-metadata"`).
+     - `header.version` : Version du schéma de métadonnées (ex. `"1.3.0"`).
+     - `header.template_version` : Version cible des templates de diagrammes (ex. `"1.3.0"`), permettant au Studio d'adapter son comportement aux différentes versions de templates et de signaler d'éventuelles incompatibilités.
+     - `header.project` : Métadonnées de projet contextuelles (nom, date, auteur).
+   - **Corps des entités (`entities`)** : Dictionnaire d'objets indexé par `code` d'écran/nœud.
+   - **Glisser-Déposer direct** : L'utilisateur peut à tout moment glisser-déposer son fichier `metadata.json` sur la fenêtre pour actualiser instantanément l'ensemble des données d'inspection et de conformité sans rechargement.
+   - **Rétrocompatibilité assurée** : Studio gère nativement le format historique plat sans entête (`{ "HOME": { ... } }`).
 3. **Fiches écrans (`screen-sheets/screen-*.md`)** : entrées, sorties, fonctionnalités, contextes et événements d'un écran.
 
 ### 2.3 Pipeline de découverte et modes de chargement
