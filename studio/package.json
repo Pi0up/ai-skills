@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node -e \"import('fs').then(fs => { fs.renameSync('dist/index.html', 'dist/preview.html'); console.log('✅ Generated dist/preview.html'); })\"",
+    "build": "vite build && node -e \"import('fs').then(fs => { fs.renameSync('dist/index.html', 'dist/preview.html'); const src = fs.existsSync('public') ? 'public' : '../examples/preview-showcase'; fs.cpSync(src, 'dist', { recursive: true }); console.log('✅ Generated dist/preview.html with test dataset'); })\"",
     "test": "vitest run"
   },
   "keywords": [
