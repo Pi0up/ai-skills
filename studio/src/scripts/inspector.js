@@ -1,14 +1,14 @@
 /**
- * Panneau d'Inspection Modal Interactif (Spec v1.2 — Points 5, 7, 14)
+ * Panneau d'Inspection Modal Interactif (Spec v1.3 — Points 5, 7, 14)
  * Affiche le parent direct, les enfants directs, l'URL relative et l'URL absolue calculée.
- * Permet de naviguer de nœud en nœud avec recentrage automatique sans fermer l'inspecteur.
+ * Permet de naviguer de nœud en nœud avec recentrage direct sans rebond.
  */
 
 export class NodeInspector {
   constructor(dom, panZoomEngine, callbacks = {}) {
     this.dom = dom;
     this.panZoom = panZoomEngine;
-    this.callbacks = callbacks; // { onSeeInArbo, onSeeInFlows, onOpenSheet }
+    this.callbacks = callbacks; // { onSeeInArbo, onSeeInFlows, onOpenSheet, onOpenJourney }
   }
 
   show(nodeId, ast, state, urlMap) {
@@ -16,20 +16,24 @@ export class NodeInspector {
     if (!node) return;
 
     const code = node.code || node.id;
-    const meta = state.metadata[code] || {};
-    const sheet = state.screenSheets[code];
+    const meta = state.metadata?.[code] || state.sitemapNodes?.[code] || {};
+    const sheet = state.screenSheets?.[code] || state.screenSheets?.[code.replace(/[:@!#]/g, '_')];
 
-    // Recentrage automatique du canevas sur le nœud sélectionné (Point 14)
-    this.panZoom.centerOnNode(nodeId);
+    // Active d'abord le panneau pour que centerOnNode prenne en compte sa largeur
+    this.dom.inspectorModal.classList.add('active');
 
-    // Mise en surbrillance visuelle
+    // Mise en surbrillance visuelle (sans animation de rebond sur le nœud)
     this.dom.svgWrapper.querySelectorAll('.dg-card').forEach((c) => c.classList.remove('selected'));
     const cardEl = this.dom.svgWrapper.querySelector(`[data-id="${nodeId}"]`);
     if (cardEl) cardEl.classList.add('selected');
 
-    const isUserflow = ast.meta?.kind === 'userflow';
+    // Recentrage direct du canevas sur les coordonnées du nœud sélectionné
+    this.panZoom.centerOnNode(nodeId);
+
+    const isUserflow = ast.meta?.kind === 'userflow' || ast.meta?.kind === 'uc';
     const isAtt = node.type === 'ATT';
     const isAct = node.type === 'ACT';
+    const isCall = node.type === 'CALL';
 
     // Résolution Parent, Enfants directs et Rattachés (Sitemap)
     const parentEdge = ast.edges.find((e) => e.dst === nodeId && e.kind === 'navigation');
@@ -41,26 +45,39 @@ export class NodeInspector {
     const attachedEdges = ast.edges.filter((e) => e.src === nodeId && e.kind === 'attach');
     const attachedNodes = attachedEdges.map((e) => ast.nodes[e.dst]).filter(Boolean);
 
-    // Résolution Enchaînement du Parcours (Userflow)
+    // Résolution Enchaînement du Parcours (Userflow / UC)
     const prevEdges = ast.edges.filter((e) => e.dst === nodeId);
     const prevNodes = prevEdges.map((e) => ({ node: ast.nodes[e.src], edge: e })).filter((x) => Boolean(x.node));
 
     const nextEdges = ast.edges.filter((e) => e.src === nodeId);
     const nextNodes = nextEdges.map((e) => ({ node: ast.nodes[e.dst], edge: e })).filter((x) => Boolean(x.node));
 
-    // URLs Relative & Absolue (Point 7)
-    const relUrl = urlMap[nodeId]?.relative || node.url || '/';
-    const absUrl = urlMap[nodeId]?.absolute || node.url || '/';
+    // URLs Relative & Absolue (avec repli sur le registre canonique d'arborescence)
+    const relUrl = urlMap[nodeId]?.relative || urlMap[code]?.relative || node.url || meta.url || '/';
+    const absUrl = urlMap[nodeId]?.absolute || urlMap[code]?.absolute || meta.url || node.url || '/';
 
     let html = `
       <div style="margin-bottom: 14px;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
           <span style="font-family: monospace; font-weight: 700; color: var(--primary); font-size: 13px;">${code}</span>
-          <span class="hover-badge">${node.type || 'ECR'}</span>
+          <span class="hover-badge">${node.type || meta.template || 'ECR'}</span>
         </div>
-        <h3 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">${node.label || code}</h3>
+        <h3 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">${node.label || meta.title || code}</h3>
       </div>
     `;
+
+    // Contexte du Parcours si affiché depuis une vue Cas d'Usage (UC)
+    if (node.pfId) {
+      html += `
+        <div style="background: var(--primary-subtle); border: 1px solid rgba(37,99,235,0.25); border-radius: 6px; padding: 8px 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="min-width:0;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--primary); font-family: monospace;">${node.pfId}</div>
+            <div style="font-size: 11px; color: var(--text-main); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${node.pfTitle || ''}</div>
+          </div>
+          <button class="btn-tool-sm" id="btn-inspect-open-pf" data-pf="${node.pfId}">Isoler</button>
+        </div>
+      `;
+    }
 
     // Section Détails Spécifiques ATT / Rupture
     if (isAtt || node.break === 'yes' || meta.break) {
@@ -84,7 +101,7 @@ export class NodeInspector {
     }
 
     // Section URLs (Sitemap ou Écran avec URL)
-    if (!isAct && !isAtt) {
+    if (!isAct && !isAtt && !isCall) {
       html += `
         <div style="background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px;">
           <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">URL Relative (carte) :</div>
@@ -100,27 +117,42 @@ export class NodeInspector {
           <div style="font-family: monospace; font-size: 12px; color: var(--primary); font-weight: 700;">${node.ref || meta.ref}</div>
         </div>
       `;
+    } else if (isCall) {
+      const targetPf = node.code || node.ref || node.id;
+      html += `
+        <div style="background: var(--bg-app); border: 1px solid var(--dg-call); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Appel de parcours (CALL) :</div>
+            <div style="font-family: monospace; font-size: 12px; color: var(--dg-call); font-weight: 700;">${targetPf}</div>
+          </div>
+          <button class="btn-tool-sm" id="btn-inspect-call-pf" data-pf="${targetPf}">Ouvrir</button>
+        </div>
+      `;
     }
+
+    const effAccess = node.access || meta.access;
+    const effSubtype = node.subtype || meta.subtype || node.type || 'Standard';
 
     html += `
       <!-- Attributs clés -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 11px;">
         <div style="background: var(--bg-app); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
           <div style="color: var(--text-muted);">Accès</div>
-          <div style="font-weight: 600; margin-top: 2px;">${node.access === 'protected' ? '🔒 Protégé' : '🌐 Public'}</div>
+          <div style="font-weight: 600; margin-top: 2px;">${effAccess === 'protected' ? '🔒 Protégé' : '🌐 Public'}</div>
         </div>
         <div style="background: var(--bg-app); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
           <div style="color: var(--text-muted);">Sous-type</div>
-          <div style="font-weight: 600; margin-top: 2px;">${node.subtype || node.type || 'Standard'}</div>
+          <div style="font-weight: 600; margin-top: 2px;">${effSubtype}</div>
         </div>
       </div>
     `;
 
     // Section Rôles & Tags
-    if (node.roles || node.tags) {
+    const effRoles = node.roles || meta.roles;
+    if (effRoles || node.tags) {
       html += `<div style="margin-bottom: 14px;">`;
-      if (node.roles) {
-        const rs = Array.isArray(node.roles) ? node.roles : [node.roles];
+      if (effRoles) {
+        const rs = Array.isArray(effRoles) ? effRoles : [effRoles];
         html += `<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Rôles autorisés :</div>
           <div style="margin-bottom: 6px;">${rs.map((r) => `<span class="tag-chip" style="background:#e0e7ff;color:#3730a3;">${r}</span>`).join('')}</div>`;
       }
@@ -267,9 +299,8 @@ export class NodeInspector {
     `;
 
     this.dom.inspectorBody.innerHTML = html;
-    this.dom.inspectorModal.classList.add('active');
 
-    // Écouteurs de navigation parent/enfants interactive (Point 14)
+    // Écouteurs de navigation parent/enfants interactive
     this.dom.inspectorBody.querySelectorAll('.node-nav-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const targetId = btn.getAttribute('data-nav-id');
@@ -278,6 +309,17 @@ export class NodeInspector {
         }
       });
     });
+
+    // Écouteurs d'ouverture de parcours (depuis piste UC ou nœud CALL)
+    const btnOpenPf = this.dom.inspectorBody.querySelector('#btn-inspect-open-pf');
+    if (btnOpenPf && this.callbacks.onOpenJourney) {
+      btnOpenPf.addEventListener('click', () => this.callbacks.onOpenJourney(btnOpenPf.getAttribute('data-pf')));
+    }
+
+    const btnCallPf = this.dom.inspectorBody.querySelector('#btn-inspect-call-pf');
+    if (btnCallPf && this.callbacks.onOpenJourney) {
+      btnCallPf.addEventListener('click', () => this.callbacks.onOpenJourney(btnCallPf.getAttribute('data-pf')));
+    }
 
     // Écouteurs d'actions croisées
     const btnArbo = this.dom.inspectorBody.querySelector('#btn-see-arbo');

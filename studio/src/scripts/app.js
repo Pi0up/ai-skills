@@ -1,11 +1,11 @@
 /**
- * Information Architecture Studio — Orchestrateur Principal (Spec v1.2)
+ * Information Architecture Studio — Orchestrateur Principal (Spec v1.3)
  */
 
 import { parseMermaidFile } from './parser.js';
 import { computeHierarchyUrls } from './url-resolver.js';
 import { layoutSitemap } from './layout-sitemap.js';
-import { layoutUserflow, filterUserflowAst } from './layout-userflow.js';
+import { layoutUserflow, filterUserflowAst, layoutUseCase, sortJourneysForUc } from './layout-userflow.js';
 import { renderSvgCanvas } from './svg-renderer.js';
 import { PanZoomEngine } from './pan-zoom.js';
 import { NodeInspector } from './inspector.js';
@@ -17,11 +17,20 @@ class IaStudioApp {
   constructor() {
     this.activeDirHandle = null;
     this.cachedFileList = null;
+    this.currentLayout = null;
+    this.currentRenderAst = null;
+    this.currentUrlMap = {};
 
     this.state = {
       diagrams: [],
+      useCases: {},
+      useCasesMeta: {},
+      collapsedUcs: new Set(),
       activeDiagram: null,
+      activeUseCase: null,
       metadata: {},
+      sitemapNodes: {},
+      sitemapUrls: {},
       metadataHeader: null,
       templateVersion: CURRENT_TEMPLATE_VERSION,
       screenSheets: {},
@@ -88,6 +97,7 @@ class IaStudioApp {
       onSeeInArbo: (code) => this.resolveSeeInArbo(code),
       onSeeInFlows: (code) => this.resolveSeeInUserflows(code),
       onOpenSheet: (code) => this.openSheet(code),
+      onOpenJourney: (pfId) => this.openJourneyById(pfId),
     });
 
     this.hoverCard = new HoverCardManager(this.dom.hoverCard, {
@@ -97,7 +107,7 @@ class IaStudioApp {
     });
 
     this.initEventListeners();
-    setupExportMenu(this.dom, () => this.state.activeDiagram);
+    setupExportMenu(this.dom, () => this.state.activeDiagram || this.state.activeUseCase);
 
     // Chargement initial des données
     this.initData();
@@ -118,7 +128,7 @@ class IaStudioApp {
       const next = current === 'dark' ? 'light' : 'dark';
       document.body.dataset.theme = next;
       localStorage.setItem('ia_theme', next);
-      if (this.state.activeDiagram) this.render();
+      if (this.state.activeDiagram || this.state.activeUseCase) this.render({ preserveViewport: true });
     });
   }
 
@@ -136,7 +146,7 @@ class IaStudioApp {
       }
     });
 
-    // Bouton Actualiser / Refresh (Recharge les fichiers depuis le disque ou HTTP)
+    // Bouton Actualiser / Refresh
     document.getElementById('btn-refresh')?.addEventListener('click', async () => {
       if (this.activeDirHandle) {
         await this.loadFromDirectoryHandle(this.activeDirHandle);
@@ -147,7 +157,26 @@ class IaStudioApp {
       }
     });
 
-    // Support du Glisser-Déposer (Drag & Drop) d'un fichier metadata.json ou d'un dossier
+    // Délégation unique des clics sur le canevas SVG (Cartes et En-têtes de pistes UC)
+    this.dom.renderTarget?.addEventListener('click', (e) => {
+      const trackHeader = e.target.closest('.uc-track-header-group');
+      if (trackHeader) {
+        e.stopPropagation();
+        const pfId = trackHeader.getAttribute('data-pf-id');
+        if (pfId) this.openJourneyById(pfId);
+        return;
+      }
+
+      const cardEl = e.target.closest('.dg-card');
+      if (cardEl && this.currentRenderAst) {
+        e.stopPropagation();
+        const nid = cardEl.getAttribute('data-id');
+        this.hoverCard.hide();
+        this.inspector.show(nid, this.currentRenderAst, this.state, this.currentUrlMap);
+      }
+    });
+
+    // Support du Glisser-Déposer (Drag & Drop)
     window.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -203,7 +232,7 @@ class IaStudioApp {
     // Filtre Rôle
     this.dom.roleFilter?.addEventListener('change', () => {
       this.state.selectedRole = this.dom.roleFilter.value;
-      if (this.state.activeDiagram) this.render();
+      if (this.state.activeDiagram || this.state.activeUseCase) this.render({ preserveViewport: true });
     });
 
     // Recherche
@@ -237,7 +266,7 @@ class IaStudioApp {
     layerMap.forEach(([elId, prop]) => {
       document.getElementById(elId)?.addEventListener('change', (e) => {
         this.state.layers[prop] = e.target.checked;
-        if (this.state.activeDiagram) this.render();
+        if (this.state.activeDiagram || this.state.activeUseCase) this.render();
       });
     });
 
@@ -274,13 +303,18 @@ class IaStudioApp {
       this.dom.diagModal.classList.remove('active');
     });
 
-    // Bouton Retour au Parcours
+    // Bouton Retour au Parcours / Cas d'Usage
     this.dom.backBtn?.addEventListener('click', () => {
       if (this.state.previousFlowRef) {
-        this.switchDiagram(this.state.previousFlowRef.diagram);
-        this.panZoom.scale = this.state.previousFlowRef.scale;
-        this.panZoom.panX = this.state.previousFlowRef.panX;
-        this.panZoom.panY = this.state.previousFlowRef.panY;
+        const prev = this.state.previousFlowRef;
+        if (prev.useCase) {
+          this.switchUseCase(prev.useCase);
+        } else if (prev.diagram) {
+          this.switchDiagram(prev.diagram);
+        }
+        this.panZoom.scale = prev.scale;
+        this.panZoom.panX = prev.panX;
+        this.panZoom.panY = prev.panY;
         this.panZoom.applyTransform();
         this.dom.backBtn.style.display = 'none';
         this.state.previousFlowRef = null;
@@ -325,24 +359,31 @@ class IaStudioApp {
     return false;
   }
 
+  applyParsedMetadata(parsedMeta) {
+    this.state.metadata = parsedMeta.entities || {};
+    this.state.useCasesMeta = parsedMeta.useCases || {};
+    this.state.metadataHeader = parsedMeta.header;
+    this.state.templateVersion = parsedMeta.templateVersion;
+    if (parsedMeta.diagnostics?.length > 0) {
+      this.state.diagnostics.push(...parsedMeta.diagnostics);
+    }
+  }
+
   async initData() {
     this.state.diagrams = [];
     this.state.screenSheets = {};
     this.state.metadata = {};
+    this.state.useCasesMeta = {};
     this.state.metadataHeader = null;
 
     let metadataLoaded = false;
+    let rawJson = null;
     try {
       const metaResp = await fetch('./metadata.json');
       if (metaResp.ok) {
-        const rawJson = await metaResp.json();
+        rawJson = await metaResp.json();
         const parsedMeta = parseMetadata(rawJson);
-        this.state.metadata = parsedMeta.entities;
-        this.state.metadataHeader = parsedMeta.header;
-        this.state.templateVersion = parsedMeta.templateVersion;
-        if (parsedMeta.diagnostics.length > 0) {
-          this.state.diagnostics.push(...parsedMeta.diagnostics);
-        }
+        this.applyParsedMetadata(parsedMeta);
         metadataLoaded = true;
       }
     } catch (e) {
@@ -350,7 +391,7 @@ class IaStudioApp {
     }
 
     if (metadataLoaded) {
-      // 1. Découverte et chargement dynamique si servi sous serveur web local (http: ou https:)
+      // 1. Découverte et chargement parallèle si servi sous serveur web local
       try {
         const dirResp = await fetch('./');
         if (dirResp.ok) {
@@ -365,61 +406,78 @@ class IaStudioApp {
             }
           }
 
-          for (const fname of discovered) {
+          const loaded = await Promise.all(
+            Array.from(discovered).map(async (fname) => {
+              try {
+                const fResp = await fetch(`./${fname}`);
+                if (fResp.ok) {
+                  const text = await fResp.text();
+                  if (text.includes('flowchart') || text.includes('graph')) {
+                    return parseMermaidFile(text, fname);
+                  }
+                }
+              } catch (err) {}
+              return null;
+            })
+          );
+          this.state.diagrams.push(...loaded.filter(Boolean));
+        }
+      } catch (e) {}
+
+      // 2. Découverte par sondage parallèle des diagrammes déclarés ou standards
+      if (this.state.diagrams.length === 0) {
+        const declared = Array.isArray(rawJson?._diagrams)
+          ? rawJson._diagrams
+          : (Array.isArray(rawJson?.diagrams) ? rawJson.diagrams : []);
+        const candidates = Array.from(
+          new Set([
+            ...declared,
+            'sitemap-overview.mmd',
+            'sitemap-detailed.mmd',
+            'sitemap-by-role-admin.mmd',
+            'sitemap-by-role-host.mmd',
+            'PF-RESERVATION-NOM-collapsed.mmd',
+            'PF-RESERVATION-VAR-HOST-APPROVAL.mmd',
+            'PF-PAIEMENT-SEG.mmd',
+            'PF-PAIEMENT-EXPANDED.mmd',
+            'PF-DEPOT-NOM-collapsed.mmd',
+            'PF-DEPOT-VAR-ASSIST.mmd',
+          ])
+        );
+
+        const loaded = await Promise.all(
+          candidates.map(async (fname) => {
             try {
               const fResp = await fetch(`./${fname}`);
               if (fResp.ok) {
                 const text = await fResp.text();
-                this.state.diagrams.push(parseMermaidFile(text, fname));
+                if (text.includes('flowchart') || text.includes('graph')) {
+                  return parseMermaidFile(text, fname);
+                }
               }
-            } catch (err) {
-              console.warn(`Erreur de chargement pour ${fname}:`, err);
-            }
-          }
-        }
-      } catch (e) {
-        // Ignorer
+            } catch (e) {}
+            return null;
+          })
+        );
+        this.state.diagrams.push(...loaded.filter(Boolean));
       }
 
-      // 2. Découverte par sondage des diagrammes standards si le serveur ne renvoie pas d'index HTML
-      if (this.state.diagrams.length === 0) {
-        const candidates = [
-          'sitemap-overview.mmd',
-          'sitemap-detailed.mmd',
-          'sitemap-by-role.mmd',
-          'sitemap-by-role-admin.mmd',
-          'UC-RESERVATION-overview.mmd',
-          'PF-RESERVATION-NOM-collapsed.mmd',
-          'PF-RESERVATION-VAR-ASSIST.mmd',
-          'PF-PAIEMENT-EXPANDED.mmd',
-          ...(Array.isArray(this.state.metadata?._diagrams) ? this.state.metadata._diagrams : []),
-        ];
-        for (const fname of candidates) {
-          try {
-            const fResp = await fetch(`./${fname}`);
-            if (fResp.ok) {
-              const text = await fResp.text();
-              if (text.includes('flowchart') || text.includes('graph')) {
-                this.state.diagrams.push(parseMermaidFile(text, fname));
-              }
-            }
-          } catch (e) {}
-        }
-      }
-
-      // 3. Tente également de charger les fiches d'écran référencées
-      if (this.state.metadata) {
-        for (const code of Object.keys(this.state.metadata)) {
-          if (code.startsWith('_')) continue;
+      // 3. Chargement parallèle des fiches d'écran référencées
+      const codes = Object.keys(this.state.metadata).filter((c) => !c.startsWith('_'));
+      await Promise.all(
+        codes.map(async (code) => {
           const safeCode = code.replace(/[:@!#]/g, '_');
           try {
             const sResp = await fetch(`./screen-sheets/screen-${safeCode}.md`);
             if (sResp.ok) {
-              this.state.screenSheets[code] = await sResp.text();
+              const text = await sResp.text();
+              if (!text.trim().startsWith('<!DOCTYPE')) {
+                this.state.screenSheets[code] = text;
+              }
             }
           } catch (e) {}
-        }
-      }
+        })
+      );
 
       if (this.state.diagrams.length > 0) {
         this.onDataReady();
@@ -427,8 +485,6 @@ class IaStudioApp {
       }
     }
 
-    // Si metadata.json n'a pas pu être chargé (ou si aucun diagramme n'a pu être chargé) :
-    // Affiche la dialog pour ouvrir le dossier
     this.showEmptyState();
     await this.triggerFolderPicker();
   }
@@ -505,21 +561,20 @@ class IaStudioApp {
 
     let metadataUpdated = false;
 
-    // 1. Traitement des fichiers JSON (metadata.json ou variantes)
     for (const file of jsonFiles) {
       try {
         const text = await file.text();
         const parsed = parseMetadata(text);
-        if (parsed && (Object.keys(parsed.entities).length > 0 || parsed.header)) {
+        if (parsed && (Object.keys(parsed.entities).length > 0 || parsed.header || Object.keys(parsed.useCases).length > 0)) {
           this.state.metadata = { ...this.state.metadata, ...parsed.entities };
+          this.state.useCasesMeta = { ...this.state.useCasesMeta, ...parsed.useCases };
           this.state.metadataHeader = parsed.header;
           this.state.templateVersion = parsed.templateVersion;
           if (parsed.diagnostics.length > 0) {
             this.state.diagnostics.push(...parsed.diagnostics);
           }
 
-          // Si le JSON contient des diagrammes Mermaid intégrés
-          if (parsed.raw?.diagrams && typeof parsed.raw.diagrams === 'object') {
+          if (parsed.raw?.diagrams && typeof parsed.raw.diagrams === 'object' && !Array.isArray(parsed.raw.diagrams)) {
             for (const [diagName, diagContent] of Object.entries(parsed.raw.diagrams)) {
               if (typeof diagContent === 'string') {
                 const fname = diagName.endsWith('.mmd') ? diagName : `${diagName}.mmd`;
@@ -539,27 +594,28 @@ class IaStudioApp {
       }
     }
 
-    // 2. Traitement des fichiers .mmd
-    for (const file of mmdFiles) {
-      try {
-        const text = await file.text();
-        this.state.diagrams = this.state.diagrams.filter((d) => d.filename !== file.name);
-        this.state.diagrams.push(parseMermaidFile(text, file.name));
-      } catch (err) {
-        console.warn('Erreur parsing .mmd:', err);
-      }
-    }
+    await Promise.all(
+      mmdFiles.map(async (file) => {
+        try {
+          const text = await file.text();
+          this.state.diagrams = this.state.diagrams.filter((d) => d.filename !== file.name);
+          this.state.diagrams.push(parseMermaidFile(text, file.name));
+        } catch (err) {
+          console.warn('Erreur parsing .mmd:', err);
+        }
+      })
+    );
 
-    // 3. Traitement des fiches écrans Markdown
-    for (const file of mdFiles) {
-      try {
-        const text = await file.text();
-        const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
-        this.state.screenSheets[code] = text;
-      } catch (err) {}
-    }
+    await Promise.all(
+      mdFiles.map(async (file) => {
+        try {
+          const text = await file.text();
+          const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
+          this.state.screenSheets[code] = text;
+        } catch (err) {}
+      })
+    );
 
-    // Si on a des diagrammes (déjà en mémoire ou nouvellement ajoutés)
     if (this.state.diagrams.length > 0) {
       this.cachedFileList = files;
       this.onDataReady();
@@ -574,32 +630,46 @@ class IaStudioApp {
     this.state.diagrams = [];
     this.state.screenSheets = {};
     this.state.metadata = {};
+    this.state.useCasesMeta = {};
     this.state.metadataHeader = null;
 
+    const tasks = [];
     for await (const entry of dirHandle.values()) {
       if (entry.kind === 'file' && entry.name.endsWith('.mmd')) {
-        const file = await entry.getFile();
-        const text = await file.text();
-        this.state.diagrams.push(parseMermaidFile(text, entry.name));
+        tasks.push(
+          entry.getFile().then((f) => f.text()).then((text) => {
+            this.state.diagrams.push(parseMermaidFile(text, entry.name));
+          })
+        );
       } else if (entry.kind === 'file' && (entry.name === 'metadata.json' || entry.name.endsWith('.metadata.json'))) {
-        const file = await entry.getFile();
-        const parsed = parseMetadata(await file.text());
-        this.state.metadata = parsed.entities;
-        this.state.metadataHeader = parsed.header;
-        this.state.templateVersion = parsed.templateVersion;
-        if (parsed.diagnostics.length > 0) {
-          this.state.diagnostics.push(...parsed.diagnostics);
-        }
+        tasks.push(
+          entry.getFile().then((f) => f.text()).then((text) => {
+            const parsed = parseMetadata(text);
+            this.applyParsedMetadata(parsed);
+          })
+        );
       } else if (entry.kind === 'directory' && entry.name === 'screen-sheets') {
-        for await (const sheetEntry of entry.values()) {
-          if (sheetEntry.kind === 'file' && sheetEntry.name.endsWith('.md')) {
-            const sFile = await sheetEntry.getFile();
-            const code = sheetEntry.name.replace(/^screen-/, '').replace(/\.md$/, '');
-            this.state.screenSheets[code] = await sFile.text();
-          }
-        }
+        tasks.push(
+          (async () => {
+            const sheetTasks = [];
+            for await (const sheetEntry of entry.values()) {
+              if (sheetEntry.kind === 'file' && sheetEntry.name.endsWith('.md')) {
+                sheetTasks.push(
+                  sheetEntry.getFile().then((sf) => sf.text()).then((text) => {
+                    const code = sheetEntry.name.replace(/^screen-/, '').replace(/\.md$/, '');
+                    this.state.screenSheets[code] = text;
+                  })
+                );
+              }
+            }
+            await Promise.all(sheetTasks);
+          })()
+        );
       }
     }
+
+    await Promise.all(tasks);
+
     if (this.state.diagrams.length > 0) {
       this.onDataReady();
     } else {
@@ -611,25 +681,24 @@ class IaStudioApp {
     this.state.diagrams = [];
     this.state.screenSheets = {};
     this.state.metadata = {};
+    this.state.useCasesMeta = {};
     this.state.metadataHeader = null;
 
-    for (let file of files) {
-      if (file.name.endsWith('.mmd')) {
-        const text = await file.text();
-        this.state.diagrams.push(parseMermaidFile(text, file.name));
-      } else if (file.name === 'metadata.json' || file.name.endsWith('.metadata.json')) {
-        const parsed = parseMetadata(await file.text());
-        this.state.metadata = parsed.entities;
-        this.state.metadataHeader = parsed.header;
-        this.state.templateVersion = parsed.templateVersion;
-        if (parsed.diagnostics.length > 0) {
-          this.state.diagnostics.push(...parsed.diagnostics);
+    await Promise.all(
+      files.map(async (file) => {
+        if (file.name.endsWith('.mmd')) {
+          const text = await file.text();
+          this.state.diagrams.push(parseMermaidFile(text, file.name));
+        } else if (file.name === 'metadata.json' || file.name.endsWith('.metadata.json')) {
+          const parsed = parseMetadata(await file.text());
+          this.applyParsedMetadata(parsed);
+        } else if (file.name.endsWith('.md') && (file.webkitRelativePath?.includes('screen-sheets') || file.name.startsWith('screen-'))) {
+          const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
+          this.state.screenSheets[code] = await file.text();
         }
-      } else if (file.name.endsWith('.md') && (file.webkitRelativePath?.includes('screen-sheets') || file.name.startsWith('screen-'))) {
-        const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
-        this.state.screenSheets[code] = await file.text();
-      }
-    }
+      })
+    );
+
     if (this.state.diagrams.length > 0) {
       this.onDataReady();
     } else {
@@ -637,12 +706,26 @@ class IaStudioApp {
     }
   }
 
+  sortDiagramsDeterministically() {
+    const viewOrder = { general: 0, detailed: 1, role: 2 };
+    this.state.diagrams.sort((a, b) => {
+      if (a.meta.kind !== b.meta.kind) {
+        return a.meta.kind === 'sitemap' ? -1 : 1;
+      }
+      if (a.meta.kind === 'sitemap') {
+        const va = viewOrder[a.meta.view] ?? 9;
+        const vb = viewOrder[b.meta.view] ?? 9;
+        if (va !== vb) return va - vb;
+      }
+      return (a.meta.id || a.filename).localeCompare(b.meta.id || b.filename);
+    });
+  }
+
   onDataReady() {
     if (this.dom.emptyState) this.dom.emptyState.style.display = 'none';
     if (this.dom.svgWrapper) this.dom.svgWrapper.style.display = 'inline-block';
     if (this.dom.activeBadge) this.dom.activeBadge.style.display = 'inline-block';
 
-    // Badge métadonnées dans la barre latérale
     if (this.dom.sidebarMetaBadge) {
       if (this.state.metadataHeader) {
         const v = this.state.metadataHeader.version || '1.0';
@@ -655,19 +738,119 @@ class IaStudioApp {
       }
     }
 
+    this.sortDiagramsDeterministically();
     this.buildGlobalIndex();
     this.updateSidebar();
     this.updateRoleOptions();
-    if (this.state.diagrams.length > 0) {
+
+    const sitemaps = this.state.diagrams.filter((d) => d.meta.kind === 'sitemap');
+    const ucs = Object.values(this.state.useCases);
+    if (sitemaps.length > 0) {
+      this.switchDiagram(sitemaps[0]);
+    } else if (ucs.length > 0) {
+      this.switchUseCase(ucs[0]);
+    } else if (this.state.diagrams.length > 0) {
       this.switchDiagram(this.state.diagrams[0]);
     }
   }
 
   buildGlobalIndex() {
     this.state.globalIndex = {};
+    this.state.sitemapNodes = {};
+    this.state.sitemapUrls = {};
+    this.state.useCases = {};
     this.state.diagnostics = [];
 
-    this.state.diagrams.forEach((diag) => {
+    const sitemaps = this.state.diagrams.filter((d) => d.meta.kind === 'sitemap');
+    const userflows = this.state.diagrams.filter((d) => d.meta.kind === 'userflow' && d.meta.view !== 'uc');
+    const legacyUcDiagrams = this.state.diagrams.filter((d) => d.meta.kind === 'userflow' && d.meta.view === 'uc');
+
+    // 1. Indexation du référentiel canonique des pages depuis les arborescences
+    const orderedSitemaps = [...sitemaps].sort((a, b) => (a.meta.view === 'detailed' ? -1 : (b.meta.view === 'detailed' ? 1 : 0)));
+    orderedSitemaps.forEach((sm) => {
+      const smUrls = computeHierarchyUrls(sm);
+      Object.values(sm.nodes).forEach((n) => {
+        const code = n.code || n.id;
+        if (!this.state.sitemapNodes[code]) {
+          this.state.sitemapNodes[code] = n;
+        }
+        if (!this.state.sitemapUrls[code] && smUrls[n.id]) {
+          this.state.sitemapUrls[code] = smUrls[n.id];
+        }
+      });
+    });
+
+    // 2. Construction des dossiers de Cas d'Usage (UC) regroupant leurs Parcours (PF-*)
+    Object.entries(this.state.useCasesMeta).forEach(([ucId, ucMeta]) => {
+      this.state.useCases[ucId] = {
+        id: ucId,
+        title: ucMeta.title || ucMeta.nom || ucId,
+        obj: Array.isArray(ucMeta.objectifs) ? ucMeta.objectifs.join(', ') : (ucMeta.obj || ucMeta.objectif || ''),
+        roles: ucMeta.roles || [],
+        confiance: ucMeta.confiance || '',
+        validation: ucMeta.validation || '',
+        journeys: [],
+      };
+    });
+
+    legacyUcDiagrams.forEach((ucDiag) => {
+      const ucId = ucDiag.meta.uc || ucDiag.meta.id;
+      if (!this.state.useCases[ucId]) {
+        this.state.useCases[ucId] = {
+          id: ucId,
+          title: ucDiag.meta.title || ucId,
+          obj: ucDiag.meta.obj || '',
+          roles: ucDiag.meta.roles || [],
+          confiance: ucDiag.meta.confiance || '',
+          validation: ucDiag.meta.validation || '',
+          journeys: [],
+        };
+      }
+    });
+
+    userflows.forEach((pfDiag) => {
+      const ucId = pfDiag.meta.uc || 'UC-DEFAULT';
+      if (!this.state.useCases[ucId]) {
+        this.state.useCases[ucId] = {
+          id: ucId,
+          title: pfDiag.meta.uc_title || this.state.useCasesMeta[ucId]?.title || ucId,
+          obj: pfDiag.meta.obj || '',
+          roles: [],
+          confiance: pfDiag.meta.confiance || '',
+          validation: pfDiag.meta.validation || '',
+          journeys: [],
+        };
+      }
+      const uc = this.state.useCases[ucId];
+      if (pfDiag.meta.uc_title && uc.title === ucId) {
+        uc.title = pfDiag.meta.uc_title;
+      }
+      if (pfDiag.meta.obj && !uc.obj) {
+        uc.obj = pfDiag.meta.obj;
+      }
+      if (pfDiag.meta.roles) {
+        const rs = Array.isArray(pfDiag.meta.roles) ? pfDiag.meta.roles : [pfDiag.meta.roles];
+        rs.forEach((r) => {
+          if (!uc.roles.includes(r)) uc.roles.push(r);
+        });
+      }
+      uc.journeys.push(pfDiag);
+    });
+
+    // Tri canonique des parcours dans chaque UC (nominaux en haut, puis variantes, puis segments)
+    Object.keys(this.state.useCases).forEach((ucId) => {
+      const uc = this.state.useCases[ucId];
+      uc.journeys = sortJourneysForUc(uc.journeys);
+      if (uc.journeys.length === 0) {
+        // Repli si un fichier legacy view=uc existe sans parcours PF séparés
+        const fallback = legacyUcDiagrams.find((d) => (d.meta.uc || d.meta.id) === ucId);
+        if (fallback) uc.journeys = [fallback];
+        else delete this.state.useCases[ucId];
+      }
+    });
+
+    // 3. Index global des codes pour la navigation croisée (Arborescence <-> Parcours)
+    [...sitemaps, ...userflows].forEach((diag) => {
       Object.values(diag.nodes).forEach((n) => {
         const code = n.code || n.id;
         if (!this.state.globalIndex[code]) {
@@ -677,6 +860,7 @@ class IaStudioApp {
           diagramId: diag.meta.id,
           diagramKind: diag.meta.kind,
           diagramTitle: diag.meta.title || diag.filename,
+          ucId: diag.meta.uc || null,
           nodeId: n.id,
           code,
           label: n.label || code,
@@ -684,15 +868,12 @@ class IaStudioApp {
       });
     });
 
-    // Contrôles structurels
-    const sitemaps = this.state.diagrams.filter((d) => d.meta.kind === 'sitemap');
-    const userflows = this.state.diagrams.filter((d) => d.meta.kind === 'userflow');
-
+    // 4. Contrôles structurels
     userflows.forEach((uf) => {
       Object.values(uf.nodes).forEach((node) => {
         if (node.type === 'ECR') {
           const code = node.code || node.id;
-          const found = sitemaps.some((sm) => Object.values(sm.nodes).some((sn) => (sn.code || sn.id) === code));
+          const found = Boolean(this.state.sitemapNodes[code]);
           if (!found) {
             this.state.diagnostics.push({
               level: 'warning',
@@ -715,69 +896,118 @@ class IaStudioApp {
 
   switchDiagram(diag) {
     this.state.activeDiagram = diag;
+    this.state.activeUseCase = null;
+    this.inspector.hide();
     this.render();
+    this.highlightActiveSidebarItem();
+  }
 
-    this.dom.diagramList.querySelectorAll('.diagram-item').forEach((el) => {
-      el.classList.toggle('active', el.getAttribute('data-id') === diag.meta.id);
+  switchUseCase(uc) {
+    this.state.activeUseCase = uc;
+    this.state.activeDiagram = null;
+    this.inspector.hide();
+    this.render();
+    this.highlightActiveSidebarItem();
+  }
+
+  openJourneyById(pfId) {
+    if (!pfId) return;
+    const target = this.state.diagrams.find(
+      (d) => d.meta.id === pfId || d.filename.replace(/\.mmd$/, '') === pfId || d.meta.id.startsWith(pfId)
+    );
+    if (target) {
+      this.switchDiagram(target);
+    }
+  }
+
+  highlightActiveSidebarItem() {
+    if (!this.dom.diagramList) return;
+    const activeDiagId = this.state.activeDiagram?.meta?.id || null;
+    const activeUcId = this.state.activeUseCase?.id || null;
+
+    this.dom.diagramList.querySelectorAll('.diagram-item, .uc-journey-item').forEach((el) => {
+      el.classList.toggle('active', Boolean(activeDiagId && el.getAttribute('data-id') === activeDiagId));
+    });
+
+    this.dom.diagramList.querySelectorAll('.uc-folder').forEach((el) => {
+      el.classList.toggle('active', Boolean(activeUcId && el.getAttribute('data-uc-id') === activeUcId));
     });
   }
 
-  render() {
+  render(options = {}) {
+    const isUcView = Boolean(this.state.activeUseCase);
     const diag = this.state.activeDiagram;
-    if (!diag) return;
+    const uc = this.state.activeUseCase;
 
-    this.dom.activeTitle.textContent = diag.meta.title || diag.filename;
-    this.dom.activeBadge.textContent = (diag.meta.kind || 'sitemap').toUpperCase();
-    this.dom.activeBadge.className = `item-badge ${diag.meta.kind === 'sitemap' ? 'badge-sitemap' : 'badge-userflow'}`;
+    if (!diag && !uc) return;
+
+    if (isUcView) {
+      this.dom.activeTitle.textContent = `${uc.id} · ${uc.title}`;
+      this.dom.activeBadge.textContent = `UC (${uc.journeys.length} PARCOURS)`;
+      this.dom.activeBadge.className = 'item-badge badge-uc';
+    } else {
+      this.dom.activeTitle.textContent = diag.meta.title || diag.filename;
+      this.dom.activeBadge.textContent = (diag.meta.kind || 'sitemap').toUpperCase();
+      this.dom.activeBadge.className = `item-badge ${diag.meta.kind === 'sitemap' ? 'badge-sitemap' : 'badge-userflow'}`;
+    }
 
     if (this.state.layers.mermaid) {
-      this.dom.renderTarget.innerHTML = `<div class="mermaid">${diag.rawMermaid}</div>`;
+      const rawText = isUcView
+        ? uc.journeys.map((j) => j.rawMermaid).join('\n\n')
+        : diag.rawMermaid;
+      this.dom.renderTarget.innerHTML = `<div class="mermaid">${rawText}</div>`;
       if (window.mermaid) {
         window.mermaid.init(undefined, this.dom.renderTarget.querySelectorAll('.mermaid'));
       }
       return;
     }
 
-    const urlMap = computeHierarchyUrls(diag);
     let layout;
-    let renderAst = diag;
+    let renderAst;
+    let urlMap = { ...this.state.sitemapUrls };
 
-    if (diag.meta.kind === 'sitemap') {
+    if (isUcView) {
+      const res = layoutUseCase(uc, this.state.layers);
+      renderAst = res.compositeAst;
+      layout = res.layout;
+    } else if (diag.meta.kind === 'sitemap') {
+      renderAst = diag;
+      urlMap = { ...urlMap, ...computeHierarchyUrls(diag) };
       layout = layoutSitemap(diag);
     } else {
       renderAst = filterUserflowAst(diag, this.state.layers);
+      urlMap = { ...urlMap, ...computeHierarchyUrls(diag) };
       layout = layoutUserflow(renderAst);
     }
 
     this.currentLayout = layout;
+    this.currentRenderAst = renderAst;
+    this.currentUrlMap = urlMap;
+
     const svgString = renderSvgCanvas(renderAst, layout, this.state, urlMap);
     this.dom.renderTarget.innerHTML = svgString;
 
-    // Centrage et ajustement automatique du diagramme au chargement
-    if (layout.bounds) {
+    if (options.preserveViewport) {
+      this.panZoom.applyTransform();
+    } else if (layout.bounds) {
       this.panZoom.fitToBounds(layout.bounds);
     }
 
-    // Attache les événements de clic pour l'inspecteur modal
-    this.dom.svgWrapper.querySelectorAll('.dg-card').forEach((cardEl) => {
-      const nid = cardEl.getAttribute('data-id');
-      cardEl.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.inspector.show(nid, renderAst, this.state, urlMap);
-      });
-    });
-
-    // Attache la carte de survol
+    // Délégation de la carte de survol
     this.hoverCard.attach(
       this.dom.renderTarget,
       (nid) => renderAst.nodes[nid],
-      (code) => this.state.metadata[code] || {},
-      (code) => Boolean(this.state.screenSheets[code]),
-      (nid) => urlMap[nid]?.relative || '/'
+      (code) => this.state.metadata[code] || this.state.sitemapNodes[code] || {},
+      (code) => Boolean(this.state.screenSheets[code] || this.state.screenSheets[code?.replace(/[:@!#]/g, '_')]),
+      (nid) => {
+        const node = renderAst.nodes[nid];
+        const code = node?.code || nid;
+        return urlMap[nid]?.relative || urlMap[code]?.relative || node?.url || '/';
+      }
     );
 
-    // Gestion du Bandeau de Variante contextualisée (données brutes découplées)
-    const isVariant = diag.meta.kind === 'userflow' && (diag.meta.statut === 'variante' || Boolean(diag.meta.diverge));
+    // Gestion du Bandeau de Variante contextualisée (uniquement lorsqu'un parcours variante est isolé)
+    const isVariant = !isUcView && diag.meta.kind === 'userflow' && (diag.meta.statut === 'variante' || Boolean(diag.meta.diverge));
     if (isVariant && this.dom.variantContextBar) {
       this.dom.variantContextBar.style.display = 'flex';
 
@@ -787,9 +1017,9 @@ class IaStudioApp {
       const [parentNomId, divergeStep] = divergeRaw.split('@');
       const [, rejoinStep] = rejoinRaw.split('@');
 
-      this.dom.varParentName.textContent = parentNomId || 'Parcours Nominal';
+      this.dom.varParentName.textContent = parentNomId || 'Nominal';
       this.dom.varDivergePill.textContent = divergeStep ? `Divergence @${divergeStep}` : 'Divergence';
-      
+
       if (rejoinStep) {
         this.dom.varRejoinPill.style.display = 'inline-block';
         this.dom.varRejoinPill.textContent = `Rejonction @${rejoinStep}`;
@@ -798,49 +1028,58 @@ class IaStudioApp {
       }
 
       this.dom.btnJumpNominal.onclick = () => {
-        const nominalDiag = this.state.diagrams.find((d) => d.meta.id === parentNomId || (d.meta.uc === diag.meta.uc && d.meta.statut === 'nominal'));
+        const nominalDiag = this.state.diagrams.find(
+          (d) =>
+            d.meta.id === parentNomId ||
+            d.meta.id.startsWith(parentNomId || '__none__') ||
+            (d.meta.uc === diag.meta.uc && d.meta.statut === 'nominal')
+        );
         if (nominalDiag) this.switchDiagram(nominalDiag);
-        else alert(`Parcours nominal ${parentNomId || ''} introuvable dans le dossier chargé.`);
+        else this.showToast(`Parcours nominal ${parentNomId || ''} introuvable.`, 'error');
       };
 
       this.dom.btnJumpUc.onclick = () => {
-        const ucDiag = this.state.diagrams.find((d) => (d.meta.uc === diag.meta.uc || d.meta.id.includes(diag.meta.uc || '')) && (d.meta.view === 'uc' || d.filename.includes('overview') || d.filename.includes('vue-ensemble')));
-        if (ucDiag) this.switchDiagram(ucDiag);
-        else alert(`Vue de synthèse du cas d'usage ${diag.meta.uc || ''} introuvable dans le dossier chargé.`);
+        const targetUc = this.state.useCases[diag.meta.uc];
+        if (targetUc) {
+          this.switchUseCase(targetUc);
+        } else {
+          this.showToast(`Cas d'usage ${diag.meta.uc || ''} introuvable.`, 'error');
+        }
       };
     } else if (this.dom.variantContextBar) {
       this.dom.variantContextBar.style.display = 'none';
     }
 
-    this.updateLegend(diag);
+    this.updateLegend(isUcView ? { meta: { kind: 'userflow' } } : diag);
   }
 
   resolveSeeInArbo(code) {
     const sitemaps = this.state.diagrams.filter((d) => d.meta.kind === 'sitemap');
-    if (sitemaps.length === 0) return alert('Aucune arborescence disponible.');
+    if (sitemaps.length === 0) return this.showToast('Aucune arborescence disponible.', 'error');
 
     const targetSitemap = sitemaps.find((s) => s.meta.view === 'detailed') || sitemaps[0];
     let targetId = null;
 
-    for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
-      if ((node.code || nid) === code) {
-        targetId = nid;
-        break;
-      }
-    }
-    if (!targetId && code.includes(':')) {
-      const base = code.split(':')[0];
-      for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
-        if ((node.code || nid) === base) {
+    const candidates = [code];
+    if (code.includes(':')) candidates.push(code.split(':')[0]);
+    if (code.includes('@')) candidates.push(code.split('@')[0]);
+    if (code.includes('!')) candidates.push(code.split('!')[0]);
+    if (code.includes('#')) candidates.push(code.split('#')[0]);
+
+    for (const cand of candidates) {
+      for (const [nid, node] of Object.entries(targetSitemap.nodes)) {
+        if ((node.code || nid) === cand) {
           targetId = nid;
           break;
         }
       }
+      if (targetId) break;
     }
 
     if (targetSitemap && targetId) {
       this.state.previousFlowRef = {
         diagram: this.state.activeDiagram,
+        useCase: this.state.activeUseCase,
         scale: this.panZoom.scale,
         panX: this.panZoom.panX,
         panY: this.panZoom.panY,
@@ -848,25 +1087,31 @@ class IaStudioApp {
       this.dom.backBtn.style.display = 'inline-flex';
 
       this.switchDiagram(targetSitemap);
-      setTimeout(() => {
-        const urlMap = computeHierarchyUrls(targetSitemap);
-        this.inspector.show(targetId, targetSitemap, this.state, urlMap);
-      }, 100);
+      this.inspector.show(targetId, this.currentRenderAst, this.state, this.currentUrlMap);
+    } else {
+      this.showToast(`Code [${code}] introuvable dans l'arborescence.`, 'error');
     }
   }
 
   resolveSeeInUserflows(code) {
     const occs = (this.state.globalIndex[code] || []).filter((o) => o.diagramKind === 'userflow');
-    if (occs.length === 0) return alert(`Aucun parcours ne traverse l'écran [${code}].`);
+    if (occs.length === 0) return this.showToast(`Aucun parcours ne traverse l'écran [${code}].`, 'error');
 
     const targetOcc = occs[0];
+    if (targetOcc.ucId && this.state.useCases[targetOcc.ucId]) {
+      const targetUc = this.state.useCases[targetOcc.ucId];
+      this.switchUseCase(targetUc);
+      const compositeNodeId = `${targetOcc.diagramId}__${targetOcc.nodeId}`;
+      if (this.currentRenderAst?.nodes[compositeNodeId]) {
+        this.inspector.show(compositeNodeId, this.currentRenderAst, this.state, this.currentUrlMap);
+        return;
+      }
+    }
+
     const targetFlow = this.state.diagrams.find((d) => d.meta.id === targetOcc.diagramId);
     if (targetFlow) {
       this.switchDiagram(targetFlow);
-      setTimeout(() => {
-        const urlMap = computeHierarchyUrls(targetFlow);
-        this.inspector.show(targetOcc.nodeId, targetFlow, this.state, urlMap);
-      }, 100);
+      this.inspector.show(targetOcc.nodeId, this.currentRenderAst, this.state, this.currentUrlMap);
     }
   }
 
@@ -905,39 +1150,158 @@ class IaStudioApp {
     this.dom.diagModal.classList.add('active');
   }
 
-  updateSidebar() {
-    this.dom.diagramList.innerHTML = '';
-    const filtered = this.state.diagrams.filter((d) => {
-      if (this.state.activeCategory === 'sitemap' && d.meta.kind !== 'sitemap') return false;
-      if (this.state.activeCategory === 'userflow' && d.meta.kind !== 'userflow') return false;
-      if (this.state.searchQuery) {
-        const q = this.state.searchQuery.toLowerCase();
-        const matchTitle = (d.meta.title || d.filename).toLowerCase().includes(q);
-        const matchNode = Object.values(d.nodes).some(
-          (n) => (n.code || n.id).toLowerCase().includes(q) || (n.label || '').toLowerCase().includes(q)
-        );
-        return matchTitle || matchNode;
-      }
-      return true;
-    });
+  matchesSearch(diag, q) {
+    if (!q) return true;
+    const matchTitle = (diag.meta.title || diag.filename).toLowerCase().includes(q);
+    const matchId = (diag.meta.id || '').toLowerCase().includes(q);
+    const matchNode = Object.values(diag.nodes).some(
+      (n) => (n.code || n.id).toLowerCase().includes(q) || (n.label || '').toLowerCase().includes(q)
+    );
+    return matchTitle || matchId || matchNode;
+  }
 
-    filtered.forEach((diag) => {
-      const item = document.createElement('div');
-      item.className = `diagram-item ${this.state.activeDiagram === diag ? 'active' : ''}`;
-      item.setAttribute('data-id', diag.meta.id);
-      item.innerHTML = `
-        <div class="item-header">
-          <span class="item-title">${diag.meta.title || diag.filename}</span>
-          <span class="item-badge ${diag.meta.kind === 'sitemap' ? 'badge-sitemap' : 'badge-userflow'}">${diag.meta.kind}</span>
-        </div>
-        <div class="item-desc">${Object.keys(diag.nodes).length} nœuds · ${diag.meta.view || 'standard'}</div>
-      `;
-      item.addEventListener('click', () => this.switchDiagram(diag));
-      this.dom.diagramList.appendChild(item);
-    });
+  updateSidebar() {
+    if (!this.dom.diagramList) return;
+    this.dom.diagramList.innerHTML = '';
+
+    const q = this.state.searchQuery.toLowerCase();
+    const showSitemaps = this.state.activeCategory === 'all' || this.state.activeCategory === 'sitemap';
+    const showUserflows = this.state.activeCategory === 'all' || this.state.activeCategory === 'userflow';
+
+    // 1. Section Arborescences (Sitemaps)
+    if (showSitemaps) {
+      const sitemaps = this.state.diagrams.filter((d) => d.meta.kind === 'sitemap' && this.matchesSearch(d, q));
+      if (sitemaps.length > 0) {
+        const secLabel = document.createElement('div');
+        secLabel.className = 'sidebar-section-label';
+        secLabel.textContent = 'Arborescences';
+        this.dom.diagramList.appendChild(secLabel);
+
+        sitemaps.forEach((diag) => {
+          const item = document.createElement('div');
+          item.className = `diagram-item ${this.state.activeDiagram === diag ? 'active' : ''}`;
+          item.setAttribute('data-id', diag.meta.id);
+          item.innerHTML = `
+            <div class="item-header">
+              <span class="item-title">${diag.meta.title || diag.filename}</span>
+              <span class="item-badge badge-sitemap">${diag.meta.view || 'sitemap'}</span>
+            </div>
+            <div class="item-desc">${Object.keys(diag.nodes).length} nœuds${diag.meta.role ? ` · ${diag.meta.role}` : ''}</div>
+          `;
+          item.addEventListener('click', () => this.switchDiagram(diag));
+          this.dom.diagramList.appendChild(item);
+        });
+      }
+    }
+
+    // 2. Section Cas d'Usage (Dossiers de Parcours)
+    if (showUserflows) {
+      const ucs = Object.values(this.state.useCases);
+      const matchingUcs = ucs.filter((uc) => {
+        if (!q) return true;
+        if (uc.id.toLowerCase().includes(q) || (uc.title || '').toLowerCase().includes(q)) return true;
+        return uc.journeys.some((j) => this.matchesSearch(j, q));
+      });
+
+      if (matchingUcs.length > 0) {
+        const secLabel = document.createElement('div');
+        secLabel.className = 'sidebar-section-label';
+        secLabel.textContent = "Cas d'Usage & Parcours";
+        this.dom.diagramList.appendChild(secLabel);
+
+        matchingUcs.forEach((uc) => {
+          const isCollapsed = this.state.collapsedUcs.has(uc.id) && !q;
+          const isUcActive = this.state.activeUseCase?.id === uc.id;
+
+          const folder = document.createElement('div');
+          folder.className = `uc-folder ${isUcActive ? 'active' : ''} ${isCollapsed ? 'collapsed' : ''}`;
+          folder.setAttribute('data-uc-id', uc.id);
+
+          const header = document.createElement('div');
+          header.className = 'uc-folder-header';
+          header.innerHTML = `
+            <div class="uc-folder-left">
+              <button class="uc-chevron-btn" type="button" title="Plier / Déplier les parcours">
+                <span class="material-symbols-outlined icon-sm">${isCollapsed ? 'chevron_right' : 'expand_more'}</span>
+              </button>
+              <span class="material-symbols-outlined icon-sm" style="color:var(--primary);">${isCollapsed ? 'folder' : 'folder_open'}</span>
+              <div class="uc-folder-info">
+                <div class="uc-folder-title" title="${uc.title}">${uc.title}</div>
+                <div class="uc-folder-sub">${uc.id}${uc.obj ? ` · ${uc.obj}` : ''}</div>
+              </div>
+            </div>
+            <span class="item-badge badge-uc" title="Ouvrir tous les parcours du cas d'usage">${uc.journeys.length} PF</span>
+          `;
+
+          // Clic sur le chevron : plier/déplier uniquement la liste dans le panneau latéral
+          const chevronBtn = header.querySelector('.uc-chevron-btn');
+          chevronBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.state.collapsedUcs.has(uc.id)) {
+              this.state.collapsedUcs.delete(uc.id);
+            } else {
+              this.state.collapsedUcs.add(uc.id);
+            }
+            this.updateSidebar();
+          });
+
+          // Clic sur l'en-tête du dossier UC : ouvre le canevas empilant tous les parcours de l'UC
+          header.addEventListener('click', () => {
+            this.switchUseCase(uc);
+          });
+
+          const childrenContainer = document.createElement('div');
+          childrenContainer.className = 'uc-folder-children';
+
+          const visibleJourneys = q
+            ? uc.journeys.filter((j) => this.matchesSearch(j, q) || uc.id.toLowerCase().includes(q) || (uc.title || '').toLowerCase().includes(q))
+            : uc.journeys;
+
+          visibleJourneys.forEach((pfDiag) => {
+            const st = (pfDiag.meta.statut || (pfDiag.meta.view === 'expanded' ? 'expanded' : 'nominal')).toLowerCase();
+            let badgeClass = 'badge-nominal';
+            let badgeLabel = st;
+            if (st === 'variante' || st === 'variant') {
+              badgeClass = 'badge-variante';
+              badgeLabel = 'variante';
+            } else if (st === 'segment') {
+              badgeClass = 'badge-segment';
+              badgeLabel = 'segment';
+            }
+
+            const pfItem = document.createElement('div');
+            pfItem.className = `uc-journey-item ${this.state.activeDiagram === pfDiag ? 'active' : ''}`;
+            pfItem.setAttribute('data-id', pfDiag.meta.id);
+
+            const stepCount = Object.keys(pfDiag.nodes).length;
+            const branchInfo = pfDiag.meta.diverge ? ` · div @${pfDiag.meta.diverge.split('@')[1] || pfDiag.meta.diverge}` : '';
+
+            pfItem.innerHTML = `
+              <div class="item-header">
+                <span class="item-title" title="${pfDiag.meta.title || pfDiag.filename}">${pfDiag.meta.title || pfDiag.filename}</span>
+                <span class="item-badge ${badgeClass}">${badgeLabel}</span>
+              </div>
+              <div class="item-desc">${pfDiag.meta.id} · ${stepCount} étapes${branchInfo}</div>
+            `;
+
+            pfItem.addEventListener('click', (e) => {
+              e.stopPropagation();
+              this.switchDiagram(pfDiag);
+            });
+
+            childrenContainer.appendChild(pfItem);
+          });
+
+          folder.appendChild(header);
+          folder.appendChild(childrenContainer);
+          this.dom.diagramList.appendChild(folder);
+        });
+      }
+    }
   }
 
   updateRoleOptions() {
+    if (!this.dom.roleFilter) return;
     const rolesSet = new Set(['ALL']);
     this.state.diagrams.forEach((diag) => {
       Object.values(diag.nodes).forEach((n) => {
@@ -958,9 +1322,10 @@ class IaStudioApp {
   }
 
   updateLegend(diag) {
+    if (!this.dom.legendContent) return;
     const isSitemap = diag ? diag.meta.kind === 'sitemap' : true;
 
-    let html = `
+    const html = `
       <div class="legend-section">
         <div class="legend-section-title">Composants & Cartes</div>
         <div class="legend-items-grid">
@@ -982,7 +1347,7 @@ class IaStudioApp {
           </div>
           <div class="legend-item">
             <div class="legend-swatch card-call"></div>
-            <div class="legend-label"><strong>Sous-parcours (CALL)</strong> (cadre violet)</div>
+            <div class="legend-label"><strong>Appel de parcours (CALL)</strong> (cadre violet)</div>
           </div>
           <div class="legend-item">
             <div class="legend-swatch card-ext"></div>
@@ -1028,7 +1393,7 @@ class IaStudioApp {
             <div class="legend-line-swatch line-call"></div>
             <div class="legend-label">
               <strong>Trait violet</strong><br>
-              <span class="legend-desc">Liaison issue d'un sous-parcours réutilisable (CALL)</span>
+              <span class="legend-desc">Liaison issue d'un parcours réutilisable (CALL)</span>
             </div>
           </div>
           <div class="legend-item">
@@ -1083,7 +1448,6 @@ class IaStudioApp {
   }
 }
 
-// Initialisation au chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
   window.iaStudio = new IaStudioApp();
 });

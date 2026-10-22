@@ -30,6 +30,7 @@ export function parseMetadata(rawInput) {
       return {
         header: null,
         entities: {},
+        useCases: {},
         raw: null,
         templateVersion: CURRENT_TEMPLATE_VERSION,
         diagnostics: [{ level: 'error', msg: `JSON de métadonnées invalide : ${err.message}` }],
@@ -41,6 +42,7 @@ export function parseMetadata(rawInput) {
     return {
       header: null,
       entities: {},
+      useCases: {},
       raw: null,
       templateVersion: CURRENT_TEMPLATE_VERSION,
       diagnostics: [{ level: 'error', msg: 'Entrée de métadonnées non valide' }],
@@ -53,6 +55,8 @@ export function parseMetadata(rawInput) {
     header = { ...json.header };
   } else if (json._header && typeof json._header === 'object' && !Array.isArray(json._header)) {
     header = { ...json._header };
+  } else if (json._meta && typeof json._meta === 'object' && !Array.isArray(json._meta)) {
+    header = { ...json._meta };
   } else if (json.format || json.version || json.template_version || json.templateVersion) {
     header = {
       format: json.format || 'ia-metadata',
@@ -75,7 +79,15 @@ export function parseMetadata(rawInput) {
       CURRENT_TEMPLATE_VERSION;
   }
 
-  // 2. Extraction des entités (écrans, nœuds, modules)
+  // 2. Extraction des Cas d'Usage (use_cases / useCases)
+  const useCases = {};
+  if (json.use_cases && typeof json.use_cases === 'object' && !Array.isArray(json.use_cases)) {
+    Object.assign(useCases, json.use_cases);
+  } else if (json.useCases && typeof json.useCases === 'object' && !Array.isArray(json.useCases)) {
+    Object.assign(useCases, json.useCases);
+  }
+
+  // 3. Extraction des entités (écrans, nœuds, modules)
   let entities = {};
   if (json.entities && typeof json.entities === 'object' && !Array.isArray(json.entities)) {
     entities = json.entities;
@@ -101,13 +113,19 @@ export function parseMetadata(rawInput) {
       '_meta',
       'diagrams',
       '_diagrams',
+      'use_cases',
+      'useCases',
       'created_at',
       'updated_at',
       'author',
     ]);
     for (const [key, val] of Object.entries(json)) {
       if (!reservedKeys.has(key) && val && typeof val === 'object' && !Array.isArray(val)) {
-        entities[key] = val;
+        if (key.startsWith('UC-') || val.kind === 'uc') {
+          useCases[key] = val;
+        } else {
+          entities[key] = val;
+        }
       }
     }
   }
@@ -127,6 +145,7 @@ export function parseMetadata(rawInput) {
   return {
     header,
     entities,
+    useCases,
     raw: json,
     templateVersion,
     diagnostics,

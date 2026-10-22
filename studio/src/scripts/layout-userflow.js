@@ -122,8 +122,8 @@ export function layoutUserflow(ast, options = {}) {
   const cardH = options.cardH || 118;
   const flowGap = options.flowGap || 88;
   const gapY = options.gapY || 100;
-  const startX = 60;
-  const startY = 120;
+  const startX = options.startX !== undefined ? options.startX : 60;
+  const startY = options.startY !== undefined ? options.startY : 120;
 
   const positions = {};
   const allNodeIds = Object.keys(ast.nodes);
@@ -283,4 +283,176 @@ export function layoutUserflow(ast, options = {}) {
       height: maxY - minY,
     },
   };
+}
+
+/**
+ * Trie les parcours d'un Cas d'Usage en plaçant impérativement :
+ * 1. Les parcours nominaux en haut (statut=nominal)
+ * 2. Les variantes ensuite (statut=variante)
+ * 3. Les segments et sous-parcours dépliés en bas (statut=segment / view=expanded)
+ */
+export function sortJourneysForUc(journeys = []) {
+  const statusRank = (diag) => {
+    const st = (diag.meta?.statut || '').toLowerCase();
+    const vw = (diag.meta?.view || '').toLowerCase();
+    if (st === 'nominal') return 0;
+    if (st === 'variante' || st === 'variant' || Boolean(diag.meta?.diverge)) return 1;
+    if (st === 'segment') return 2;
+    if (vw === 'expanded') return 3;
+    return 1;
+  };
+
+  return [...journeys].sort((a, b) => {
+    const rA = statusRank(a);
+    const rB = statusRank(b);
+    if (rA !== rB) return rA - rB;
+    return (a.meta?.id || '').localeCompare(b.meta?.id || '');
+  });
+}
+
+/**
+ * Construit un AST composite et un layout empilé verticalement pour un Cas d'Usage (UC).
+ * Tous les parcours concernant l'UC sont disposés les uns au-dessus des autres,
+ * avec les parcours nominaux en haut.
+ *
+ * @param {Object} uc - Objet Cas d'Usage ({ id, title, obj, roles, journeys })
+ * @param {Object} layers - Calques actifs ({ actions, attentes, ... })
+ * @param {Object} options - Options géométriques
+ * @returns {{ compositeAst: Object, layout: Object }}
+ */
+export function layoutUseCase(uc, layers = {}, options = {}) {
+  const sortedJourneys = sortJourneysForUc(uc.journeys || []);
+  const trackMarginX = 40;
+  const trackPaddingX = 36;
+  const headerHeight = 50;
+  const trackPaddingBottom = 28;
+  const trackGapY = 36;
+
+  const compositeNodes = {};
+  const compositeEdges = [];
+  const compositeTags = {};
+  const positions = {};
+  const tracks = [];
+
+  let currentY = 50;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  sortedJourneys.forEach((rawDiag) => {
+    const pfDiag = rawDiag.nodes ? rawDiag : (rawDiag.ast || rawDiag);
+    const pfId = pfDiag.meta?.id || pfDiag.filename;
+    Object.assign(compositeTags, pfDiag.tags || {});
+
+    const filteredAst = filterUserflowAst(pfDiag, layers);
+    const nodesStartY = currentY + headerHeight + 18;
+    const nodesStartX = trackMarginX + trackPaddingX;
+
+    const singleLayout = layoutUserflow(filteredAst, {
+      ...options,
+      startX: nodesStartX,
+      startY: nodesStartY,
+    });
+
+    // Transposition des nœuds avec identifiant préfixé par parcours pour éviter toute collision
+    Object.entries(filteredAst.nodes).forEach(([nid, node]) => {
+      const compositeId = `${pfId}__${nid}`;
+      compositeNodes[compositeId] = {
+        ...node,
+        id: compositeId,
+        originalId: nid,
+        pfId,
+        pfTitle: pfDiag.meta?.title || pfId,
+        pfStatut: pfDiag.meta?.statut || (pfDiag.meta?.view === 'expanded' ? 'expanded' : 'nominal'),
+      };
+    });
+
+    filteredAst.edges.forEach((edge) => {
+      compositeEdges.push({
+        ...edge,
+        src: `${pfId}__${edge.src}`,
+        dst: `${pfId}__${edge.dst}`,
+      });
+    });
+
+    let trackContentMaxX = nodesStartX + 400;
+    let trackContentMaxY = nodesStartY + 118;
+
+    Object.entries(singleLayout.positions).forEach(([nid, pos]) => {
+      const compositeId = `${pfId}__${nid}`;
+      positions[compositeId] = pos;
+      trackContentMaxX = Math.max(trackContentMaxX, pos.x + pos.w);
+      trackContentMaxY = Math.max(trackContentMaxY, pos.y + pos.h);
+    });
+
+    const trackW = Math.max(trackContentMaxX - trackMarginX + trackPaddingX, 680);
+    const trackH = (trackContentMaxY - currentY) + trackPaddingBottom;
+
+    const statut = pfDiag.meta?.statut || (pfDiag.meta?.view === 'expanded' ? 'expanded' : 'nominal');
+
+    tracks.push({
+      id: pfId,
+      title: pfDiag.meta?.title || pfId,
+      statut,
+      view: pfDiag.meta?.view || 'collapsed',
+      obj: pfDiag.meta?.obj || uc.obj || '',
+      roles: pfDiag.meta?.roles || [],
+      diverge: pfDiag.meta?.diverge || '',
+      rejoint: pfDiag.meta?.rejoint || '',
+      atterrissage: pfDiag.meta?.atterrissage || '',
+      x: trackMarginX,
+      y: currentY,
+      w: trackW,
+      h: trackH,
+      nodeCount: Object.keys(filteredAst.nodes).length,
+    });
+
+    minX = Math.min(minX, trackMarginX);
+    minY = Math.min(minY, currentY);
+    maxX = Math.max(maxX, trackMarginX + trackW);
+    maxY = Math.max(maxY, currentY + trackH);
+
+    currentY += trackH + trackGapY;
+  });
+
+  if (minX === Infinity) {
+    minX = 0;
+    minY = 0;
+    maxX = 800;
+    maxY = 600;
+  }
+
+  const compositeAst = {
+    filename: `${uc.id}.uc`,
+    meta: {
+      id: uc.id,
+      title: uc.title || uc.id,
+      kind: 'uc',
+      uc: uc.id,
+      obj: uc.obj || '',
+      roles: uc.roles || [],
+    },
+    tags: compositeTags,
+    nodes: compositeNodes,
+    edges: compositeEdges,
+    rawMermaid: sortedJourneys.map((j) => `%% === ${j.meta?.id} ===\n${j.rawMermaid}`).join('\n\n'),
+  };
+
+  const layout = {
+    positions,
+    tracks,
+    width: maxX + 80,
+    height: maxY + 80,
+    bounds: {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      width: maxX - minX,
+      height: maxY - minY,
+    },
+  };
+
+  return { compositeAst, layout };
 }

@@ -61,6 +61,15 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
     </g>`;
   }
 
+  // 3b. Couloirs de Parcours Empilés (Vue Cas d'Usage — UC)
+  if (Array.isArray(layout.tracks) && layout.tracks.length > 0) {
+    svg += `<g class="uc-tracks">`;
+    layout.tracks.forEach((tr) => {
+      svg += renderJourneyTrack(tr);
+    });
+    svg += `</g>`;
+  }
+
   // 4. Tracé des Liens (Edges) — Garanti Visible avec <path>
   svg += `<g class="dg-edges">`;
   ast.edges.forEach((e) => {
@@ -133,33 +142,107 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
   return svg;
 }
 
+export function escapeXml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+export function renderJourneyTrack(tr) {
+  const st = (tr.statut || 'nominal').toLowerCase();
+  let accentColor = 'var(--primary)';
+  let badgeBg = 'rgba(37, 99, 235, 0.14)';
+  let badgeText = 'var(--primary)';
+  let badgeLabel = 'NOMINAL';
+
+  if (st === 'variante' || st === 'variant') {
+    accentColor = '#f59e0b';
+    badgeBg = 'rgba(245, 158, 11, 0.16)';
+    badgeText = '#d97706';
+    badgeLabel = 'VARIANTE';
+  } else if (st === 'segment') {
+    accentColor = 'var(--dg-call)';
+    badgeBg = 'rgba(139, 77, 255, 0.15)';
+    badgeText = 'var(--dg-call)';
+    badgeLabel = 'SEGMENT';
+  } else if (st === 'expanded' || tr.view === 'expanded') {
+    accentColor = '#0284c7';
+    badgeBg = 'rgba(2, 132, 199, 0.15)';
+    badgeText = '#0284c7';
+    badgeLabel = 'DÉPLIÉ';
+  }
+
+  let metaInfo = '';
+  if (tr.diverge) {
+    metaInfo += `Diverge : ${tr.diverge}`;
+    if (tr.rejoint) metaInfo += `  ➔  Rejoint : ${tr.rejoint}`;
+  } else if (tr.atterrissage) {
+    metaInfo += `Atterrissage : ${tr.atterrissage}`;
+  }
+  if (tr.obj) {
+    metaInfo += (metaInfo ? '   ·   ' : '') + `Objectif : ${tr.obj}`;
+  }
+
+  return `
+    <g class="uc-journey-track" data-pf-id="${escapeXml(tr.id)}">
+      <rect x="${tr.x}" y="${tr.y}" width="${tr.w}" height="${tr.h}" rx="10" fill="var(--dg-frame)" stroke="var(--dg-frame-border)" stroke-width="1.5" />
+      <rect x="${tr.x}" y="${tr.y}" width="6" height="${tr.h}" rx="3" fill="${accentColor}" />
+      <line x1="${tr.x + 6}" y1="${tr.y + 44}" x2="${tr.x + tr.w}" y2="${tr.y + 44}" stroke="var(--dg-frame-border)" stroke-width="1" />
+
+      <g class="uc-track-header-group" data-pf-id="${escapeXml(tr.id)}" style="cursor:pointer;">
+        <rect x="${tr.x + 18}" y="${tr.y + 11}" width="74" height="22" rx="4" fill="${badgeBg}" />
+        <text x="${tr.x + 55}" y="${tr.y + 25}" fill="${badgeText}" font-size="10" font-weight="700" text-anchor="middle">${badgeLabel}</text>
+
+        <text x="${tr.x + 104}" y="${tr.y + 26}" fill="var(--dg-code)" font-size="11" font-family="monospace" font-weight="700">${escapeXml(tr.id)}</text>
+        <text x="${tr.x + 104 + tr.id.length * 7.2 + 12}" y="${tr.y + 26}" fill="var(--dg-title)" font-size="13" font-weight="700">${escapeXml(tr.title)}</text>
+
+        ${metaInfo ? `<text x="${tr.x + tr.w - 130}" y="${tr.y + 26}" fill="var(--dg-muted)" font-size="11" font-weight="600" text-anchor="end">${escapeXml(metaInfo)}</text>` : ''}
+
+        <rect x="${tr.x + tr.w - 114}" y="${tr.y + 10}" width="98" height="24" rx="5" fill="var(--bg-app)" stroke="var(--border-color)" stroke-width="1" />
+        <text x="${tr.x + tr.w - 65}" y="${tr.y + 25}" fill="var(--primary)" font-size="10" font-weight="700" text-anchor="middle">Isoler parcours ➔</text>
+      </g>
+    </g>
+  `;
+}
+
 export function renderSingleNode(node, pos, ast, state, urlMap) {
   const code = node.code || node.id;
-  const type = node.type || (code.startsWith('H') ? 'H' : 'L');
-  const subtype = node.subtype || type;
-  const isHome = type === 'HOME' || code === 'HOME';
+  const canonical = state?.metadata?.[code] || state?.sitemapNodes?.[code] || {};
+
+  const type = node.type || canonical.template || (code.startsWith('H') ? 'H' : 'L');
+  const subtype = node.subtype || canonical.subtype || (type === 'ECR' ? (canonical.template || 'ECR') : type);
+  const isHome = type === 'HOME' || code === 'HOME' || canonical.template === 'HOME';
   const isAct = node.type === 'ACT' || pos.isAct;
   const isAtt = node.type === 'ATT' || pos.isAtt;
   const isCall = type === 'CALL';
   const isExt = type === 'EXT';
-  const isProtected = node.access === 'protected';
-  const isAccent = node.tone === 'accent';
+  const isProtected = (node.access || canonical.access) === 'protected';
+  const isAccent = (node.tone || canonical.tone) === 'accent';
   const isState = code.includes(':');
-  const isDynamic = node.dynamic === 'yes' || (node.url && (node.url.includes('[') || node.url.includes(':')));
+  const effUrl = node.url || canonical.url || '';
+  const isDynamic =
+    node.dynamic === 'yes' ||
+    canonical.dynamic === true ||
+    canonical.dynamic === 'yes' ||
+    Boolean(effUrl && (effUrl.includes('[') || effUrl.includes(':')));
 
   const w = pos.w || 200;
   const h = pos.h || 118;
   const x = pos.x;
   const y = pos.y;
 
-  // Calcul d'URL Relative
-  const relativeUrl = urlMap[node.id]?.relative || node.url || '/';
+  // Calcul d'URL Relative (avec résolution sur le registre canonique pour les écrans de parcours)
+  const relativeUrl = urlMap[node.id]?.relative || urlMap[code]?.relative || effUrl || '/';
   const urlMode = isHome ? 'Absolu' : 'Relatif';
 
   // Filtrage par Rôle
+  const effectiveRoles = node.roles || canonical.roles;
   let isDimmed = false;
-  if (state.selectedRole !== 'ALL') {
-    const roles = Array.isArray(node.roles) ? node.roles : (node.roles ? [node.roles] : ['ALL']);
+  if (state.selectedRole && state.selectedRole !== 'ALL') {
+    const roles = Array.isArray(effectiveRoles) ? effectiveRoles : (effectiveRoles ? [effectiveRoles] : ['ALL']);
     if (!roles.includes('ALL') && !roles.includes(state.selectedRole)) {
       isDimmed = true;
     }
@@ -209,7 +292,7 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
     strokeWidth = '0';
   }
 
-  let svg = `<g class="${cardClass}" data-id="${node.id}" data-code="${code}" transform="translate(${x}, ${y})">`;
+  let svg = `<g class="${cardClass}" data-id="${escapeXml(node.id)}" data-code="${escapeXml(code)}" data-x="${x}" data-y="${y}" data-w="${w}" data-h="${h}" transform="translate(${x}, ${y})">`;
 
   // Pile dynamique (+3px et +6px)
   if (isDynamic && !isAct && !isAtt) {
@@ -230,19 +313,19 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
     svg += `<text x="38" y="22" fill="var(--dg-att)" font-size="10" font-weight="700">ATTENTE</text>`;
   } else {
     // 1. URL Relative
-    svg += `<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${truncate(relativeUrl, 18)}</text>`;
+    svg += `<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${escapeXml(truncate(relativeUrl, 18))}</text>`;
     svg += `<text x="12" y="31" fill="var(--dg-muted)" font-size="8">${urlMode}</text>`;
   }
 
   // 2. Titre sur 2 Lignes sans ID Répété
-  const rawTitle = node.label || code;
+  const rawTitle = node.label || canonical.title || code;
   const cleanTitle = rawTitle.replace(/\s*⏸\s*/g, ' ').trim();
   const [line1, line2] = splitTitleTwoLines(cleanTitle, 18);
 
   const titleY = line2 ? 56 : 64;
   svg += `<text x="${w / 2}" y="${titleY}" fill="var(--dg-title)" font-size="12" font-weight="700" text-anchor="middle">
-    <tspan x="${w / 2}" dy="0">${line1}</tspan>
-    ${line2 ? `<tspan x="${w / 2}" dy="16">${line2}</tspan>` : ''}
+    <tspan x="${w / 2}" dy="0">${escapeXml(line1)}</tspan>
+    ${line2 ? `<tspan x="${w / 2}" dy="16">${escapeXml(line2)}</tspan>` : ''}
   </text>`;
 
   // Marqueur de rupture ⏸ (Cercle ardoise en coin haut-gauche)
@@ -261,8 +344,8 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
 
   // 4. Code & Type/Subtype (Bas-droite)
   const displayedSubtype = isAtt ? 'Attente' : (isAct ? 'Action' : subtype);
-  svg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${code}</text>`;
-  svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${displayedSubtype}</text>`;
+  svg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${escapeXml(code)}</text>`;
+  svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${escapeXml(displayedSubtype)}</text>`;
 
   // 5. Bulles d'Icônes Material Symbols (Coin Haut-Gauche débordant)
   if (!isAct && !isAtt) {
@@ -284,8 +367,9 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
       else if (b === 'info') { bColor = 'var(--bubble-lavender)'; matSymbol = 'info'; }
       else if (b === 'lock') { bColor = '#475569'; matSymbol = 'lock'; }
 
+      const iconFill = b === 'lock' ? '#ffffff' : '#2b3a55';
       svg += `<circle cx="${bx + 12}" cy="${by + 12}" r="13" fill="${bColor}" stroke="#ffffff" stroke-width="1.5" />`;
-      svg += `<text x="${bx + 12}" y="${by + 17}" class="material-symbols-outlined" fill="#2b3a55" font-size="14" text-anchor="middle">${matSymbol}</text>`;
+      svg += `<text x="${bx + 12}" y="${by + 17}" class="material-symbols-outlined" fill="${iconFill}" font-size="14" text-anchor="middle">${matSymbol}</text>`;
     });
   }
 
@@ -294,21 +378,32 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
     const tags = Array.isArray(node.tags) ? node.tags : [node.tags];
     tags.slice(0, 2).forEach((tg, idx) => {
       const tx = w - 10 - (idx + 1) * 44;
-      const tColor = tg === 'MVP' ? 'var(--tag-blue)' : (tg === 'SP1' ? 'var(--tag-green)' : 'var(--tag-orange)');
-      svg += `<rect x="${tx}" y="-8" width="40" height="18" rx="3" fill="#fff" stroke="${tColor}" stroke-width="1.5" />`;
-      svg += `<text x="${tx + 20}" y="5" fill="${tColor}" font-size="9" font-weight="700" text-anchor="middle">${tg}</text>`;
+      const tagDecl = ast.tags?.[tg];
+      const colorMap = {
+        blue: 'var(--tag-blue)',
+        red: 'var(--tag-red)',
+        gray: 'var(--tag-gray)',
+        green: 'var(--tag-green)',
+        orange: 'var(--tag-orange)',
+      };
+      const tColor = tagDecl?.color
+        ? (colorMap[tagDecl.color] || tagDecl.color)
+        : (tg === 'MVP' ? 'var(--tag-blue)' : (tg === 'SP1' ? 'var(--tag-green)' : 'var(--tag-orange)'));
+      svg += `<rect x="${tx}" y="-8" width="40" height="18" rx="3" fill="var(--dg-card)" stroke="${tColor}" stroke-width="1.5" />`;
+      svg += `<text x="${tx + 20}" y="4" fill="${tColor}" font-size="8" font-weight="700" text-anchor="middle">${escapeXml(truncate(tg, 6))}</text>`;
     });
   }
 
   // 7. Avatars (Coin Bas-Droit / Haut-Droit)
-  if (state.layers.avatars && node.roles && !isAct) {
-    const roles = Array.isArray(node.roles) ? node.roles : [node.roles];
+  const avatarSource = node.who || effectiveRoles;
+  if (state.layers.avatars && avatarSource && !isAct) {
+    const roles = Array.isArray(avatarSource) ? avatarSource : [avatarSource];
     roles.slice(0, 2).forEach((r, idx) => {
       const ax = w - 16 - idx * 20;
       const ay = h + 8;
-      const initial = r.slice(0, 2).toUpperCase();
+      const initial = String(r).slice(0, 2).toUpperCase();
       svg += `<circle cx="${ax}" cy="${ay}" r="9" fill="#6366f1" stroke="#fff" stroke-width="2" />`;
-      svg += `<text x="${ax}" y="${ay + 3}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${initial}</text>`;
+      svg += `<text x="${ax}" y="${ay + 3}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${escapeXml(initial)}</text>`;
     });
   }
 

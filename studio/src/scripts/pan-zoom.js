@@ -16,14 +16,23 @@ export class PanZoomEngine {
     this.startX = 0;
     this.startY = 0;
     this.lastBounds = null;
+    this.animFrame = null;
 
     this.initEvents();
+  }
+
+  cancelAnimation() {
+    if (this.animFrame) {
+      cancelAnimationFrame(this.animFrame);
+      this.animFrame = null;
+    }
   }
 
   initEvents() {
     // Zoom centré sur la position de la souris
     this.viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
+      this.cancelAnimation();
       const rect = this.viewport.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
@@ -45,11 +54,14 @@ export class PanZoomEngine {
         e.target.closest('#legend-panel') ||
         e.target.closest('.empty-state') ||
         e.target.closest('#back-to-flow-btn') ||
-        e.target.closest('.dg-card')
+        e.target.closest('#variant-context-bar') ||
+        e.target.closest('.dg-card') ||
+        e.target.closest('.uc-track-header-group')
       ) {
         return;
       }
 
+      this.cancelAnimation();
       this.isPanning = true;
       this.startX = e.clientX - this.panX;
       this.startY = e.clientY - this.panY;
@@ -69,25 +81,76 @@ export class PanZoomEngine {
     });
   }
 
-  applyTransform() {
+  applyTransform(customX = this.panX, customY = this.panY, customScale = this.scale) {
     const content = this.viewport.querySelector('#viewport-content');
     if (content) {
-      content.setAttribute('transform', `translate(${this.panX}, ${this.panY}) scale(${this.scale})`);
+      content.setAttribute('transform', `translate(${customX}, ${customY}) scale(${customScale})`);
     } else if (this.wrapper) {
       // Repli pour vue mermaid brute
-      this.wrapper.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`;
+      this.wrapper.style.transform = `translate(${customX}px, ${customY}px) scale(${customScale})`;
     }
 
     // Déplacement fluide de la grille infinie de points
     const pattern = this.viewport.querySelector('#canvas-dots');
     if (pattern) {
-      const px = ((this.panX % 24) + 24) % 24;
-      const py = ((this.panY % 24) + 24) % 24;
+      const px = ((customX % 24) + 24) % 24;
+      const py = ((customY % 24) + 24) % 24;
       pattern.setAttribute('patternTransform', `translate(${px}, ${py})`);
     }
   }
 
+  animateTo(targetX, targetY, targetScale, duration = 200) {
+    this.cancelAnimation();
+    const startX = this.panX;
+    const startY = this.panY;
+    const startScale = this.scale;
+
+    // Mise à jour immédiate de l'état cible pour garantir la cohérence synchrone
+    this.panX = targetX;
+    this.panY = targetY;
+    this.scale = targetScale;
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (
+      duration <= 0 ||
+      prefersReducedMotion ||
+      typeof requestAnimationFrame === 'undefined' ||
+      (Math.abs(targetX - startX) < 1 && Math.abs(targetY - startY) < 1 && Math.abs(targetScale - startScale) < 0.01)
+    ) {
+      this.applyTransform(targetX, targetY, targetScale);
+      return;
+    }
+
+    const startTime = performance.now();
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      // Cubic ease-out
+      const ease = 1 - Math.pow(1 - t, 3);
+
+      const curX = startX + (targetX - startX) * ease;
+      const curY = startY + (targetY - startY) * ease;
+      const curS = startScale + (targetScale - startScale) * ease;
+
+      this.applyTransform(curX, curY, curS);
+
+      if (t < 1) {
+        this.animFrame = requestAnimationFrame(step);
+      } else {
+        this.animFrame = null;
+        this.applyTransform(this.panX, this.panY, this.scale);
+      }
+    };
+
+    this.animFrame = requestAnimationFrame(step);
+  }
+
   zoomIn() {
+    this.cancelAnimation();
     const vpW = this.viewport.clientWidth || 1200;
     const vpH = this.viewport.clientHeight || 800;
     const newScale = Math.min(this.scale * 1.2, 4.0);
@@ -98,6 +161,7 @@ export class PanZoomEngine {
   }
 
   zoomOut() {
+    this.cancelAnimation();
     const vpW = this.viewport.clientWidth || 1200;
     const vpH = this.viewport.clientHeight || 800;
     const newScale = Math.max(this.scale / 1.2, 0.15);
@@ -108,6 +172,7 @@ export class PanZoomEngine {
   }
 
   reset() {
+    this.cancelAnimation();
     if (this.lastBounds) {
       const vpW = this.viewport.clientWidth || 1200;
       const vpH = this.viewport.clientHeight || 800;
@@ -126,6 +191,7 @@ export class PanZoomEngine {
 
   fitToBounds(bounds) {
     if (!bounds || bounds.width <= 0 || bounds.height <= 0) return;
+    this.cancelAnimation();
     this.lastBounds = bounds;
 
     const vpW = this.viewport.clientWidth || 1200;
@@ -153,26 +219,49 @@ export class PanZoomEngine {
     }
   }
 
-  centerOnNode(nodeId, targetScale = 1.15) {
+  centerOnNode(nodeId, targetScale = null) {
     const el = this.viewport.querySelector(`[data-id="${nodeId}"]`);
     if (!el) return;
 
-    const bbox = el.getBBox();
+    let x = parseFloat(el.getAttribute('data-x'));
+    let y = parseFloat(el.getAttribute('data-y'));
+    let w = parseFloat(el.getAttribute('data-w'));
+    let h = parseFloat(el.getAttribute('data-h'));
+
+    if (Number.isNaN(x) || Number.isNaN(y)) {
+      const tf = el.getAttribute('transform') || '';
+      const match = /translate\(\s*([-\d.]+)[,\s]+([-\d.]+)\s*\)/.exec(tf);
+      if (match) {
+        x = parseFloat(match[1]);
+        y = parseFloat(match[2]);
+      } else {
+        const bbox = el.getBBox ? el.getBBox() : { x: 0, y: 0, width: 200, height: 118 };
+        x = bbox.x;
+        y = bbox.y;
+      }
+    }
+
+    if (Number.isNaN(w) || w <= 0) w = 200;
+    if (Number.isNaN(h) || h <= 0) h = 118;
+
     const vpW = this.viewport.clientWidth || 1200;
     const vpH = this.viewport.clientHeight || 800;
 
-    this.scale = targetScale;
-    this.panX = vpW / 2 - (bbox.x + bbox.width / 2) * this.scale;
-    this.panY = vpH / 2 - (bbox.y + bbox.height / 2) * this.scale;
-    this.applyTransform();
-    this.pulse(nodeId);
-  }
+    // Si l'inspecteur latéral droit est ouvert sur un grand écran, centrer dans l'espace libre à gauche
+    const inspectorEl = document.getElementById('inspector-modal');
+    const inspectorOpen = inspectorEl && inspectorEl.classList.contains('active') && this.viewport.clientWidth > 800;
+    const visibleW = inspectorOpen ? vpW - 380 : vpW;
 
-  pulse(nodeId) {
-    const el = this.viewport.querySelector(`[data-id="${nodeId}"]`);
-    if (el) {
-      el.classList.add('pulse');
-      setTimeout(() => el.classList.remove('pulse'), 1300);
-    }
+    const nextScale = typeof targetScale === 'number'
+      ? targetScale
+      : Math.min(Math.max(this.scale, 0.85), 1.25);
+
+    const nodeCenterX = x + w / 2;
+    const nodeCenterY = y + h / 2;
+
+    const nextPanX = visibleW / 2 - nodeCenterX * nextScale;
+    const nextPanY = vpH / 2 - nodeCenterY * nextScale;
+
+    this.animateTo(nextPanX, nextPanY, nextScale, 200);
   }
 }

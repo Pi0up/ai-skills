@@ -181,6 +181,10 @@
 
 .badge-sitemap { background: var(--badge-sitemap); color: #fff; }
 .badge-userflow { background: var(--badge-userflow); color: #fff; }
+.badge-uc { background: #0f766e; color: #fff; }
+.badge-nominal { background: rgba(37, 99, 235, 0.14); color: var(--primary); }
+.badge-variante { background: rgba(245, 158, 11, 0.16); color: #d97706; }
+.badge-segment { background: rgba(139, 77, 255, 0.16); color: var(--dg-call); }
 
 .item-desc {
   font-size: 11px;
@@ -190,16 +194,134 @@
   white-space: nowrap;
 }
 
+/* 4b. Dossiers de Cas d'Usage (UC) dans la Barre Latérale */
+.sidebar-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  margin: 10px 4px 6px;
+}
+
+.uc-folder {
+  margin-bottom: 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-app);
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.uc-folder.active {
+  border-color: var(--primary);
+}
+
+.uc-folder-header {
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-sidebar);
+  transition: background 0.15s ease;
+}
+
+.uc-folder-header:hover {
+  background: var(--primary-subtle);
+}
+
+.uc-folder.active > .uc-folder-header {
+  background: var(--primary-subtle);
+}
+
+.uc-folder-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.uc-chevron-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uc-chevron-btn:hover {
+  background: var(--border-color);
+  color: var(--text-main);
+}
+
+.uc-folder-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.uc-folder-title {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.uc-folder-sub {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.uc-folder-children {
+  border-top: 1px solid var(--border-color);
+  padding: 6px 6px 6px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--bg-app);
+}
+
+.uc-folder.collapsed .uc-folder-children {
+  display: none;
+}
+
+.uc-journey-item {
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: var(--bg-sidebar);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.uc-journey-item:hover {
+  border-color: var(--border-color);
+}
+
+.uc-journey-item.active {
+  border-color: var(--primary);
+  background: var(--primary-subtle);
+}
+
 /* 5. Éléments SVG du Rendu Propre */
 svg.dg-canvas {
   overflow: visible;
   font-family: var(--dg-font);
 }
 
-/* Carte Page Standard */
+/* Carte Page Standard (Aucune propriété transform CSS pour ne pas écraser l'attribut SVG translate(x,y)) */
 g.dg-card {
   cursor: pointer;
-  transition: transform 0.15s ease;
 }
 
 g.dg-card:hover rect.card-main {
@@ -209,6 +331,7 @@ g.dg-card:hover rect.card-main {
 g.dg-card.selected rect.card-main {
   stroke: var(--primary) !important;
   stroke-width: 2.5px !important;
+  filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.32));
 }
 
 /* Carte ACT sans bordure (Point 9 validé) */
@@ -276,12 +399,15 @@ g.level-lines text {
   font-weight: 500;
 }
 
-/* Pastilles Chips (ATT avec sablier) */
+/* Pastilles Chips */
 g.dg-chip {
   cursor: pointer;
-  transition: transform 0.15s ease;
 }
-g.dg-chip:hover { transform: scale(1.05); }
+
+/* En-tête de piste UC cliquable */
+g.uc-track-header-group:hover rect:last-of-type {
+  stroke: var(--primary);
+}
 
 /* Non couvert (Calque Couverture) */
 g.dg-card.uncovered rect.card-main {
@@ -293,16 +419,6 @@ g.dg-card.uncovered rect.card-main {
 /* Atténuation Rôle */
 g.dg-card.dimmed, g.dg-chip.dimmed {
   opacity: 0.25;
-}
-
-/* Animation Pulsation */
-@keyframes cardPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
-}
-
-g.dg-card.pulse {
-  animation: cardPulse 1.2s ease-in-out;
 }
 
 /* 6. Carte de Survol (Hover Card §6.1) */
