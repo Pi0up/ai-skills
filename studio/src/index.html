@@ -109,6 +109,19 @@
 
     <!-- Viewport Canvas -->
     <div class="canvas-viewport" id="canvas-viewport">
+      <!-- État Vide lorsque aucun dossier n'est chargé -->
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <span class="material-symbols-outlined empty-state__icon">folder_open</span>
+        <div class="empty-state__title">Visualiseur d'Architecture de l'Information</div>
+        <div class="empty-state__text">
+          Sélectionnez le dossier contenant vos fichiers <code>.mmd</code> et <code>metadata.json</code> (ou glissez-déposez le dossier ici) pour explorer l'arborescence et les parcours.
+        </div>
+        <button class="btn-tool primary" id="btn-welcome-open" style="padding: 10px 20px; font-size: 14px;">
+          <span class="material-symbols-outlined icon-sm">folder_open</span>
+          Ouvrir le dossier
+        </button>
+      </div>
+
       <!-- Bouton Retour au Parcours -->
       <button id="back-to-flow-btn">
         <span class="material-symbols-outlined icon-sm">arrow_back</span>

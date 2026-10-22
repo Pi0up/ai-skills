@@ -56,6 +56,7 @@ Le fichier `preview.html` constitue le **visualiseur unifié autonome** de l'ens
 | **P5** | Les fichiers `.mmd` sont **générés à partir de templates prédéfinis** : le visualiseur est en **lecture seule** et n'édite jamais les fichiers. |
 | **P6** | Une **dégradation gracieuse** est garantie : sans meta, le visualiseur déduit ce qu'il peut du libellé et des formes, et affiche quand même le diagramme (§2.4.5). |
 | **P7** | Les **écrans** d'un userflow utilisent **strictement le même composant visuel** que les pages d'une arborescence (§3.3). |
+| **P8** | Le visualiseur est un **moteur neutre à chargement dynamique** : aucun contenu `.mmd` ou donnée métier n'est inliné ou incorporé en dur dans son bundle. Tous les diagrammes, métadonnées et fiches écrans sont chargés dynamiquement à la volée (via HTTP `fetch`, File System Access API ou drag & drop). L'outillage peut ainsi régénérer ou modifier les `.mmd` sans jamais avoir à reconstruire `preview.html`. |
 
 ---
 

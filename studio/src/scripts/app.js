@@ -11,10 +11,12 @@ import { PanZoomEngine } from './pan-zoom.js';
 import { NodeInspector } from './inspector.js';
 import { HoverCardManager } from './hover-card.js';
 import { setupExportMenu } from './export-menu.js';
-import { DEMO_DIAGRAMS, DEMO_METADATA, DEMO_SHEETS } from './demo-data.js';
 
 class IaStudioApp {
   constructor() {
+    this.activeDirHandle = null;
+    this.cachedFileList = null;
+
     this.state = {
       diagrams: [],
       activeDiagram: null,
@@ -42,6 +44,8 @@ class IaStudioApp {
     this.dom = {
       sidebar: document.getElementById('sidebar'),
       canvasViewport: document.getElementById('canvas-viewport'),
+      emptyState: document.getElementById('empty-state'),
+      btnWelcomeOpen: document.getElementById('btn-welcome-open'),
       svgWrapper: document.getElementById('svg-canvas-wrapper'),
       renderTarget: document.getElementById('render-target'),
       diagramList: document.getElementById('diagram-list'),
@@ -106,27 +110,81 @@ class IaStudioApp {
   }
 
   initEventListeners() {
-    // Bouton Dossier
-    document.getElementById('btn-open-folder')?.addEventListener('click', async () => {
+    // Sélection de dossier (File System Access ou Fallback)
+    const triggerFolderPicker = async () => {
       if (window.showDirectoryPicker) {
         try {
           const dirHandle = await window.showDirectoryPicker();
+          this.activeDirHandle = dirHandle;
+          this.cachedFileList = null;
           await this.loadFromDirectoryHandle(dirHandle);
         } catch (err) {
-          if (err.name !== 'AbortError') this.dom.fallbackInput.click();
+          if (err.name !== 'AbortError') this.dom.fallbackInput?.click();
         }
       } else {
-        this.dom.fallbackInput.click();
+        this.dom.fallbackInput?.click();
       }
-    });
+    };
+
+    document.getElementById('btn-open-folder')?.addEventListener('click', triggerFolderPicker);
+    this.dom.btnWelcomeOpen?.addEventListener('click', triggerFolderPicker);
 
     this.dom.fallbackInput?.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
-      if (files.length > 0) await this.loadFromFileList(files);
+      if (files.length > 0) {
+        this.cachedFileList = files;
+        this.activeDirHandle = null;
+        await this.loadFromFileList(files);
+      }
     });
 
-    document.getElementById('btn-refresh')?.addEventListener('click', () => {
-      if (this.state.activeDiagram) this.render();
+    // Bouton Actualiser / Refresh (Recharge les fichiers depuis le disque ou HTTP)
+    document.getElementById('btn-refresh')?.addEventListener('click', async () => {
+      if (this.activeDirHandle) {
+        await this.loadFromDirectoryHandle(this.activeDirHandle);
+      } else if (this.cachedFileList) {
+        await this.loadFromFileList(this.cachedFileList);
+      } else if (window.location.protocol.startsWith('http')) {
+        await this.initData();
+      } else if (this.state.activeDiagram) {
+        this.render();
+      }
+    });
+
+    // Support du Glisser-Déposer (Drag & Drop) d'un dossier
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    window.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer && e.dataTransfer.items) {
+        const items = Array.from(e.dataTransfer.items);
+        const item = items[0];
+        if (item && item.getAsFileSystemHandle) {
+          try {
+            const handle = await item.getAsFileSystemHandle();
+            if (handle && handle.kind === 'directory') {
+              this.activeDirHandle = handle;
+              this.cachedFileList = null;
+              await this.loadFromDirectoryHandle(handle);
+              return;
+            }
+          } catch (err) {
+            console.warn('Erreur drop directory handle:', err);
+          }
+        }
+      }
+      if (e.dataTransfer && e.dataTransfer.files) {
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) {
+          this.cachedFileList = files;
+          this.activeDirHandle = null;
+          await this.loadFromFileList(files);
+        }
+      }
     });
 
     // Filtres Catégories
@@ -234,30 +292,84 @@ class IaStudioApp {
   }
 
   async initData() {
-    // 1. Essai de fetch automatique si sous serveur HTTP
-    try {
-      const resp = await fetch('./metadata.json');
-      if (resp.ok) {
-        this.state.metadata = await resp.json();
+    this.state.diagrams = [];
+    this.state.screenSheets = {};
+    this.state.metadata = {};
+
+    // 1. Découverte et chargement dynamique si servi sous serveur web local (http: ou https:)
+    if (window.location.protocol.startsWith('http')) {
+      try {
+        const metaResp = await fetch('./metadata.json');
+        if (metaResp.ok) {
+          this.state.metadata = await metaResp.json();
+        }
+      } catch (e) {
+        // Ignorer
       }
-    } catch (e) {
-      // Ignorer
+
+      try {
+        const dirResp = await fetch('./');
+        if (dirResp.ok) {
+          const html = await dirResp.text();
+          const mmdRegex = /href=["']([^"']+\.mmd)["']/gi;
+          let match;
+          const discovered = new Set();
+          while ((match = mmdRegex.exec(html)) !== null) {
+            const clean = match[1].split('?')[0].split('#')[0];
+            if (!clean.startsWith('http://') && !clean.startsWith('https://')) {
+              discovered.add(clean);
+            }
+          }
+
+          for (const fname of discovered) {
+            try {
+              const fResp = await fetch(`./${fname}`);
+              if (fResp.ok) {
+                const text = await fResp.text();
+                this.state.diagrams.push(parseMermaidFile(text, fname));
+              }
+            } catch (err) {
+              console.warn(`Erreur de chargement pour ${fname}:`, err);
+            }
+          }
+        }
+      } catch (e) {
+        // Ignorer
+      }
+
+      // Tente également de charger les fiches d'écran référencées
+      if (this.state.metadata) {
+        for (const code of Object.keys(this.state.metadata)) {
+          const safeCode = code.replace(/[:@!#]/g, '_');
+          try {
+            const sResp = await fetch(`./screen-sheets/screen-${safeCode}.md`);
+            if (sResp.ok) {
+              this.state.screenSheets[code] = await sResp.text();
+            }
+          } catch (e) {}
+        }
+      }
     }
 
-    // 2. Si aucune donnée, charge le jeu démo cohérent SpaceHub
-    if (this.state.diagrams.length === 0) {
-      this.state.metadata = { ...DEMO_METADATA };
-      this.state.screenSheets = { ...DEMO_SHEETS };
-      DEMO_DIAGRAMS.forEach((d) => {
-        this.state.diagrams.push(parseMermaidFile(d.text, d.filename));
-      });
+    if (this.state.diagrams.length > 0) {
       this.onDataReady();
+    } else {
+      this.showEmptyState();
     }
+  }
+
+  showEmptyState() {
+    if (this.dom.emptyState) this.dom.emptyState.style.display = 'flex';
+    if (this.dom.svgWrapper) this.dom.svgWrapper.style.display = 'none';
+    if (this.dom.activeTitle) this.dom.activeTitle.textContent = 'Aucun diagramme chargé';
+    if (this.dom.activeBadge) this.dom.activeBadge.style.display = 'none';
+    this.updateSidebar();
   }
 
   async loadFromDirectoryHandle(dirHandle) {
     this.state.diagrams = [];
     this.state.screenSheets = {};
+    this.state.metadata = {};
 
     for await (const entry of dirHandle.values()) {
       if (entry.kind === 'file' && entry.name.endsWith('.mmd')) {
@@ -277,26 +389,41 @@ class IaStudioApp {
         }
       }
     }
-    this.onDataReady();
+    if (this.state.diagrams.length > 0) {
+      this.onDataReady();
+    } else {
+      this.showEmptyState();
+    }
   }
 
   async loadFromFileList(files) {
     this.state.diagrams = [];
+    this.state.screenSheets = {};
+    this.state.metadata = {};
+
     for (let file of files) {
       if (file.name.endsWith('.mmd')) {
         const text = await file.text();
         this.state.diagrams.push(parseMermaidFile(text, file.name));
       } else if (file.name === 'metadata.json') {
         this.state.metadata = JSON.parse(await file.text());
-      } else if (file.name.endsWith('.md') && file.webkitRelativePath.includes('screen-sheets')) {
+      } else if (file.name.endsWith('.md') && (file.webkitRelativePath?.includes('screen-sheets') || file.name.startsWith('screen-'))) {
         const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
         this.state.screenSheets[code] = await file.text();
       }
     }
-    this.onDataReady();
+    if (this.state.diagrams.length > 0) {
+      this.onDataReady();
+    } else {
+      this.showEmptyState();
+    }
   }
 
   onDataReady() {
+    if (this.dom.emptyState) this.dom.emptyState.style.display = 'none';
+    if (this.dom.svgWrapper) this.dom.svgWrapper.style.display = 'inline-block';
+    if (this.dom.activeBadge) this.dom.activeBadge.style.display = 'inline-block';
+
     this.buildGlobalIndex();
     this.updateSidebar();
     this.updateRoleOptions();
