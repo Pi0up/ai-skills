@@ -418,17 +418,20 @@ Les liaisons entre entités sont formalisées selon 4 styles canoniques portant 
 | Entité | Rendu | Détails |
 | :--- | :--- | :--- |
 | `ECR` | **Carte Page** strictement identique (§3.3) | Y compris homepage, pile, fond d'état |
-| `ACT` | **Pastille** (chip) posée sur le lien entre deux écrans | Texte = libellé (ex. « publier »). Si l'action n'est pas entre deux écrans, nœud pastille autonome. La référence `FEAT-xxx` est au survol |
+| `ACT` | **Carte standard sans bordure** | Fond translucide neutre, icône Material Symbol `ads_click`, texte ACTION, libellé sur 2 lignes. Masquable via le calque « Actions » avec contraction de graphe (§3.10) |
 | `CALL` | Carte à **bordure violette 2 px**, fond blanc, titre en gras (`PF-… — titre`) | Lien sortant violet. Vue dépliée : cadre violet pointillé contenant le sous-parcours |
 | `EXT` | Carte à **bordure orange 2 px**, titre gras + sous-titre (`ref`) | Lien sortant orange. Point d'entrée de type notification, email, échange hors application |
-| `ATT` | **Pastille** (chip) posée sur le lien | Similaire aux actions `ACT` : pastille allongée grise avec icône de sablier ⏳ (plus compact qu'une carte) |
+| `ATT` | **Carte standard à bordure tiretée grise** | Bordure tiretée 1.5 px `--dg-att`, icône `schedule`, sous-titre `ATTENTE`, marqueur `⏸` si pause déclarée. Masquable via le calque « Attentes » avec contraction de graphe (§3.10) |
 | Rupture ⏸ | Marqueur « pause » (cercle ardoise) en coin haut-gauche | Détails (mémoire, persistance, reprise, délai) au survol |
 
-**Cadres (frames)** : en vue d'ensemble d'un cas d'usage, les parcours sont regroupés par **rôle** dans des cadres blancs (rayon 8 px, bordure `--dg-frame-border`) munis d'une étiquette grise en haut-gauche (`flows / <rôle>`), sur le fond pointillé. Chaque parcours est une **ligne** précédée d'un titre `PF-xxx — titre` (9 px, `--dg-url`).
+### 3.9 Masquage sélectif et Contraction Topologique de Graphe
+Lors de la visualisation des parcours (`kind=userflow`), l'utilisateur peut choisir de masquer sélectivement les étapes d'action (`ACT`) et/ou les étapes d'attente (`ATT`) via le menu flottant des calques :
+- **Contraction topologique transitive** : lorsqu'un nœud est masqué, il ne laisse aucun vide sur le canevas. Le moteur relie transitivement chaque nœud visible amont à chaque nœud visible aval en préservant la sémantique de lien (`nominal`, `variant`, `diverge`, `rejoin`).
+- **Vue écrans seuls** : en décochant à la fois les actions et les attentes, l'utilisateur obtient la cinématique directe d'écran à écran (`ECR` ➔ `ECR` ➔ `CALL` ➔ `EXT`), recalculée avec un alignement strict sur l'axe Y et des espacements homogènes.
 
-### 3.9 Légende automatique
+### 3.10 Légende automatique
 Un panneau modal flottant repliable liste de façon dynamique et exhaustive, pour le diagramme affiché, l'ensemble des conventions graphiques :
-1. **Composants & Cartes** : Homepage (bordure 3 px bleue), Page standard, État / Variante (fond bleu-gris), Accentuation (fond lavande), CALL violet, EXT orange, Action ACT (pastille d'interaction), Attente ATT (pastille asynchrone), Page dynamique (pile décalée).
+1. **Composants & Cartes** : Homepage (bordure 3 px bleue), Page standard, État / Variante (fond bleu-gris), Accentuation (fond lavande), CALL violet, EXT orange, Action ACT (carte sans bordure, icône clic), Attente ATT (carte à bordure tiretée grise, icône horloge), Page dynamique (pile décalée).
 2. **Liaisons & Lignes** : Trait continu sombre (hiérarchie ou nominal), Trait pointillé gris (variante ou renvoi), Trait violet (CALL), Trait orange (EXT).
 3. **Bulles d'Icônes & Statuts** : Cadenas ardoise (`access=protected`), Smartphone pêche (`device`), Personne ambre (`a11y`), Cible bleue (`entry`), Numéro d'ordre violet (`order`), Symbole pause ardoise (`⏸`).
 
@@ -524,7 +527,10 @@ Modèle à trois panneaux réactifs, repris de la v1.0.
 
 ### 5.2 Zone centrale (`#main-viewport`)
 - **Barre d'outils** : bascule du panneau latéral ; titre et badge ; **menu Calques** ; **Légende** ; exports (`PNG HD`, `PNG`, `SVG`, `Print`) ; bascule de l'inspecteur.
-- **Calques** (cases à cocher) : `Niveaux` (arbo, activé), `Renvois` (activé), `Numérotation` (pastilles d'ordre, désactivé), `Avatars` (désactivé), `Tags` (activé), `Couverture` (désactivé, cf. ci-dessous), `Vue Mermaid` (§4.6).
+- **Calques** (cases à cocher structurées en 3 domaines) :
+  - *Arborescence* : `Niveaux` (activé), `Renvois & modules` (activé), `Numérotation` (pastilles d'ordre, désactivé), `Couverture` (désactivé, cf. ci-dessous).
+  - *Parcours (Userflows)* : `Actions (ACT)` (activé par défaut), `Attentes (ATT)` (activé par défaut) avec contraction topologique de graphe (§3.9).
+  - *Général* : `Avatars` (désactivé), `Tags` (activé), `Vue Mermaid` (§4.6).
 - **Calque Couverture** : en arbo, marque d'un trait pointillé rouge les pages qu'**aucun écran de parcours** ne référence (d'après l'index global), et affiche sur chaque page le **nombre de parcours** qui la traversent (cliquable → « voir dans les parcours »). Contrôle purement structurel.
 - **Viewport** : fond pointillé `--dg-dot`, état vide invitant à charger `generated/`, wrapper de transformation pan & zoom, contrôles flottants `+`, `-`, `⛶` (ajuster), `1:1`.
 

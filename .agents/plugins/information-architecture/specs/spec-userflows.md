@@ -160,6 +160,11 @@ Journeys and journey graph overviews are represented using standard Mermaid tran
 
 - **Y-Axis Alignment Rule**: In visual projections, all nominal steps of a journey and all steps of a standalone linear variant flow MUST be aligned on the exact same horizontal baseline (row 0, identical `Y` coordinate). Branching variants occupy dedicated parallel lanes below without shifting the nominal path downward.
 
+### 3.5 Visual Projections and Selective Layer Filtering (Topological Contraction)
+When visualizing journeys in the Unified Viewer (`preview.html`):
+- **Full Functional Journey (Default)**: Displays all chronological steps (`ECR`, `ACT`, `ATT`, `CALL`, `EXT`).
+- **Screen-Centric Journey (Selective Filtering)**: The viewer allows hiding `Actions (ACT)` or `Asynchronous Waits (ATT)`. Hiding intermediate steps performs a **transitive topological contraction** of the graph: hidden nodes are eliminated and their immediate predecessors and successors are directly bridged (`Screen A --> Screen B`), keeping the nominal path strictly on the Y baseline with continuous spacing.
+
 ## 4. Breaks and Session Memory
 
 A break `⏸` models the possibility of an intentional or forced user interruption.
