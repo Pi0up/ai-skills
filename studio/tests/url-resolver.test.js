@@ -4,10 +4,11 @@ import { resolveRelativeDisplay, computeHierarchyUrls } from '../src/scripts/url
 describe('URL Resolver - Relative vs Absolue (Point 7)', () => {
   it('détermine le segment d URL relative affiché sur la carte', () => {
     expect(resolveRelativeDisplay('/', null, 'HOME')).toBe('/');
-    expect(resolveRelativeDisplay('/spaces/[id]', '/spaces', 'C')).toBe('[id]');
-    expect(resolveRelativeDisplay('/spaces/new', '/spaces', 'F')).toBe('new');
+    expect(resolveRelativeDisplay('/spaces/[id]', '/spaces', 'C')).toBe('[id]/');
+    expect(resolveRelativeDisplay('/spaces/new', '/spaces', 'F')).toBe('new/');
     expect(resolveRelativeDisplay('!filtres', '/spaces', 'DLG')).toBe('!filtres');
     expect(resolveRelativeDisplay('#avis', '/spaces/[id]', 'ANC')).toBe('#avis');
+    expect(resolveRelativeDisplay('/spaces/[id]!quick-view', '/spaces', 'C')).toBe('[id]!quick-view');
   });
 
   it('calcule la chaîne logique des URLs absolues depuis la racine HOME', () => {
@@ -32,10 +33,10 @@ describe('URL Resolver - Relative vs Absolue (Point 7)', () => {
     expect(urlMap.HOME.relative).toBe('/');
 
     expect(urlMap.L001.absolute).toBe('/spaces');
-    expect(urlMap.L001.relative).toBe('spaces');
+    expect(urlMap.L001.relative).toBe('spaces/');
 
     expect(urlMap.C001.absolute).toBe('/spaces/[id]');
-    expect(urlMap.C001.relative).toBe('[id]');
+    expect(urlMap.C001.relative).toBe('[id]/');
 
     expect(urlMap.dlg_filtres.relative).toBe('!filtres');
     expect(urlMap.dlg_filtres.absolute).toBe('/spaces!filtres');

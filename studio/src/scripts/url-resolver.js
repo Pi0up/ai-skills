@@ -12,19 +12,29 @@ export function resolveRelativeDisplay(nodeUrl, parentUrl, type) {
   }
 
   // Si l'URL parente est présente et que l'URL enfant commence par l'URL parente
+  let rel = '';
   if (parentUrl && parentUrl !== '/' && nodeUrl.startsWith(parentUrl)) {
     let remainder = nodeUrl.slice(parentUrl.length);
     if (remainder.startsWith('/')) remainder = remainder.slice(1);
-    return remainder || nodeUrl;
-  }
-
-  // Nettoie le slash initial pour l'affichage relatif court
-  if (nodeUrl.startsWith('/') && nodeUrl.length > 1) {
+    rel = remainder || nodeUrl;
+  } else if (nodeUrl.startsWith('/') && nodeUrl.length > 1) {
+    // Nettoie le slash initial pour l'affichage relatif court
     const parts = nodeUrl.split('/').filter(Boolean);
-    return parts[parts.length - 1] || nodeUrl;
+    rel = parts[parts.length - 1] || nodeUrl;
+  } else {
+    rel = nodeUrl;
   }
 
-  return nodeUrl;
+  // Les chemins relatifs doivent se terminer par "/" sauf ceux qui sont en bout de chaîne (ancre #, popin !)
+  if (rel.includes('#') || rel.includes('!')) {
+    return rel;
+  }
+
+  if (!rel.endsWith('/')) {
+    return `${rel}/`;
+  }
+
+  return rel;
 }
 
 export function computeHierarchyUrls(ast) {
@@ -81,10 +91,12 @@ export function computeHierarchyUrls(ast) {
       const aNode = ast.nodes[aId];
       if (aNode) {
         const aCode = aNode.code || aId;
-        const aSuffix = aCode.includes('!') ? `!${aCode.split('!')[1]}` : (aCode.includes('#') ? `#${aCode.split('#')[1]}` : '');
+        const aSuffix = (aNode.url && (aNode.url.startsWith('!') || aNode.url.startsWith('#')))
+          ? aNode.url
+          : (aCode.includes('!') ? `!${aCode.split('!')[1]}` : (aCode.includes('#') ? `#${aCode.split('#')[1]}` : ''));
         urlMap[aId] = {
-          relative: aSuffix || aCode,
-          absolute: `${fullAbsolute}${aSuffix}`,
+          relative: aSuffix || resolveRelativeDisplay(aNode.url || aCode, fullAbsolute, aNode.type),
+          absolute: aSuffix ? `${fullAbsolute}${aSuffix}` : (aNode.url || `${fullAbsolute}/${aCode}`),
         };
       }
     });

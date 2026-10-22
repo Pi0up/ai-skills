@@ -83,6 +83,7 @@ A page's technical reference combines its template code, numerical ID, optional 
 - Exactly one canonical URL per page.
 - Square brackets denote dynamic route parameters: `/products/[id]`.
 - Modals (`!`) and anchors (`#`) are documented references, not browser URL routes.
+- **Relative paths**: Relative URL paths and segments must end with a trailing slash `/` (e.g., `products/`, `[id]/`), except leaf in-page anchors (`#...`) and modals/popins (`!...`) at the end of the chain, which must not end with a trailing slash.
 
 ### 2.7 Technical Pages
 

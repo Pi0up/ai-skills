@@ -350,9 +350,9 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 
 **Règle d'affichage de l'URL (déduite des captures)**
 - Homepage : `/` en **Absolu**.
-- En **arbo** : segment propre de la page **relatif** à celui de son parent (`/rooms/[id]` sous `/rooms` → `[id]/`).
-- En **parcours** : **Relatif** quand la page est un enfant hiérarchique du nœud précédent du parcours (d'après l'arbo) ; **Absolu** sinon.
-- Élément rattaché : `!suppression` (popin) ou `#reviews` (ancre), en **Relatif** à la page de base.
+- En **arbo** : segment propre de la page **relatif** à celui de son parent (`/rooms/[id]` sous `/rooms` → `[id]/`). Tous les chemins relatifs se terminent obligatoirement par un slash `/` final, à l'exception de ceux qui sont en bout de chaîne (ancres internes `#` et popins/modales `!`).
+- En **parcours** : **Relatif** quand la page est un enfant hiérarchique du nœud précédent du parcours (d'après l'arbo) ; **Absolu** sinon. Lorsqu'il est relatif, il se termine par `/` (sauf popins `!` et ancres `#`).
+- Élément rattaché : `!suppression` (popin) ou `#reviews` (ancre), en **Relatif** à la page de base (jamais de `/` final).
 - Surcharge possible par `urlmode`.
 
 **Source des informations pour un écran de parcours** : `code` est résolu dans l'arbo ; URL, code et type en proviennent (l'arbo est la source de vérité des pages). Le titre vient du libellé du nœud (préfixe `ND-xxx` retiré), à défaut du nom de page dans l'arbo. Une meta locale peut surcharger.

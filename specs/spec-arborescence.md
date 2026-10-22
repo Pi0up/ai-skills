@@ -71,6 +71,7 @@ A URL represents the hierarchical location of a page in the tree. It is a proper
 - No arbitrary depth limit; child URL strictly extends parent URL (Check C4).
 - Root homepage is `/`.
 - Square brackets define dynamic variables: `/products/[id]`.
+- **Relative URL Paths**: Relative paths (individual segment or sub-path relative to parent) MUST end with a trailing slash `/` (e.g., `products/`, `[id]/`, `edit/`), EXCEPT when representing an in-page leaf anchor (`#...`) or modal/popin (`!...`) at the end of the chain, which must NOT end with a trailing slash.
 
 ### 4.3 In-Page Markers
 
