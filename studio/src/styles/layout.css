@@ -168,6 +168,7 @@ body {
 }
 
 .top-toolbar {
+  position: relative;
   height: 48px;
   min-height: 48px;
   background: var(--bg-sidebar);
@@ -176,7 +177,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  z-index: 10;
+  z-index: 50;
 }
 
 .toolbar-left, .toolbar-right {
