@@ -1,25 +1,42 @@
-# Fiche d'Écran : HOME (Accueil & Vitrine)
+# Fiche Écran Déduite : HOME
 
-- **Code canonique** : `HOME`
-- **Template** : Homepage (`type=HOME`)
-- **URL** : `/` (Absolu)
-- **Accès** : `public`
-- **Rôles habilités** : `ANONYMOUS`, `CLIENT`, `ADMIN`
-- **Tags** : `MVP`
+> Fiche synthétique croisant arborescence et parcours utilisateurs (spec-userflows.md Section 7).
 
-## 1. Description fonctionnelle
-Page d'accueil de la plateforme de réservation d'espaces et salles de réunion. Propose le moteur de recherche rapide, la mise en avant des espaces vedettes et l'accès à l'espace personnel.
+- **Référence Canonique** : `HOME`
+- **Type de Composant** : Page Racine (Homepage)
+- **URL Canonique** : `/`
+- **Rôles Autorisés** : `ANONYMOUS`, `VOYAGEUR`, `HOTE`, `ADMIN`
+- **Importance Calculée** : Critique (Entrée principale de la plateforme)
 
-## 2. Éléments clés de l'interface
-- Moteur de recherche (critères : date, ville, capacité)
-- Carrousel des espaces recommandés
-- Témoignages et avis certifiés
-- Barre de navigation principale vers le catalogue (`L001`) et le compte client
+---
 
-## 3. Entrées & Contexte requis
-- Aucune condition préalable (`ctx_in : aucun`).
+## 1. Contexte d'Usage & États Observables
+- `origin=DIRECT`
+- `session=INITIALIZED`
 
-## 4. Sorties & Transitions
-- Clic sur "Rechercher" -> `L001` (`/rooms?city=...`)
-- Clic sur "Aide" -> ouverture module modal `M001`
-- Clic sur "Mon espace" -> redirection `D001` si authentifié
+---
+
+## 2. Contenus & Capacités Actionnables
+- `FEAT-RECHERCHER` (Recherche par massif montagneux et dates)
+- `FEAT-EXPLORER-THEMES` (Navigation par éco-labels : Refuge LPO, Clef Verte)
+- Module transverse `M001` (`!aide`)
+
+---
+
+## 3. Entrées (D'où vient l'utilisateur ?)
+- Accès direct via URL racine `/`
+- Clic sur le logo depuis n'importe quelle page de la plateforme
+
+---
+
+## 4. Sorties (Où va l'utilisateur ?)
+- Vers `L001` (Catalogue des Écolodges) via recherche ou sélection
+- Vers `H001` (Espace Voyageur) après authentification
+- Vers `H002` (Espace Hôte Partenaire) pour devenir hôte
+- Vers `D002` (Supervision Admin) pour les modérateurs
+
+---
+
+## 5. Signaux d'Observabilité & Tracking
+- **Pageview** : `/home`
+- **Événements** : `click_search`, `click_featured_lodge`, `filter_ecolabel_hero`

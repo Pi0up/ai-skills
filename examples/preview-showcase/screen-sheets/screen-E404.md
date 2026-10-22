@@ -1,10 +1,37 @@
-# Fiche d'Écran : E404 (Page Introuvable)
+# Fiche Écran Déduite : E404
 
-- **Code canonique** : `E404`
-- **Template** : Technique (`type=E`, `subtype=erreur-404`)
-- **URL** : `/404`
-- **Accès** : `public`
-- **Rôles habilités** : `ANONYMOUS`, `CLIENT`, `ADMIN`
+> Fiche synthétique croisant arborescence et parcours utilisateurs (spec-userflows.md Section 7).
 
-## 1. Description fonctionnelle
-Page d'erreur HTTP 404 conviviale avec champ de recherche rapide et liens de redirection vers les pages principales.
+- **Référence Canonique** : `E404`
+- **Type de Composant** : Page Technique (Erreur 404)
+- **URL Canonique** : `/404`
+- **Rôles Autorisés** : `ANONYMOUS`, `VOYAGEUR`, `HOTE`, `ADMIN`
+- **Importance Calculée** : Occasionnelle (Gestion des erreurs de routage)
+
+---
+
+## 1. Contexte d'Usage & États Observables
+- `error=HTTP_404`
+- `target_url=UNKNOWN`
+
+---
+
+## 2. Contenus & Capacités Actionnables
+- Message convivial expliquant que l'écolodge ou la page demandée n'existe pas
+- Moteur de recherche de secours et bouton de retour à `HOME`
+
+---
+
+## 3. Entrées (D'où vient l'utilisateur ?)
+- URL erronée ou lien rompu
+
+---
+
+## 4. Sorties (Où va l'utilisateur ?)
+- Vers `HOME` ou `L001`
+
+---
+
+## 5. Signaux d'Observabilité & Tracking
+- **Pageview** : `/404`
+- **Événements** : `error_404_view`, `return_to_home`

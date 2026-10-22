@@ -1,0 +1,27 @@
+%%@file id=PF-DEPOT-NOM-collapsed project=ECO-STAYS kind=userflow view=collapsed uc=UC-DEPOT-ANNONCE obj=OBJ-DEPOT-01 statut=nominal roles=HOTE title="Création Nominale d'Annonce Écolodge (Vue Repliée)" version="1.3" atterrissage=L003
+%%@node ND_D001 code=D001 type=ECR order=1
+%%@node ND_ACT_NEW ref=FEAT-NOUVELLE-ANNONCE type=ACT order=2
+%%@node ND_F002 code=F002 type=ECR order=3
+%%@node ND_ACT_UPLOAD ref=FEAT-UPLOAD-PHOTOS type=ACT order=4
+%%@node ND_ATT_CADASTRE type=ATT break=yes delay=1m persist=volatile resume=ND_C001_PREV order=5
+%%@node ND_C001_PREV code=C001:PREVIEW type=ECR order=6
+%%@node ND_ACT_PUBLISH ref=FEAT-PUBLIER-ANNONCE type=ACT order=7
+%%@node ND_L003 code=L003 type=ECR order=8
+%%@edge ND_D001>ND_ACT_NEW kind=nominal
+%%@edge ND_ACT_NEW>ND_F002 kind=nominal
+%%@edge ND_F002>ND_ACT_UPLOAD kind=nominal
+%%@edge ND_ACT_UPLOAD>ND_ATT_CADASTRE kind=nominal
+%%@edge ND_ATT_CADASTRE>ND_C001_PREV kind=nominal
+%%@edge ND_C001_PREV>ND_ACT_PUBLISH kind=nominal
+%%@edge ND_ACT_PUBLISH>ND_L003 kind=nominal
+flowchart LR
+  ND_D001["ND-001 · Tableau de bord hôte"]
+  ND_ACT_NEW["ND-002 · Clic déposer une annonce"]
+  ND_F002{"ND-003 · Formulaire caractéristiques & éco-gestes"}
+  ND_ACT_UPLOAD["ND-004 · Téléversement photos & justificatifs"]
+  ND_ATT_CADASTRE{{"ND-005 · Vérification automatique cadastre & zone protégée ⏸"}}
+  ND_C001_PREV(["ND-006 · Prévisualisation de la fiche écolodge"])
+  ND_ACT_PUBLISH["ND-007 · Confirmation de mise en ligne"]
+  ND_L003["ND-008 · Liste de mes annonces en ligne"]
+
+  ND_D001 --> ND_ACT_NEW --> ND_F002 --> ND_ACT_UPLOAD --> ND_ATT_CADASTRE --> ND_C001_PREV --> ND_ACT_PUBLISH --> ND_L003

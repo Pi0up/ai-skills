@@ -1,314 +1,671 @@
 {
-  "$schema": "./schema-metadata.json",
-  "header": {
+  "_meta": {
     "format": "ia-metadata",
     "version": "1.3.0",
     "template_version": "1.3.0",
-    "project": "Exemple Showcase Réservation",
-    "updated_at": "2026-10-22"
+    "project": "ECO-STAYS"
   },
-  "entities": {
-    "HOME": {
-      "code": "HOME",
-      "title": "Accueil & Vitrine",
-      "url": "/",
-      "template": "HOME",
-      "access": "public",
-      "roles": [
-        "ANONYMOUS",
-        "CLIENT",
-        "ADMIN"
-      ],
-      "ctx_in": {},
-      "ctx_out": {
-        "utm_source": "STRING",
-        "session_id": "UUID"
-      },
-      "tracking": {
-        "pageview": "/home",
-        "events": [
-          "click_search",
-          "click_featured_room",
-          "open_help"
-        ]
-      },
-      "notes": "Page d'entrée principale. Observabilité totale via pixel et GTM."
+  "_diagrams": [
+    "sitemap-overview.mmd",
+    "sitemap-detailed.mmd",
+    "sitemap-by-role-admin.mmd",
+    "sitemap-by-role-host.mmd",
+    "UC-RESERVATION-overview.mmd",
+    "PF-RESERVATION-NOM-collapsed.mmd",
+    "PF-RESERVATION-VAR-HOST-APPROVAL.mmd",
+    "PF-PAIEMENT-EXPANDED.mmd",
+    "PF-PAIEMENT-SEG.mmd",
+    "UC-DEPOT-overview.mmd",
+    "PF-DEPOT-NOM-collapsed.mmd",
+    "PF-DEPOT-VAR-ASSIST.mmd"
+  ],
+  "HOME": {
+    "code": "HOME",
+    "title": "Accueil & Sélections Éco-Responsables",
+    "url": "/",
+    "template": "HOME",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "HOTE",
+      "ADMIN"
+    ],
+    "ctx_in": {},
+    "ctx_out": {
+      "utm_source": "STRING",
+      "session_id": "UUID"
     },
-    "L001": {
-      "code": "L001",
-      "title": "Catalogue des Salles",
-      "url": "/rooms",
-      "template": "L",
-      "subtype": "datagrid",
-      "access": "public",
-      "roles": [
-        "ANONYMOUS",
-        "CLIENT",
-        "ADMIN"
-      ],
-      "ctx_in": {
-        "city": "STRING",
-        "capacity_min": "INTEGER"
-      },
-      "ctx_out": {
-        "selected_room_id": "INTEGER",
-        "filter_count": "INTEGER"
-      },
-      "tracking": {
-        "pageview": "/rooms",
-        "events": [
-          "filter_applied",
-          "sort_changed",
-          "room_card_click"
-        ]
-      },
-      "notes": "Indicateur de temps de réponse et pagination instrumentés."
+    "tracking": {
+      "pageview": "/home",
+      "events": [
+        "click_search",
+        "click_featured_lodge",
+        "filter_ecolabel_hero"
+      ]
     },
-    "L001!filtres": {
-      "code": "L001!filtres",
-      "title": "Filtres Avancés (Popin)",
-      "template": "DLG",
-      "access": "public",
-      "roles": [
-        "ANONYMOUS",
-        "CLIENT",
-        "ADMIN"
-      ],
-      "ctx_in": {
-        "current_filters": "OBJECT"
-      },
-      "ctx_out": {
-        "updated_filters": "OBJECT"
-      },
-      "tracking": {
-        "events": [
-          "dialog_open",
-          "filter_reset",
-          "filters_submit"
-        ]
-      }
+    "notes": "Vitrine d'entrée principale. Observabilité totale via pixel et GTM."
+  },
+  "H001": {
+    "code": "H001",
+    "title": "Espace Voyageur (Hub)",
+    "url": "/account",
+    "template": "H",
+    "subtype": "hub",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "auth_token": "JWT"
     },
-    "C001": {
-      "code": "C001",
-      "title": "Fiche Détail Salle",
-      "url": "/rooms/[id]",
-      "template": "C",
-      "subtype": "fiche",
-      "access": "public",
-      "roles": [
-        "ANONYMOUS",
-        "CLIENT",
-        "ADMIN"
-      ],
-      "dynamic": true,
-      "ctx_in": {
-        "room_id": "INTEGER"
-      },
-      "ctx_out": {
-        "booking_slot_id": "STRING",
-        "daily_rate": "NUMBER"
-      },
-      "tracking": {
-        "pageview": "/rooms/:id",
-        "events": [
-          "gallery_view",
-          "scroll_to_reviews",
-          "cta_booking_click"
-        ]
-      },
-      "notes": "Écran critique du tunnel de conversion. Observabilité renforcée."
+    "ctx_out": {
+      "user_id": "UUID"
     },
-    "C001#avis": {
-      "code": "C001#avis",
-      "title": "Section Avis Clients",
-      "template": "ANC",
-      "url": "/rooms/[id]#avis",
-      "access": "public",
-      "roles": [
-        "ANONYMOUS",
-        "CLIENT",
-        "ADMIN"
-      ],
-      "tracking": {
-        "events": [
-          "scroll_view_reviews",
-          "filter_ratings"
-        ]
-      }
+    "tracking": {
+      "pageview": "/account"
     },
-    "F001": {
-      "code": "F001",
-      "title": "Tunnel de Réservation",
-      "url": "/booking/[id]",
-      "template": "F",
-      "subtype": "stepper",
-      "access": "protected",
-      "roles": [
-        "CLIENT",
-        "ADMIN"
-      ],
-      "ctx_in": {
-        "room_id": "INTEGER",
-        "slot_id": "STRING",
-        "auth_token": "JWT"
-      },
-      "ctx_out": {
-        "reservation_id": "UUID",
-        "total_price": "NUMBER"
-      },
-      "tracking": {
-        "pageview": "/booking/:id",
-        "funnel_step": "step_1_options",
-        "events": [
-          "option_added",
-          "submit_booking_step"
-        ]
-      },
-      "notes": "Accès restreint aux utilisateurs connectés."
+    "notes": "Nœud intermédiaire routant vers la première sous-page (Mes Réservations)."
+  },
+  "L002": {
+    "code": "L002",
+    "title": "Mes Réservations",
+    "url": "/account/bookings",
+    "template": "L",
+    "subtype": "liste",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "user_id": "UUID"
     },
-    "F001:RECAP": {
-      "code": "F001:RECAP",
-      "title": "Récapitulatif Avant Paiement",
-      "url": "/booking/[id]/recap",
-      "template": "F",
-      "subtype": "recap",
-      "access": "protected",
-      "roles": [
-        "CLIENT",
-        "ADMIN"
-      ],
-      "ctx_in": {
-        "reservation_id": "UUID"
-      },
-      "ctx_out": {
-        "payment_intent_id": "STRING"
-      },
-      "tracking": {
-        "funnel_step": "step_2_recap",
-        "events": [
-          "coupon_applied",
-          "confirm_recap_click"
-        ]
-      }
+    "ctx_out": {
+      "selected_booking_id": "STRING"
     },
-    "F002": {
-      "code": "F002",
-      "title": "Créer une Nouvelle Salle",
-      "url": "/rooms/new",
-      "template": "F",
-      "subtype": "formulaire",
-      "access": "protected",
-      "roles": [
-        "ADMIN"
-      ],
-      "tone": "accent",
-      "ctx_in": {
-        "auth_token": "JWT"
-      },
-      "ctx_out": {
-        "new_room_id": "INTEGER"
-      },
-      "tracking": {
-        "pageview": "/rooms/new",
-        "events": [
-          "room_created",
-          "photo_uploaded"
-        ]
-      }
+    "tracking": {
+      "pageview": "/account/bookings",
+      "events": [
+        "view_booking_details",
+        "open_cancel_dialog"
+      ]
     },
-    "D001": {
-      "code": "D001",
-      "title": "Tableau de Bord",
-      "url": "/dashboard",
-      "template": "D",
-      "subtype": "dashboard",
-      "access": "protected",
-      "roles": [
-        "CLIENT",
-        "ADMIN"
-      ],
-      "ctx_in": {
-        "user_id": "UUID"
-      },
-      "ctx_out": {},
-      "tracking": {
-        "pageview": "/dashboard",
-        "events": [
-          "download_invoice",
-          "cancel_booking_request"
-        ]
-      }
+    "notes": "Historique des séjours passés et réservations confirmées."
+  },
+  "L002!annulation": {
+    "code": "L002!annulation",
+    "title": "Confirmation d'Annulation (Dialogue)",
+    "template": "DLG",
+    "subtype": "dialogue",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "booking_id": "STRING"
     },
-    "E404": {
-      "code": "E404",
-      "title": "Page Introuvable",
-      "url": "/404",
-      "template": "E",
-      "subtype": "erreur-404",
-      "access": "public",
-      "roles": [
-        "ANONYMOUS",
-        "CLIENT",
-        "ADMIN"
-      ],
-      "ctx_in": {},
-      "ctx_out": {},
-      "tracking": {
-        "pageview": "/404",
-        "events": [
-          "error_404_viewed",
-          "redirect_home_click"
-        ]
-      }
+    "ctx_out": {
+      "cancel_reason": "STRING",
+      "refund_amount": "NUMBER"
     },
-    "M001": {
-      "code": "M001",
-      "title": "Centre d'Aide & FAQ",
-      "template": "MOD",
-      "scope": "ALL",
-      "access": "public",
-      "roles": [
-        "ANONYMOUS",
-        "CLIENT",
-        "ADMIN"
-      ],
-      "tracking": {
-        "events": [
-          "help_opened",
-          "faq_searched",
-          "contact_click"
-        ]
-      }
+    "tracking": {
+      "events": [
+        "cancel_dialog_open",
+        "cancel_confirmed"
+      ]
+    }
+  },
+  "C002": {
+    "code": "C002",
+    "title": "Détail Réservation & Facture",
+    "url": "/account/bookings/[id]",
+    "template": "C",
+    "subtype": "facture",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "booking_id": "STRING"
     },
-    "M002": {
-      "code": "M002",
-      "title": "Panier & Sélection Rapide",
-      "template": "MOD",
-      "scope": "AUTH",
-      "access": "protected",
-      "roles": [
-        "CLIENT",
-        "ADMIN"
-      ],
-      "tracking": {
-        "events": [
-          "cart_drawer_opened",
-          "item_removed"
-        ]
-      }
+    "ctx_out": {
+      "invoice_pdf_url": "STRING"
     },
-    "ND_BREAK_ASSIST": {
-      "code": "EXT-SUPPORT",
-      "title": "Échange Téléphonique Conseiller",
-      "template": "EXT",
-      "obs": "none",
-      "break": {
-        "is_break": true,
-        "resume_node": "F001:RECAP",
-        "persistence": "external",
-        "delay": "24h"
-      },
-      "notes": "Rupture de flux synchrone : rappel sous 24h par le conseiller pour ajuster le devis personnalisé."
+    "tracking": {
+      "pageview": "/account/bookings/:id",
+      "events": [
+        "download_invoice",
+        "submit_stay_review"
+      ]
+    }
+  },
+  "L001": {
+    "code": "L001",
+    "title": "Catalogue des Écolodges",
+    "url": "/stays",
+    "template": "L",
+    "subtype": "datagrid",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "region": "STRING",
+      "guests_min": "INTEGER",
+      "ecolabel": "BOOLEAN"
+    },
+    "ctx_out": {
+      "selected_lodge_id": "STRING",
+      "active_filters_count": "INTEGER"
+    },
+    "tracking": {
+      "pageview": "/stays",
+      "events": [
+        "filter_ecolabel_applied",
+        "sort_price_changed",
+        "lodge_card_click"
+      ]
+    },
+    "notes": "Grille de recherche avec facettes éco-responsables et carte interactive."
+  },
+  "L001!filtres": {
+    "code": "L001!filtres",
+    "title": "Filtres Avancés & Éco-labels (Popin)",
+    "template": "DLG",
+    "subtype": "popin",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "current_filters": "OBJECT"
+    },
+    "ctx_out": {
+      "updated_filters": "OBJECT"
+    },
+    "tracking": {
+      "events": [
+        "filter_modal_opened",
+        "label_clef_verte_toggled",
+        "filter_submitted"
+      ]
+    }
+  },
+  "C001": {
+    "code": "C001",
+    "title": "Fiche Détail Écolodge",
+    "url": "/stays/[id]",
+    "template": "C",
+    "subtype": "fiche",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "dynamic": true,
+    "ctx_in": {
+      "lodge_id": "STRING"
+    },
+    "ctx_out": {
+      "stay_nights": "INTEGER",
+      "estimated_price": "NUMBER"
+    },
+    "tracking": {
+      "pageview": "/stays/:id",
+      "events": [
+        "open_gallery",
+        "scroll_eco_impact",
+        "cta_start_booking"
+      ]
+    },
+    "notes": "Page clé du funnel de conversion hébergeant galerie, avis et bilan carbone."
+  },
+  "C001!galerie": {
+    "code": "C001!galerie",
+    "title": "Galerie & Visite Virtuelle (Modale)",
+    "template": "DLG",
+    "subtype": "visionneuse",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "lodge_id": "STRING",
+      "initial_photo_index": "INTEGER"
+    },
+    "ctx_out": {},
+    "tracking": {
+      "events": [
+        "gallery_opened",
+        "vr_tour_started",
+        "photo_next"
+      ]
+    }
+  },
+  "C001#avis": {
+    "code": "C001#avis",
+    "title": "Avis Voyageurs & Notes (Ancre)",
+    "url": "/stays/[id]#avis",
+    "template": "ANC",
+    "subtype": "ancre",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "tracking": {
+      "events": [
+        "scroll_to_reviews",
+        "filter_reviews_by_rating"
+      ]
+    }
+  },
+  "C001#eco-impact": {
+    "code": "C001#eco-impact",
+    "title": "Bilan Carbone & Éco-Engagements (Ancre)",
+    "url": "/stays/[id]#eco-impact",
+    "template": "ANC",
+    "subtype": "ancre",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "tracking": {
+      "events": [
+        "scroll_eco_impact",
+        "view_carbon_calculator"
+      ]
+    }
+  },
+  "C001@ADMIN": {
+    "code": "C001@ADMIN",
+    "title": "Fiche Écolodge (Contrôle Modérateur)",
+    "url": "/stays/[id]",
+    "template": "C",
+    "subtype": "moderation",
+    "access": "protected",
+    "roles": [
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "lodge_id": "STRING",
+      "admin_jwt": "JWT"
+    },
+    "ctx_out": {
+      "audit_flags": "ARRAY"
+    },
+    "tracking": {
+      "pageview": "/stays/:id?view=admin",
+      "events": [
+        "admin_flag_photo",
+        "open_direct_edit"
+      ]
+    }
+  },
+  "C001:PREVIEW": {
+    "code": "C001:PREVIEW",
+    "title": "Prévisualisation Brouillon Lodge",
+    "url": "/stays/[id]/preview",
+    "template": "C",
+    "subtype": "brouillon",
+    "access": "protected",
+    "roles": [
+      "HOTE",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "draft_id": "UUID"
+    },
+    "ctx_out": {
+      "publish_ready": "BOOLEAN"
+    },
+    "tracking": {
+      "pageview": "/stays/:id/preview",
+      "events": [
+        "preview_mode_toggle",
+        "confirm_publish_click"
+      ]
+    }
+  },
+  "C001@ADMIN:EDIT": {
+    "code": "C001@ADMIN:EDIT",
+    "title": "Audit & Édition Directe Modérateur",
+    "url": "/stays/[id]/audit",
+    "template": "C",
+    "subtype": "audit-edition",
+    "access": "protected",
+    "roles": [
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "lodge_id": "STRING"
+    },
+    "ctx_out": {
+      "certification_status": "STRING"
+    },
+    "tracking": {
+      "pageview": "/stays/:id/audit",
+      "events": [
+        "override_label_status",
+        "save_audit_report"
+      ]
+    }
+  },
+  "F001": {
+    "code": "F001",
+    "title": "Tunnel de Réservation Séjour",
+    "url": "/stays/[id]/book",
+    "template": "F",
+    "subtype": "stepper",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "lodge_id": "STRING",
+      "dates": "DATE_RANGE",
+      "guests": "INTEGER"
+    },
+    "ctx_out": {
+      "reservation_draft_id": "UUID",
+      "total_price": "NUMBER"
+    },
+    "tracking": {
+      "pageview": "/stays/:id/book",
+      "funnel_step": "step_1_options",
+      "events": [
+        "option_local_basket_added",
+        "submit_booking_step"
+      ]
+    },
+    "notes": "Tunnel sécurisé avec calcul d'options bas-carbone."
+  },
+  "F001:RECAP": {
+    "code": "F001:RECAP",
+    "title": "Récapitulatif & Validation CGV",
+    "url": "/stays/[id]/book/recap",
+    "template": "F",
+    "subtype": "recap",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "reservation_draft_id": "UUID"
+    },
+    "ctx_out": {
+      "payment_intent_token": "STRING"
+    },
+    "tracking": {
+      "pageview": "/stays/:id/book/recap",
+      "funnel_step": "step_2_recap",
+      "events": [
+        "cgv_accepted",
+        "cta_proceed_to_payment"
+      ]
+    }
+  },
+  "F001:PAY": {
+    "code": "F001:PAY",
+    "title": "Paiement Sécurisé",
+    "url": "/stays/[id]/book/pay",
+    "template": "F",
+    "subtype": "paiement",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "payment_intent_token": "STRING"
+    },
+    "ctx_out": {
+      "transaction_id": "STRING",
+      "order_status": "CONFIRMED"
+    },
+    "tracking": {
+      "pageview": "/stays/:id/book/pay",
+      "funnel_step": "step_3_payment",
+      "events": [
+        "card_details_entered",
+        "3ds_challenge_initiated"
+      ]
+    }
+  },
+  "H002": {
+    "code": "H002",
+    "title": "Espace Hôte Partenaire (Hub)",
+    "url": "/host",
+    "template": "H",
+    "subtype": "hub",
+    "access": "protected",
+    "roles": [
+      "HOTE",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "host_id": "UUID"
+    },
+    "ctx_out": {},
+    "tracking": {
+      "pageview": "/host"
+    }
+  },
+  "D001": {
+    "code": "D001",
+    "title": "Tableau de Bord Hôte",
+    "url": "/host/dashboard",
+    "template": "D",
+    "subtype": "dashboard",
+    "access": "protected",
+    "roles": [
+      "HOTE",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "host_id": "UUID"
+    },
+    "ctx_out": {
+      "pending_requests_count": "INTEGER"
+    },
+    "tracking": {
+      "pageview": "/host/dashboard",
+      "events": [
+        "calendar_synced",
+        "booking_request_approved"
+      ]
+    }
+  },
+  "L003": {
+    "code": "L003",
+    "title": "Gestion de mes Annonces",
+    "url": "/host/properties",
+    "template": "L",
+    "subtype": "datagrid",
+    "access": "protected",
+    "roles": [
+      "HOTE",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "host_id": "UUID"
+    },
+    "ctx_out": {
+      "selected_property_id": "STRING"
+    },
+    "tracking": {
+      "pageview": "/host/properties",
+      "events": [
+        "click_create_listing",
+        "toggle_listing_availability"
+      ]
+    }
+  },
+  "F002": {
+    "code": "F002",
+    "title": "Dépôt d'une Nouvelle Annonce",
+    "url": "/host/properties/new",
+    "template": "F",
+    "subtype": "formulaire",
+    "access": "protected",
+    "roles": [
+      "HOTE",
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "host_id": "UUID"
+    },
+    "ctx_out": {
+      "draft_id": "UUID"
+    },
+    "tracking": {
+      "pageview": "/host/properties/new",
+      "events": [
+        "photo_batch_uploaded",
+        "label_assistance_requested"
+      ]
+    }
+  },
+  "D002": {
+    "code": "D002",
+    "title": "Tableau de Bord Administration",
+    "url": "/admin/dashboard",
+    "template": "D",
+    "subtype": "supervision",
+    "access": "protected",
+    "roles": [
+      "ADMIN"
+    ],
+    "ctx_in": {
+      "admin_id": "UUID"
+    },
+    "ctx_out": {
+      "audit_queue_length": "INTEGER"
+    },
+    "tracking": {
+      "pageview": "/admin/dashboard",
+      "events": [
+        "filter_audit_queue",
+        "approve_eco_certification"
+      ]
+    }
+  },
+  "E404": {
+    "code": "E404",
+    "title": "Page Introuvable",
+    "url": "/404",
+    "template": "E",
+    "subtype": "erreur-404",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "HOTE",
+      "ADMIN"
+    ],
+    "tracking": {
+      "pageview": "/404",
+      "events": [
+        "error_404_view",
+        "return_to_home"
+      ]
+    }
+  },
+  "E403": {
+    "code": "E403",
+    "title": "Accès Refusé",
+    "url": "/403",
+    "template": "E",
+    "subtype": "erreur-403",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "HOTE",
+      "ADMIN"
+    ],
+    "tracking": {
+      "pageview": "/403",
+      "events": [
+        "error_403_view",
+        "login_cta_click"
+      ]
+    }
+  },
+  "M001": {
+    "code": "M001",
+    "title": "FAQ & Assistant Éco-Guide",
+    "template": "MOD",
+    "subtype": "module",
+    "access": "public",
+    "roles": [
+      "ANONYMOUS",
+      "VOYAGEUR",
+      "HOTE",
+      "ADMIN"
+    ],
+    "scope": "ALL",
+    "invocation": "aide",
+    "tracking": {
+      "events": [
+        "help_module_opened",
+        "faq_search_performed",
+        "contact_support"
+      ]
+    }
+  },
+  "M002": {
+    "code": "M002",
+    "title": "Sélecteur Rapide de Dates",
+    "template": "MOD",
+    "subtype": "module",
+    "access": "protected",
+    "roles": [
+      "VOYAGEUR",
+      "HOTE",
+      "ADMIN"
+    ],
+    "scope": "AUTH",
+    "invocation": "dates",
+    "tracking": {
+      "events": [
+        "dates_drawer_opened",
+        "slot_selected"
+      ]
+    }
+  },
+  "M003": {
+    "code": "M003",
+    "title": "Tiroir Modération Express",
+    "template": "MOD",
+    "subtype": "module",
+    "access": "protected",
+    "roles": [
+      "ADMIN"
+    ],
+    "scope": "@ADMIN",
+    "invocation": "mod-drawer",
+    "tracking": {
+      "events": [
+        "mod_drawer_opened",
+        "quick_approval_executed"
+      ]
     }
   }
 }

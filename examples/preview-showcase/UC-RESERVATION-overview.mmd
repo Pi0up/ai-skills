@@ -1,31 +1,34 @@
-%%@file id=UC-RESERVATION-overview project=SALLES kind=userflow view=uc uc=UC-RESERVATION obj=OBJ-RES-01 title="Cas d'Usage : Réservation d'un Espace" version="1.1" roles=CLIENT,ADMIN
-%%@node HOME code=HOME type=ECR order=1
-%%@node L001 code=L001 type=ECR order=2
-%%@node C001 code=C001 type=ECR order=3
-%%@node F001 code=F001 type=ECR order=4
-%%@node F001_recap code=F001:RECAP type=ECR order=5
-%%@node CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=6
-%%@node D001 code=D001 type=ECR order=7
-%%@node EXT_SUPPORT code=EXT-SUPPORT type=EXT order=8
-%%@edge HOME>L001 kind=nominal
-%%@edge L001>C001 kind=nominal
-%%@edge C001>F001 kind=nominal
-%%@edge F001>F001_recap kind=nominal
-%%@edge F001_recap>CALL_PAY kind=nominal
-%%@edge CALL_PAY>D001 kind=nominal
-%%@edge F001>EXT_SUPPORT kind=variant
-%%@edge EXT_SUPPORT>F001_recap kind=rejoin
+%%@file id=UC-RESERVATION-overview project=ECO-STAYS kind=userflow view=uc uc=UC-RESERVATION obj=OBJ-RES-01 title="Cas d'Usage : Réservation d'un Écolodge" version="1.3" roles=VOYAGEUR,HOTE,ADMIN confiance=YELLOW validation=QA+UAT funnel=yes
+%%@node ND_HOME code=HOME type=ECR order=1
+%%@node ND_L001 code=L001 type=ECR order=2
+%%@node ND_C001 code=C001 type=ECR order=3
+%%@node ND_F001 code=F001 type=ECR order=4
+%%@node ND_EXT_APPROVAL code=EXT-APPROVAL type=EXT break=yes delay=24h persist=external resume=ND_F001_RECAP order=5
+%%@node ND_F001_RECAP code=F001:RECAP type=ECR order=6
+%%@node CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=7
+%%@node ND_L002 code=L002 type=ECR order=8
+%%@edge ND_HOME>ND_L001 kind=nominal
+%%@edge ND_L001>ND_C001 kind=nominal
+%%@edge ND_C001>ND_F001 kind=nominal
+%%@edge ND_F001>ND_F001_RECAP kind=nominal
+%%@edge ND_F001>ND_EXT_APPROVAL kind=diverge
+%%@edge ND_EXT_APPROVAL>ND_F001_RECAP kind=rejoin
+%%@edge ND_F001_RECAP>CALL_PAY kind=nominal
+%%@edge CALL_PAY>ND_L002 kind=nominal
 flowchart LR
-  subgraph Role_CLIENT["flows / CLIENT"]
-    HOME(["ND-001 · Accueil"])
-    L001["ND-002 · Catalogue"]
-    C001(["ND-003 · Fiche Détail"])
-    F001{"ND-004 · Tunnel Réservation"}
-    F001_recap{"ND-005 · Récapitulatif"}
+  subgraph Role_VOYAGEUR["flows / VOYAGEUR"]
+    ND_HOME(["ND-001 · Accueil"])
+    ND_L001["ND-002 · Catalogue Écolodges"]
+    ND_C001(["ND-003 · Fiche Lodge"])
+    ND_F001{"ND-004 · Tunnel Réservation"}
+    ND_F001_RECAP{"ND-005 · Récapitulatif & CGV"}
     CALL_PAY[["PF-PAIEMENT-SEG · Module Paiement"]]
-    D001["ND-007 · Confirmation sur Dashboard"]
-    EXT_SUPPORT[/"EXT-SUPPORT · Échange Conseiller (Pause 24h)"/]
-
-    HOME --> L001 --> C001 --> F001 --> F001_recap --> CALL_PAY --> D001
-    F001 -.-> EXT_SUPPORT -.-> F001_recap
+    ND_L002["ND-007 · Confirmation & Mes Réservations"]
   end
+
+  subgraph Role_HOTE["flows / HOTE"]
+    ND_EXT_APPROVAL[/"ND-008 · Accord Manuel Hôte ⏸ 24h"/]
+  end
+
+  ND_HOME --> ND_L001 --> ND_C001 --> ND_F001 --> ND_F001_RECAP --> CALL_PAY --> ND_L002
+  ND_F001 -.-> ND_EXT_APPROVAL -.-> ND_F001_RECAP

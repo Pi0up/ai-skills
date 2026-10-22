@@ -1,0 +1,22 @@
+%%@file id=PF-DEPOT-VAR-ASSIST project=ECO-STAYS kind=userflow view=collapsed uc=UC-DEPOT-ANNONCE obj=OBJ-DEPOT-01 statut=variante roles=HOTE title="Variante avec Accompagnement Éco-Label ⏸" version="1.3" diverge=PF-DEPOT-NOM@3 rejoint=PF-DEPOT-NOM@6
+%%@node ND_F002 code=F002 type=ECR order=1
+%%@node ND_ACT_AIDE ref=FEAT-DEMANDE-LABEL type=ACT order=2
+%%@node ND_EXT_CONSEIL code=EXT-CONSEIL type=EXT obs=none break=yes delay=48h persist=external resume=ND_C001_PREV order=3
+%%@node ND_C001_PREV code=C001:PREVIEW type=ECR order=4
+%%@node ND_ACT_PUBLISH ref=FEAT-PUBLIER-ANNONCE type=ACT order=5
+%%@node ND_L003 code=L003 type=ECR order=6
+%%@edge ND_F002>ND_ACT_AIDE kind=diverge
+%%@edge ND_ACT_AIDE>ND_EXT_CONSEIL kind=variant
+%%@edge ND_EXT_CONSEIL>ND_C001_PREV kind=rejoin
+%%@edge ND_C001_PREV>ND_ACT_PUBLISH kind=nominal
+%%@edge ND_ACT_PUBLISH>ND_L003 kind=nominal
+flowchart LR
+  ND_F002{"ND-001 · Formulaire d'annonce"}
+  ND_ACT_AIDE["ND-002 · Demande de labellisation éco-habitat"]
+  ND_EXT_CONSEIL[/"ND-003 · Audit & échange visio avec conseiller éco ⏸ 48h"/]
+  ND_C001_PREV(["ND-004 · Prévisualisation avec badge Éco-Label validé"])
+  ND_ACT_PUBLISH["ND-005 · Confirmation et publication"]
+  ND_L003["ND-006 · Liste de mes annonces certifiées"]
+
+  ND_F002 -.-> ND_ACT_AIDE -.-> ND_EXT_CONSEIL -.-> ND_C001_PREV
+  ND_C001_PREV --> ND_ACT_PUBLISH --> ND_L003

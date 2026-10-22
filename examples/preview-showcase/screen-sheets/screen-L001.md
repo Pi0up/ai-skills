@@ -1,24 +1,43 @@
-# Fiche d'Écran : L001 (Liste des Salles & Espaces)
+# Fiche Écran Déduite : L001
 
-- **Code canonique** : `L001`
-- **Template** : Liste / Datagrid (`type=L`, `subtype=datagrid`)
-- **URL** : `/rooms` (Relatif à `/`)
-- **Accès** : `public`
-- **Rôles habilités** : `ANONYMOUS`, `CLIENT`, `ADMIN`
-- **Tags** : `MVP`, `SP1`
+> Fiche synthétique croisant arborescence et parcours utilisateurs (spec-userflows.md Section 7).
 
-## 1. Description fonctionnelle
-Catalogue paginé des salles disponibles à la réservation avec facettes de filtrage latéral, tri par prix/pertinence et affichage en grille ou carte.
+- **Référence Canonique** : `L001`
+- **Type de Composant** : Page Liste (Catalogue Datagrid)
+- **URL Canonique** : `/stays`
+- **Rôles Autorisés** : `ANONYMOUS`, `VOYAGEUR`, `ADMIN`
+- **Importance Calculée** : Critique (Point de passage obligatoire vers la réservation)
 
-## 2. Éléments clés de l'interface
-- Barre de tri et bouton d'ouverture des filtres avancés (popin `L001!filtres`)
-- Liste paginée des cartes de salle
-- Indicateurs de disponibilité en temps réel
+---
 
-## 3. Entrées & Contexte requis
-- `ctx_in` : `search_query=STRING` (optionnel), `city=STRING`
+## 1. Contexte d'Usage & États Observables
+- `search=ACTIVE`
+- `region=ALPES`
+- `ecolabel=FILTERED`
 
-## 4. Sorties & Transitions
-- Sélection d'une salle -> consultation détaillée `C001` (`/rooms/[id]`)
-- Clic sur "Filtres avancés" -> popin `L001!filtres`
-- Clic sur "Ajouter une salle" (si ADMIN) -> formulaire création `F002` (`/rooms/new`)
+---
+
+## 2. Contenus & Capacités Actionnables
+- `FEAT-FILTRER` (Déclenchement popin `!filtres`)
+- `FEAT-CHOISIR-DATES` (Sélection des créneaux de disponibilité)
+- `FEAT-DEVENIR-HOTE` (Renvoi fonctionnel vers `F002`)
+- Module transverse `M001` (`!aide`)
+
+---
+
+## 3. Entrées (D'où vient l'utilisateur ?)
+- Depuis `HOME` via le moteur de recherche
+- Accès direct via `/stays`
+
+---
+
+## 4. Sorties (Où va l'utilisateur ?)
+- Vers `C001` (Fiche Détail Écolodge) lors du clic sur une carte
+- Vers `L001!filtres` pour affiner les critères environnementaux
+- Vers `F002` pour proposer son propre logement éco-responsable
+
+---
+
+## 5. Signaux d'Observabilité & Tracking
+- **Pageview** : `/stays`
+- **Événements** : `filter_ecolabel_applied`, `sort_price_changed`, `lodge_card_click`

@@ -1,0 +1,32 @@
+%%@file id=UC-DEPOT-overview project=ECO-STAYS kind=userflow view=uc uc=UC-DEPOT-ANNONCE obj=OBJ-DEPOT-01 title="Cas d'Usage : Création & Modération d'Annonce" version="1.3" roles=HOTE,ADMIN confiance=YELLOW validation=QA+UAT funnel=yes
+%%@node ND_D001 code=D001 type=ECR order=1
+%%@node ND_F002 code=F002 type=ECR order=2
+%%@node ND_EXT_CONSEIL code=EXT-CONSEIL type=EXT break=yes delay=48h persist=external resume=ND_C001_PREV order=3
+%%@node ND_C001_PREV code=C001:PREVIEW type=ECR order=4
+%%@node ND_L003 code=L003 type=ECR order=5
+%%@node ND_D002 code=D002 type=ECR order=6
+%%@node ND_C001_AUDIT code=C001@ADMIN:EDIT type=ECR order=7
+%%@edge ND_D001>ND_F002 kind=nominal
+%%@edge ND_F002>ND_C001_PREV kind=nominal
+%%@edge ND_F002>ND_EXT_CONSEIL kind=diverge
+%%@edge ND_EXT_CONSEIL>ND_C001_PREV kind=rejoin
+%%@edge ND_C001_PREV>ND_L003 kind=nominal
+%%@edge ND_L003>ND_D002 kind=nominal
+%%@edge ND_D002>ND_C001_AUDIT kind=nominal
+flowchart LR
+  subgraph Role_HOTE["flows / HOTE"]
+    ND_D001["ND-001 · Tableau de bord hôte"]
+    ND_F002{"ND-002 · Formulaire de création"}
+    ND_EXT_CONSEIL[/"ND-003 · Audit Conseiller Éco-Label ⏸ 48h"/]
+    ND_C001_PREV(["ND-004 · Aperçu avant publication"])
+    ND_L003["ND-005 · Annonces publiées"]
+  end
+
+  subgraph Role_ADMIN["flows / ADMIN"]
+    ND_D002["ND-006 · Supervision modération"]
+    ND_C001_AUDIT(["ND-007 · Audit conformité écolodge"])
+  end
+
+  ND_D001 --> ND_F002 --> ND_C001_PREV --> ND_L003
+  ND_F002 -.-> ND_EXT_CONSEIL -.-> ND_C001_PREV
+  ND_L003 --> ND_D002 --> ND_C001_AUDIT

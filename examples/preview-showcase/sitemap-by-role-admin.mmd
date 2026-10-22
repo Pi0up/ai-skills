@@ -1,19 +1,37 @@
-%%@file id=sitemap-by-role-admin project=SALLES kind=sitemap view=role role=ADMIN title="Arborescence Administrateur" version="1.1"
-%%@tag SP1 color=green style=outline label="Sprint 1"
-%%@tag SP2 color=orange style=outline label="Sprint 2"
+%%@file id=sitemap-by-role-admin project=ECO-STAYS kind=sitemap view=role role=ADMIN title="Arborescence Administrateur & Modération" version="1.3"
+%%@tag AUDIT color=red style=outline label="Audit & Contrôle"
+%%@tag ECO_LABEL color=green style=fill label="Éco-Label"
 %%@node HOME code=HOME type=HOME access=public roles=ADMIN url=/ order=1
-%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ADMIN url=/rooms order=2
-%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=ADMIN url=/rooms/new tone=accent order=3 tags=SP2 who=ADMIN
-%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=ADMIN url=/dashboard order=4 tags=SP1 who=ADMIN
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ADMIN url=/stays order=2
+%%@node C001_admin code=C001@ADMIN type=C subtype=moderation access=protected roles=ADMIN url=/stays/[id] order=3 tags=AUDIT who=ADMIN
+%%@node C001_admin_edit code=C001@ADMIN:EDIT type=C subtype=audit-edition access=protected roles=ADMIN url=/stays/[id]/audit order=4 tags=AUDIT,ECO_LABEL who=ADMIN
+%%@node D002 code=D002 type=D subtype=supervision access=protected roles=ADMIN url=/admin/dashboard order=5 tags=AUDIT who=ADMIN
+%%@node M003 code=M003 type=MOD scope=@ADMIN order=1 tags=AUDIT who=ADMIN
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ADMIN url=/404 order=6
+%%@node E403 code=E403 type=E subtype=erreur-403 access=public roles=ADMIN url=/403 order=7
 %%@edge HOME>L001 kind=navigation
-%%@edge HOME>D001 kind=navigation
-%%@edge L001>F002 kind=navigation
+%%@edge L001>C001_admin kind=navigation
+%%@edge C001_admin>C001_admin_edit kind=navigation
+%%@edge HOME>D002 kind=navigation
+%%@edge D002>C001_admin_edit kind=action ref=FEAT-MODERER-ANNONCE
+%%@edge D002>M003 kind=invoke
+%%@edge HOME>E404 kind=navigation
+%%@edge HOME>E403 kind=navigation
 flowchart TD
-  HOME(["HOME · Accueil & Vitrine"])
-  L001["L001 · Catalogue des Salles"]
-  F002{"F002 · Créer une Nouvelle Salle"}
-  D001["D001 · Tableau de Bord Admin"]
+  HOME(["HOME · Accueil & Sélections Éco-Responsables"])
+  L001["L001 · Catalogue des Écolodges"]
+  C001_admin(["C001@ADMIN · Contrôle Modérateur"])
+  C001_admin_edit(["C001@ADMIN:EDIT · Audit & Édition Directe"])
+  D002["D002 · Tableau de Bord Administration"]
+  M003>"M003 · Tiroir Modération Express"]
+  E404["E404 · Page Introuvable"]
+  E403["E403 · Accès Refusé"]
 
   HOME --> L001
-  HOME --> D001
-  L001 --> F002
+  L001 --> C001_admin
+  C001_admin --> C001_admin_edit
+  HOME --> D002
+  D002 -.-> C001_admin_edit
+  D002 -.-> M003
+  HOME --> E404
+  HOME --> E403

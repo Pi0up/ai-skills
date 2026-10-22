@@ -1,25 +1,57 @@
-%%@file id=sitemap-overview project=SALLES kind=sitemap view=general title="Arborescence Générale" version="1.1"
-%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,ADMIN url=/ order=1
-%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms order=2
-%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms/[id] order=3
-%%@node F001 code=F001 type=F subtype=stepper access=protected roles=CLIENT,ADMIN url=/booking/[id] order=4
-%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,ADMIN url=/dashboard order=5
-%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,ADMIN url=/404 order=6
+%%@file id=sitemap-overview project=ECO-STAYS kind=sitemap view=general title="Arborescence Générale Éco-Hébergements" version="1.3"
+%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,VOYAGEUR,HOTE,ADMIN url=/ order=1
+%%@node H001 code=H001 type=H subtype=hub access=protected roles=VOYAGEUR,ADMIN url=/account order=2
+%%@node L002 code=L002 type=L subtype=liste access=protected roles=VOYAGEUR,ADMIN url=/account/bookings order=1
+%%@node C002 code=C002 type=C subtype=facture access=protected roles=VOYAGEUR,ADMIN url=/account/bookings/[id] order=1
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,VOYAGEUR,ADMIN url=/stays order=3
+%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,VOYAGEUR,ADMIN url=/stays/[id] dynamic=yes order=1
+%%@node F001 code=F001 type=F subtype=stepper access=protected roles=VOYAGEUR,ADMIN url=/stays/[id]/book order=1
+%%@node H002 code=H002 type=H subtype=hub access=protected roles=HOTE,ADMIN url=/host order=4
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=HOTE,ADMIN url=/host/dashboard order=1
+%%@node L003 code=L003 type=L subtype=datagrid access=protected roles=HOTE,ADMIN url=/host/properties order=2
+%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=HOTE,ADMIN url=/host/properties/new order=1
+%%@node D002 code=D002 type=D subtype=supervision access=protected roles=ADMIN url=/admin/dashboard order=5
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,VOYAGEUR,HOTE,ADMIN url=/404 order=6
+%%@node E403 code=E403 type=E subtype=erreur-403 access=public roles=ANONYMOUS,VOYAGEUR,HOTE,ADMIN url=/403 order=7
+%%@edge HOME>H001 kind=navigation
+%%@edge H001>L002 kind=navigation
+%%@edge L002>C002 kind=navigation
 %%@edge HOME>L001 kind=navigation
-%%@edge HOME>D001 kind=navigation
-%%@edge HOME>E404 kind=navigation
 %%@edge L001>C001 kind=navigation
 %%@edge C001>F001 kind=navigation
+%%@edge HOME>H002 kind=navigation
+%%@edge H002>D001 kind=navigation
+%%@edge H002>L003 kind=navigation
+%%@edge L003>F002 kind=navigation
+%%@edge HOME>D002 kind=navigation
+%%@edge HOME>E404 kind=navigation
+%%@edge HOME>E403 kind=navigation
 flowchart TD
-  HOME(["HOME · Accueil & Vitrine"])
-  L001["L001 · Catalogue des Salles"]
-  C001(["C001 · Fiche Détail Salle"])
-  F001{"F001 · Tunnel de Réservation"}
-  D001["D001 · Tableau de Bord"]
+  HOME(["HOME · Accueil & Sélections Éco-Responsables"])
+  H001["H001 · Espace Voyageur"]
+  L002["L002 · Mes Réservations"]
+  C002(["C002 · Détail Réservation & Facture"])
+  L001["L001 · Catalogue des Écolodges"]
+  C001(["C001 · Fiche Détail Écolodge"])
+  F001{"F001 · Tunnel de Réservation Séjour"}
+  H002["H002 · Espace Hôte Partenaire"]
+  D001["D001 · Tableau de Bord Hôte"]
+  L003["L003 · Gestion de mes Annonces"]
+  F002{"F002 · Dépôt d'une Nouvelle Annonce"}
+  D002["D002 · Tableau de Bord Administration"]
   E404["E404 · Page Introuvable"]
+  E403["E403 · Accès Refusé"]
 
+  HOME --> H001
+  H001 --> L002
+  L002 --> C002
   HOME --> L001
-  HOME --> D001
-  HOME --> E404
   L001 --> C001
   C001 --> F001
+  HOME --> H002
+  H002 --> D001
+  H002 --> L003
+  L003 --> F002
+  HOME --> D002
+  HOME --> E404
+  HOME --> E403

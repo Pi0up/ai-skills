@@ -1,0 +1,31 @@
+%%@file id=sitemap-by-role-host project=ECO-STAYS kind=sitemap view=role role=HOTE title="Arborescence Espace Hôte Partenaire" version="1.3"
+%%@tag SP2 color=orange style=outline label="Sprint 2"
+%%@tag ECO_LABEL color=green style=fill label="Éco-Label"
+%%@node HOME code=HOME type=HOME access=public roles=HOTE url=/ order=1
+%%@node H002 code=H002 type=H subtype=hub access=protected roles=HOTE url=/host order=2 tags=SP2 who=HOTE
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=HOTE url=/host/dashboard order=1 tags=SP2 who=HOTE
+%%@node L003 code=L003 type=L subtype=datagrid access=protected roles=HOTE url=/host/properties order=2 tags=SP2 who=HOTE
+%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=HOTE url=/host/properties/new tone=accent order=1 tags=SP2,ECO_LABEL who=HOTE
+%%@node C001_preview code=C001:PREVIEW type=C subtype=brouillon access=protected roles=HOTE url=/stays/[id]/preview order=3 who=HOTE
+%%@node M001 code=M001 type=MOD scope=ALL order=1
+%%@edge HOME>H002 kind=navigation
+%%@edge H002>D001 kind=navigation
+%%@edge H002>L003 kind=navigation
+%%@edge L003>F002 kind=navigation
+%%@edge L003>C001_preview kind=navigation
+%%@edge D001>M001 kind=invoke
+flowchart TD
+  HOME(["HOME · Accueil & Sélections Éco-Responsables"])
+  H002["H002 · Espace Hôte Partenaire"]
+  D001["D001 · Tableau de Bord Hôte"]
+  L003["L003 · Gestion de mes Annonces"]
+  F002{"F002 · Dépôt d'une Nouvelle Annonce"}
+  C001_preview(["C001:PREVIEW · Prévisualisation Brouillon"])
+  M001>"M001 · FAQ & Assistant Éco-Guide"]
+
+  HOME --> H002
+  H002 --> D001
+  H002 --> L003
+  L003 --> F002
+  L003 --> C001_preview
+  D001 -.-> M001

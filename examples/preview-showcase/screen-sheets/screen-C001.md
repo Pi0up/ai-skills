@@ -1,26 +1,43 @@
-# Fiche d'Écran : C001 (Fiche Détail d'une Salle)
+# Fiche Écran Déduite : C001
 
-- **Code canonique** : `C001`
-- **Template** : Contenu / Fiche (`type=C`, `subtype=fiche`)
-- **URL** : `/rooms/[id]` (Relatif à `/rooms`)
-- **Accès** : `public`
-- **Rôles habilités** : `ANONYMOUS`, `CLIENT`, `ADMIN`
-- **Tags** : `MVP`
-- **Page dynamique** : `dynamic=yes`
+> Fiche synthétique croisant arborescence et parcours utilisateurs (spec-userflows.md Section 7).
 
-## 1. Description fonctionnelle
-Présentation exhaustive des équipements, photos haute résolution, calendrier de disponibilité, tarifs horaires/journaliers et avis clients.
+- **Référence Canonique** : `C001`
+- **Type de Composant** : Page Contenu (Fiche Détail Écolodge)
+- **URL Canonique** : `/stays/[id]`
+- **Rôles Autorisés** : `ANONYMOUS`, `VOYAGEUR`, `ADMIN`
+- **Importance Calculée** : Critique (Point d'ancrage central de l'expérience)
 
-## 2. Éléments clés de l'interface
-- Galerie média
-- Sélecteur de créneaux horaires
-- Ancre interne des avis clients (`C001#avis`)
-- Bouton CTA principal "Réserver ce créneau"
+---
 
-## 3. Entrées & Contexte requis
-- `ctx_in` : `room_id=INTEGER`
+## 1. Contexte d'Usage & États Observables
+- `lodge=SELECTED`
+- `availability=CHECKED`
 
-## 4. Sorties & Transitions
-- Clic sur "Réserver ce créneau" -> tunnel de réservation `F001`
-- Clic sur l'ancre "Voir les 24 avis" -> défilement vers `C001#avis`
-- Clic sur "Modifier" (ADMIN uniquement) -> `F001@ADMIN:EDIT`
+---
+
+## 2. Contenus & Capacités Actionnables
+- Visuels principaux du lodge et description détaillée
+- `FEAT-INITIER-RESERVATION` (Transition vers tunnel `F001`)
+- `FEAT-OUVRIR-GALERIE` (Ouverture popin `C001!galerie`)
+- Ancre `C001#avis` (Section avis vérifiés)
+- Ancre `C001#eco-impact` (Bilan carbone & labels)
+
+---
+
+## 3. Entrées (D'où vient l'utilisateur ?)
+- Depuis `L001` (Catalogue des Écolodges)
+- Depuis `D001` (Tableau de Bord Hôte via renvoi fonctionnel)
+
+---
+
+## 4. Sorties (Où va l'utilisateur ?)
+- Vers `F001` (Tunnel de Réservation Séjour)
+- Vers `C001!galerie`
+- Vers les ancres internes `#avis` et `#eco-impact`
+
+---
+
+## 5. Signaux d'Observabilité & Tracking
+- **Pageview** : `/stays/:id`
+- **Événements** : `open_gallery`, `scroll_eco_impact`, `cta_start_booking`
