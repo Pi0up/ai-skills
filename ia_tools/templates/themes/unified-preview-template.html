@@ -1,19 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Information Architecture Studio - Visualizer</title>
-  <!-- Mermaid v10 CDN -->
+  <title>Information Architecture Studio — Visualiseur Unifié v1.1</title>
+  <!-- Mermaid.js chargé en différé pour le mode repli "Vue Mermaid brute" -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <style>
-    :root {
+    /* ----------------------------------------------------
+       1. Design System Tokens (Spec v1.1 §3.2 & Annexe B)
+       ---------------------------------------------------- */
+    :root, [data-theme="light"] {
+      /* Interface */
+      --bg-app: #f8fafc;
+      --bg-sidebar: #ffffff;
+      --bg-inspector: #ffffff;
+      --bg-canvas: #f5f5f5;
+      --border-color: #e2e8f0;
+      --border-focus: #2563eb;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-subtle: #94a3b8;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-subtle: rgba(37, 99, 235, 0.1);
+      --badge-sitemap: #7c3aed;
+      --badge-userflow: #0284c7;
+      --badge-bg: rgba(0, 0, 0, 0.06);
+      --grid-dot: #cfcfcf;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.18);
+
+      /* Canvas Diagramme */
+      --dg-canvas: #f5f5f5;
+      --dg-dot: #cfcfcf;
+      --dg-frame: #ffffff;
+      --dg-frame-border: #e5e5e5;
+      --dg-level-line: #d9d9d9;
+
+      /* Carte Page (Spec §3.2) */
+      --dg-card: #ffffff;
+      --dg-card-border: #d4d4d4;
+      --dg-radius: 5px;
+      --dg-card-shadow: 0 1px 3px rgba(0,0,0,.18);
+      --dg-card-w: 200px;
+      --dg-card-h: 118px;
+
+      /* Accents de Carte */
+      --dg-home: #3232f5;
+      --dg-fill-state: #dbe6ec;
+      --dg-fill-state-border: #c5d3db;
+      --dg-fill-accent: #ebebfb;
+      --dg-fill-accent-border: #d6d6f2;
+      --dg-stack-1: #f3f3f3;
+      --dg-stack-2: #e8e8e8;
+
+      /* Textes Carte */
+      --dg-title: #222222;
+      --dg-url: #6b6b6b;
+      --dg-muted: #a8a8a8;
+      --dg-code: #333333;
+      --dg-type: #777777;
+
+      /* Liens */
+      --dg-edge: #666666;
+      --dg-edge-cross: #a3a3a3;
+
+      /* Entités Userflow */
+      --dg-call: #8b4dff;
+      --dg-ext: #ff9500;
+      --dg-att: #8a8f9b;
+
+      /* Tags */
+      --tag-blue: #0f5bff;
+      --tag-red: #f4153e;
+      --tag-gray: #8a8f9b;
+      --tag-green: #7bcc0f;
+      --tag-orange: #ff8a14;
+
+      /* Bulles & Marqueurs */
+      --bubble-peach: #fdd3b0;
+      --bubble-amber: #fcc36b;
+      --bubble-blue: #a6d3f6;
+      --bubble-lavender: #d2c5f4;
+      --bubble-ink: #2b3a55;
+      --marker-violet: #b5a1ee;
+      --marker-slate: #5d6475;
+      --marker-green: #4a9a2c;
+      --order-circle: #b7a6ea;
+
+      /* Géométrie */
+      --dg-gap-x: 48px;
+      --dg-gap-y: 72px;
+      --dg-flow-gap: 88px;
+      --dg-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      /* Interface */
       --bg-app: #0f172a;
       --bg-sidebar: #1e293b;
-      --bg-canvas: #090d16;
-      --bg-card: #1e293b;
-      --bg-card-hover: #334155;
       --bg-inspector: #1e293b;
+      --bg-canvas: #090d16;
       --border-color: #334155;
       --border-focus: #3b82f6;
       --text-main: #f8fafc;
@@ -24,54 +113,53 @@
       --primary-subtle: rgba(59, 130, 246, 0.15);
       --badge-sitemap: #8b5cf6;
       --badge-userflow: #0ea5e9;
-      --badge-reference: #10b981;
       --badge-bg: rgba(255, 255, 255, 0.08);
       --grid-dot: #1e293b;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-      --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 14px 32px rgba(0, 0, 0, 0.65);
+
+      /* Canvas & Carte Sombre */
+      --dg-canvas: #090d16;
+      --dg-dot: #1e293b;
+      --dg-frame: #111827;
+      --dg-frame-border: #1f2a3d;
+      --dg-level-line: #1e293b;
+
+      --dg-card: #1e293b;
+      --dg-card-border: #334155;
+      --dg-card-shadow: 0 1px 3px rgba(0,0,0,.5);
+      --dg-home: #818cf8;
+      --dg-fill-state: #1e3a4a;
+      --dg-fill-state-border: #2b5568;
+      --dg-fill-accent: #2a2a52;
+      --dg-fill-accent-border: #3b3b72;
+      --dg-stack-1: #182235;
+      --dg-stack-2: #131c2c;
+
+      --dg-title: #f1f5f9;
+      --dg-url: #94a3b8;
+      --dg-muted: #64748b;
+      --dg-code: #cbd5e1;
+      --dg-type: #94a3b8;
+      --dg-edge: #94a3b8;
+      --dg-edge-cross: #64748b;
     }
 
-    [data-theme="light"] {
-      --bg-app: #f8fafc;
-      --bg-sidebar: #ffffff;
-      --bg-canvas: #f1f5f9;
-      --bg-card: #ffffff;
-      --bg-card-hover: #f1f5f9;
-      --bg-inspector: #ffffff;
-      --border-color: #e2e8f0;
-      --border-focus: #2563eb;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --text-subtle: #94a3b8;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --primary-subtle: rgba(37, 99, 235, 0.1);
-      --grid-dot: #cbd5e1;
-      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: var(--font-sans);
+      font-family: var(--dg-font);
       background: var(--bg-app);
       color: var(--text-main);
       display: flex;
       height: 100vh;
       overflow: hidden;
-      font-size: 14px;
+      font-size: 13px;
     }
 
-    /* Layout Containers */
+    /* ----------------------------------------------------
+       2. Structure des Panneaux
+       ---------------------------------------------------- */
     #sidebar {
       width: 320px;
       min-width: 320px;
@@ -82,10 +170,7 @@
       z-index: 20;
       transition: transform 0.25s ease, margin-left 0.25s ease;
     }
-
-    #sidebar.collapsed {
-      margin-left: -320px;
-    }
+    #sidebar.collapsed { margin-left: -320px; }
 
     #main-viewport {
       flex: 1;
@@ -105,39 +190,34 @@
       flex-direction: column;
       z-index: 20;
       transition: transform 0.25s ease, margin-right 0.25s ease;
-      box-shadow: var(--shadow-lg);
     }
+    #inspector.collapsed { margin-right: -360px; display: none; }
 
-    #inspector.collapsed {
-      margin-right: -360px;
-    }
-
-    /* Sidebar Components */
+    /* ----------------------------------------------------
+       3. En-têtes, Outils et Menus
+       ---------------------------------------------------- */
     .sidebar-header {
-      padding: 16px 20px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-
     .brand-title {
-      font-size: 15px;
       font-weight: 700;
+      font-size: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
-      letter-spacing: -0.3px;
     }
-
     .brand-badge {
       font-size: 10px;
-      background: var(--primary-subtle);
-      color: var(--primary);
+      background: var(--primary);
+      color: #fff;
       padding: 2px 6px;
       border-radius: 4px;
-      font-weight: 700;
-      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
     }
 
     .folder-controls {
@@ -145,86 +225,83 @@
       border-bottom: 1px solid var(--border-color);
       display: flex;
       gap: 8px;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.1);
     }
-
-    .folder-status {
-      flex: 1;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .sidebar-search-box {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .search-input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-input {
-      width: 100%;
-      background: var(--bg-card);
+    .btn-tool {
+      background: var(--bg-app);
       border: 1px solid var(--border-color);
       color: var(--text-main);
-      padding: 8px 12px 8px 32px;
-      border-radius: 8px;
-      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-tool:hover { background: var(--border-color); }
+    .btn-tool.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 500;
+    }
+    .btn-tool.primary:hover { background: var(--primary-hover); }
+
+    .search-box {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .search-input {
+      width: 100%;
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
       outline: none;
-      transition: border-color 0.15s ease;
     }
-
-    .search-input:focus {
-      border-color: var(--border-focus);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 10px;
-      width: 14px;
-      height: 14px;
-      color: var(--text-subtle);
-      pointer-events: none;
-    }
+    .search-input:focus { border-color: var(--border-focus); }
 
     .filter-pills {
       display: flex;
       gap: 6px;
-      padding: 10px 16px;
+      padding: 8px 16px;
       border-bottom: 1px solid var(--border-color);
-      overflow-x: auto;
     }
-
-    .filter-pill {
+    .pill {
       background: transparent;
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 12px;
+      font-size: 11px;
       cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease;
     }
-
-    .filter-pill:hover {
-      background: var(--bg-card-hover);
-      color: var(--text-main);
-    }
-
-    .filter-pill.active {
+    .pill.active {
       background: var(--primary);
       border-color: var(--primary);
-      color: #ffffff;
+      color: #fff;
+    }
+
+    .filter-roles-bar {
+      padding: 6px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .select-role {
+      background: var(--bg-app);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      outline: none;
     }
 
     .sidebar-list {
@@ -232,77 +309,53 @@
       overflow-y: auto;
       padding: 8px 12px;
     }
-
     .diagram-item {
-      padding: 12px 14px;
-      border-radius: 8px;
+      padding: 10px 12px;
+      border-radius: 6px;
       cursor: pointer;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
       border: 1px solid transparent;
+      background: var(--bg-app);
       transition: all 0.15s ease;
-      background: var(--bg-card);
     }
-
-    .diagram-item:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-color);
-    }
-
+    .diagram-item:hover { border-color: var(--border-color); }
     .diagram-item.active {
-      background: var(--primary-subtle);
       border-color: var(--primary);
+      background: var(--primary-subtle);
     }
-
-    .diagram-item__header {
+    .item-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 4px;
     }
-
-    .diagram-item__title {
-      font-size: 13px;
+    .item-title {
       font-weight: 600;
-      color: var(--text-main);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 190px;
+      font-size: 12px;
     }
-
-    .badge-tag {
-      font-size: 10px;
+    .item-badge {
+      font-size: 9px;
       font-weight: 600;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 1px 5px;
+      border-radius: 3px;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
     }
-
-    .badge-sitemap {
-      background: rgba(139, 92, 246, 0.18);
-      color: #a78bfa;
-    }
-
-    .badge-userflow {
-      background: rgba(14, 165, 233, 0.18);
-      color: #38bdf8;
-    }
-
-    .diagram-item__desc {
+    .badge-sitemap { background: var(--badge-sitemap); color: #fff; }
+    .badge-userflow { background: var(--badge-userflow); color: #fff; }
+    .item-desc {
       font-size: 11px;
       color: var(--text-muted);
-      line-height: 1.35;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      white-space: nowrap;
     }
 
-    /* Top Toolbar */
+    /* ----------------------------------------------------
+       4. Barre Supérieure Viewport
+       ---------------------------------------------------- */
     .top-toolbar {
-      height: 56px;
+      height: 48px;
+      min-height: 48px;
       background: var(--bg-sidebar);
       border-bottom: 1px solid var(--border-color);
       display: flex;
@@ -311,1149 +364,1998 @@
       padding: 0 16px;
       z-index: 10;
     }
-
     .toolbar-left, .toolbar-right {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
-
-    .btn-tool {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .btn-tool:hover {
-      background: var(--bg-card-hover);
-      color: var(--text-main);
-      border-color: var(--border-focus);
-    }
-
-    .btn-tool.primary {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #ffffff;
-    }
-
-    .btn-tool.primary:hover {
-      background: var(--primary-hover);
-    }
-
     .active-diagram-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-left: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* Menu Calques Déroulant */
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-md);
+      border-radius: 6px;
+      padding: 8px 12px;
+      min-width: 190px;
+      z-index: 100;
+    }
+    .dropdown.open .dropdown-content { display: block; }
+    .layer-option {
       display: flex;
       align-items: center;
       gap: 8px;
+      padding: 4px 0;
+      font-size: 12px;
+      cursor: pointer;
     }
 
-    /* Canvas Viewport */
+    /* Bouton Flottant "Retour au Parcours" */
+    #back-to-flow-btn {
+      position: absolute;
+      top: 60px;
+      left: 20px;
+      z-index: 30;
+      display: none;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.15s ease;
+    }
+    #back-to-flow-btn:hover { transform: scale(1.04); }
+
+    /* ----------------------------------------------------
+       5. Viewport Canvas, Grille et SVG
+       ---------------------------------------------------- */
     .canvas-viewport {
       flex: 1;
       position: relative;
       overflow: hidden;
       cursor: grab;
-      background-color: var(--bg-canvas);
-      background-image: radial-gradient(var(--grid-dot) 1.2px, transparent 1.2px);
-      background-size: 24px 24px;
-      user-select: none;
+      background-color: var(--dg-canvas);
+      background-image: radial-gradient(var(--dg-dot) 1px, transparent 1px);
+      background-size: 20px 20px;
     }
-
-    .canvas-viewport:active {
-      cursor: grabbing;
-    }
+    .canvas-viewport.panning { cursor: grabbing; }
 
     #svg-canvas-wrapper {
       position: absolute;
       top: 0;
       left: 0;
       transform-origin: 0 0;
-      transition: transform 0.05s linear;
-      display: inline-block;
-      padding: 40px;
+      will-change: transform;
     }
 
-    /* Empty State View */
-    .empty-state {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      max-width: 460px;
-      padding: 32px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .empty-state__icon {
-      font-size: 48px;
-      margin-bottom: 16px;
-    }
-
-    .empty-state__title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: var(--text-main);
-    }
-
-    .empty-state__text {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-      margin-bottom: 24px;
-    }
-
-    /* Floating Zoom Controls */
+    /* Contrôles Flottants de Zoom */
     .floating-controls {
       position: absolute;
-      bottom: 24px;
-      left: 24px;
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      box-shadow: var(--shadow-lg);
+      bottom: 20px;
+      right: 20px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      gap: 6px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      padding: 6px;
+      border-radius: 8px;
+      box-shadow: var(--shadow-md);
       z-index: 15;
     }
-
-    .floating-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      width: 36px;
-      height: 36px;
+    .btn-zoom {
+      width: 32px;
+      height: 32px;
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 14px;
+    }
+    .btn-zoom:hover { background: var(--border-color); }
+
+    /* ----------------------------------------------------
+       6. Styles des Éléments SVG du Rendu Propre
+       ---------------------------------------------------- */
+    svg.dg-canvas {
+      overflow: visible;
+      font-family: var(--dg-font);
+    }
+
+    /* Carte Page Standard */
+    g.dg-card {
       cursor: pointer;
-      transition: all 0.15s ease;
-      font-size: 16px;
+      transition: filter 0.15s ease, transform 0.15s ease;
+    }
+    g.dg-card:hover {
+      filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.25));
+    }
+    g.dg-card.selected rect.card-main {
+      stroke: var(--primary) !important;
+      stroke-width: 2.5px !important;
+    }
+    g.dg-card.pulse {
+      animation: cardPulse 1.2s ease-in-out;
+    }
+    @keyframes cardPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(124, 58, 237, 0.8)); }
     }
 
-    .floating-btn:hover {
-      background: var(--bg-card-hover);
-      color: var(--text-main);
+    /* Lignes de Niveau */
+    g.level-lines line {
+      stroke: var(--dg-level-line);
+      stroke-width: 1px;
+      stroke-dasharray: 4 4;
+    }
+    g.level-lines text {
+      fill: var(--dg-muted);
+      font-size: 10px;
+      font-weight: 500;
     }
 
-    .floating-btn + .floating-btn {
+    /* Liens */
+    g.dg-edge path {
+      stroke: var(--dg-edge);
+      stroke-width: 1.5px;
+      fill: none;
+      transition: stroke 0.15s ease, stroke-width 0.15s ease;
+    }
+    g.dg-edge.cross path {
+      stroke: var(--dg-edge-cross);
+      stroke-dasharray: 6 4;
+    }
+    g.dg-edge.call path { stroke: var(--dg-call); }
+    g.dg-edge.ext path { stroke: var(--dg-ext); }
+    g.dg-edge:hover path {
+      stroke: var(--primary);
+      stroke-width: 2.5px;
+    }
+
+    /* Pastilles Chips (ACT & ATT) */
+    g.dg-chip {
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    g.dg-chip:hover { transform: scale(1.05); }
+
+    /* Couverture Non Réf */
+    g.dg-card.uncovered rect.card-main {
+      stroke: #ef4444 !important;
+      stroke-width: 2px !important;
+      stroke-dasharray: 5 3 !important;
+    }
+
+    /* Atténuation filtre rôle */
+    g.dg-card.dimmed, g.dg-chip.dimmed {
+      opacity: 0.25;
+    }
+
+    /* ----------------------------------------------------
+       7. Carte de Survol (Hover Preview Tooltip §6.1)
+       ---------------------------------------------------- */
+    #hover-card {
+      position: fixed;
+      display: none;
+      width: 290px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-lg);
+      border-radius: 8px;
+      padding: 12px 14px;
+      z-index: 1000;
+      pointer-events: auto;
+      font-size: 12px;
+      animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hover-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 6px;
+    }
+    .hover-code {
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .hover-badge {
+      font-size: 10px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--border-color);
+      color: var(--text-muted);
+    }
+    .hover-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .hover-url {
+      color: var(--dg-url);
+      font-family: monospace;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .hover-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .hover-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
       border-top: 1px solid var(--border-color);
+      padding-top: 8px;
+    }
+    .hover-action-btn {
+      background: var(--bg-app);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .hover-action-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
     }
 
-    /* Inspector Drawer */
+    /* ----------------------------------------------------
+       8. Tiroir d'Inspection & Modales
+       ---------------------------------------------------- */
     .inspector-header {
-      padding: 16px 20px;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-
-    .inspector-title {
-      font-size: 14px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .inspector-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
-
-    .node-header-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+    .inspector-content {
       padding: 16px;
-      margin-bottom: 16px;
+      overflow-y: auto;
+      flex: 1;
     }
-
-    .node-code {
-      font-family: var(--font-mono);
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--primary);
+    .prop-group { margin-bottom: 16px; }
+    .prop-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .prop-val {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .prop-code {
+      font-family: monospace;
+      background: var(--bg-app);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+    .tag-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      margin-right: 4px;
       margin-bottom: 4px;
     }
 
-    .node-label {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 8px;
-    }
-
-    .node-url {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--text-muted);
-      background: rgba(0, 0, 0, 0.2);
-      padding: 4px 8px;
-      border-radius: 4px;
-      display: inline-block;
-      word-break: break-all;
-    }
-
-    .meta-section {
-      margin-bottom: 20px;
-    }
-
-    .meta-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-subtle);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-
-    .meta-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .meta-pill {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      background: var(--badge-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      padding: 3px 8px;
-      border-radius: 4px;
-    }
-
-    .meta-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-
-    .meta-table td {
-      padding: 6px 0;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .meta-table td:first-child {
-      color: var(--text-subtle);
-      width: 100px;
-    }
-
-    .meta-table td:last-child {
-      color: var(--text-main);
-      font-weight: 500;
-    }
-
-    .screen-sheet-btn {
-      width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 16px;
-      transition: all 0.15s ease;
-    }
-
-    .screen-sheet-btn:hover {
-      background: var(--bg-card-hover);
-      border-color: var(--border-focus);
-    }
-
-    /* Modal for Screen Sheet */
+    /* Modale Fiche Écran */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
-      z-index: 100;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      z-index: 2000;
+      padding: 20px;
     }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal-content {
+    .modal-overlay.active { display: flex; }
+    .modal-card {
       background: var(--bg-sidebar);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 8px;
       width: 100%;
-      max-width: 800px;
+      max-width: 760px;
       max-height: 85vh;
       display: flex;
       flex-direction: column;
       box-shadow: var(--shadow-lg);
     }
-
     .modal-header {
-      padding: 16px 20px;
+      padding: 14px 18px;
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      font-weight: 700;
     }
-
     .modal-body {
-      padding: 24px;
+      padding: 20px;
       overflow-y: auto;
-      font-family: var(--font-sans);
       line-height: 1.6;
+      font-size: 13px;
     }
-
     .modal-body pre {
       background: var(--bg-canvas);
-      padding: 16px;
-      border-radius: 8px;
+      padding: 12px;
+      border-radius: 6px;
       border: 1px solid var(--border-color);
-      overflow-x: auto;
-      font-family: var(--font-mono);
+      font-family: monospace;
       font-size: 12px;
+      overflow-x: auto;
       white-space: pre-wrap;
     }
 
-    /* Interactive SVG Node Styling */
-    svg g.node {
-      cursor: pointer;
-      transition: transform 0.15s ease, filter 0.15s ease;
+    /* Panneau Légende Flottant */
+    #legend-panel {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow-md);
+      z-index: 15;
+      display: none;
+      max-width: 320px;
+      font-size: 11px;
+    }
+    #legend-panel.active { display: block; }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--border-color);
     }
 
-    svg g.node:hover {
-      filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.6));
+    /* État Vide */
+    #empty-state {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--text-muted);
+      display: none;
     }
+    #empty-state.active { display: block; }
 
-    svg g.node.selected rect,
-    svg g.node.selected polygon,
-    svg g.node.selected circle,
-    svg g.node.selected path {
-      stroke: #3b82f6 !important;
-      stroke-width: 3px !important;
-      filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8));
-    }
-
-    /* Loading Spinner */
-    .spinner {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Print Styles */
+    /* Mode Impression (@media print) */
     @media print {
-      @page {
-        size: landscape;
-        margin: 10mm;
-      }
-
-      body {
-        background: #ffffff !important;
-        color: #000000 !important;
-        height: auto !important;
-        overflow: visible !important;
-      }
-
-      #sidebar, #inspector, .top-toolbar, .floating-controls, .modal-overlay, .folder-controls {
-        display: none !important;
-      }
-
-      #main-viewport {
-        background: #ffffff !important;
-        overflow: visible !important;
-      }
-
-      .canvas-viewport {
-        background: #ffffff !important;
-        overflow: visible !important;
-      }
-
-      #svg-canvas-wrapper {
-        position: static !important;
-        transform: none !important;
-        padding: 0 !important;
-      }
-
-      svg {
-        max-width: 100% !important;
-        height: auto !important;
-      }
+      body { background: #fff !important; color: #000 !important; }
+      #sidebar, #inspector, .top-toolbar, .floating-controls, #hover-card, #back-to-flow-btn { display: none !important; }
+      .canvas-viewport { background: #fff !important; }
+      #svg-canvas-wrapper { transform: none !important; }
     }
   </style>
 </head>
-<body data-theme="dark">
+<body data-theme="light">
 
-  <!-- Left Sidebar -->
+  <!-- 1. Panneau Latéral Gauche -->
   <aside id="sidebar">
     <div class="sidebar-header">
       <div class="brand-title">
         <span>Information Architecture</span>
         <span class="brand-badge">STUDIO</span>
       </div>
-      <button class="btn-tool" id="btn-theme-toggle" title="Toggle Theme">🌓</button>
+      <button class="btn-tool" id="btn-theme" title="Basculer Thème">🌓</button>
     </div>
 
-    <!-- Folder Controls -->
     <div class="folder-controls">
-      <button class="btn-tool primary" id="btn-open-folder" title="Open Folder">📁 Open Folder</button>
-      <button class="btn-tool" id="btn-refresh-folder" title="Reload diagrams from disk">🔄 Refresh</button>
-      <input type="file" id="fallback-folder-input" webkitdirectory directory multiple style="display:none">
+      <button class="btn-tool primary" id="btn-open-folder">📁 Dossier</button>
+      <button class="btn-tool" id="btn-refresh">🔄 Rafraîchir</button>
+      <input type="file" id="fallback-input" webkitdirectory directory multiple style="display:none">
     </div>
 
-    <div class="sidebar-search-box">
-      <div class="search-input-wrapper">
-        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-        <input type="text" id="search-input" class="search-input" placeholder="Search diagrams or nodes...">
-      </div>
+    <div class="search-box">
+      <input type="text" id="search-input" class="search-input" placeholder="🔍 Rechercher diagramme ou code...">
     </div>
 
     <div class="filter-pills">
-      <button class="filter-pill active" data-category="all">All (<span id="count-all">0</span>)</button>
-      <button class="filter-pill" data-category="sitemap">Sitemaps (<span id="count-sitemap">0</span>)</button>
-      <button class="filter-pill" data-category="userflow">Userflows (<span id="count-userflow">0</span>)</button>
+      <button class="pill active" data-filter="all">Tous</button>
+      <button class="pill" data-filter="sitemap">Arbos</button>
+      <button class="pill" data-filter="userflow">Parcours</button>
+    </div>
+
+    <div class="filter-roles-bar">
+      <span>Filtrer rôle :</span>
+      <select id="role-filter" class="select-role">
+        <option value="ALL">Tous les rôles</option>
+      </select>
     </div>
 
     <div class="sidebar-list" id="diagram-list">
-      <!-- Diagram items rendered dynamically -->
+      <!-- Rempli dynamiquement -->
     </div>
   </aside>
 
-  <!-- Main Viewport -->
+  <!-- 2. Zone Centrale Viewport -->
   <main id="main-viewport">
     <div class="top-toolbar">
       <div class="toolbar-left">
-        <button class="btn-tool" id="btn-toggle-sidebar" title="Toggle Sidebar">☰</button>
-        <div class="active-diagram-title">
-          <span id="current-diagram-title">Select a Diagram</span>
-          <span class="badge-tag" id="current-diagram-badge" style="display:none;"></span>
+        <button class="btn-tool" id="btn-toggle-sidebar" title="Masquer panneau">☰</button>
+        <span class="active-diagram-title" id="active-title">Chargement...</span>
+        <span class="item-badge badge-sitemap" id="active-kind-badge">SITEMAP</span>
+
+        <!-- Menu Déroulant Calques -->
+        <div class="dropdown" id="layers-dropdown">
+          <button class="btn-tool" id="btn-layers">Calques ▾</button>
+          <div class="dropdown-content">
+            <label class="layer-option"><input type="checkbox" id="layer-levels" checked> Niveaux (arbo)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-renvois" checked> Renvois & modules</label>
+            <label class="layer-option"><input type="checkbox" id="layer-numbers"> Numérotation (01)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-avatars"> Avatars rôles</label>
+            <label class="layer-option"><input type="checkbox" id="layer-tags" checked> Tags (SP1...)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-coverage"> Couverture parcours</label>
+            <label class="layer-option"><input type="checkbox" id="layer-mermaid"> Vue Mermaid brute</label>
+          </div>
         </div>
+
+        <button class="btn-tool" id="btn-legend">Légende</button>
+        <button class="btn-tool" id="btn-diagnostics" title="Diagnostics structurels">Diagnostics <span id="diag-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:0 5px;font-size:10px;display:none;">0</span></button>
       </div>
 
       <div class="toolbar-right">
-        <button class="btn-tool" id="btn-export-png-hd" title="Export High-Resolution PNG (Retina 2.5x)">📸 Export PNG HD</button>
-        <button class="btn-tool" id="btn-export-png" title="Export Standard PNG">🖼️ PNG</button>
-        <button class="btn-tool" id="btn-export-svg" title="Export Vector SVG">⚡ SVG</button>
-        <button class="btn-tool" id="btn-print" title="Print Diagram">🖨️ Print</button>
-        <button class="btn-tool" id="btn-toggle-inspector" title="Toggle Inspector">📋</button>
+        <button class="btn-tool" id="btn-export-svg" title="Exporter au format SVG">SVG</button>
+        <button class="btn-tool" id="btn-export-png" title="Exporter PNG 1x">PNG</button>
+        <button class="btn-tool" id="btn-export-hd" title="Exporter PNG Haute Définition">PNG HD</button>
+        <button class="btn-tool" id="btn-print" title="Imprimer le diagramme">🖨️</button>
+        <button class="btn-tool" id="btn-toggle-inspector" title="Volet inspecteur">ℹ️</button>
       </div>
     </div>
 
+    <!-- Bouton Retour au Parcours (Navigation Croisée) -->
+    <button id="back-to-flow-btn">← Retour au parcours</button>
+
+    <!-- Zone Canevas & Zoom -->
     <div class="canvas-viewport" id="canvas-viewport">
-      <!-- Empty state when no folder is selected -->
-      <div class="empty-state" id="empty-state">
-        <div class="empty-state__icon">📁</div>
-        <div class="empty-state__title">Scan Architecture Folder</div>
-        <div class="empty-state__text">
-          Select the folder containing your generated <code>.mmd</code> diagrams and <code>metadata.json</code> to explore them interactively.
-        </div>
-        <button class="btn-tool primary" id="btn-welcome-open" style="padding: 10px 20px; font-size: 14px;">
-          Select Generated Folder
-        </button>
+      <div id="svg-canvas-wrapper">
+        <div id="render-target"></div>
       </div>
 
-      <div id="svg-canvas-wrapper" style="display: none;">
-        <div id="mermaid-render-target"></div>
-      </div>
-
-      <!-- Floating Zoom Controls -->
+      <!-- Contrôles Zoom Flottants -->
       <div class="floating-controls">
-        <button class="floating-btn" id="btn-zoom-in" title="Zoom In">+</button>
-        <button class="floating-btn" id="btn-zoom-out" title="Zoom Out">-</button>
-        <button class="floating-btn" id="btn-zoom-reset" title="Fit to View">⤢</button>
-        <button class="floating-btn" id="btn-zoom-actual" title="Actual Size (1:1)">1:1</button>
+        <button class="btn-zoom" id="btn-zoom-in" title="Zoom avant">+</button>
+        <button class="btn-zoom" id="btn-zoom-out" title="Zoom arrière">-</button>
+        <button class="btn-zoom" id="btn-zoom-fit" title="Ajuster à la vue">⛶</button>
+        <button class="btn-zoom" id="btn-zoom-reset" title="Échelle 100%">1:1</button>
+      </div>
+
+      <!-- Légende Flottante -->
+      <div id="legend-panel">
+        <div style="font-weight:700;margin-bottom:8px;">Légende du Diagramme</div>
+        <div id="legend-content"></div>
+      </div>
+
+      <!-- État Vide -->
+      <div id="empty-state">
+        <h2>Aucun diagramme chargé</h2>
+        <p style="margin-top:8px;">Sélectionnez un dossier de livrables <code>generated/</code></p>
       </div>
     </div>
   </main>
 
-  <!-- Right Inspector Drawer -->
-  <aside id="inspector" class="collapsed">
+  <!-- 3. Tiroir d'Inspection Droit -->
+  <aside id="inspector">
     <div class="inspector-header">
-      <div class="inspector-title">
-        <span>🔍 Node Inspector</span>
-      </div>
+      <span style="font-weight:700;">Inspecteur de Nœud</span>
       <button class="btn-tool" id="btn-close-inspector">✕</button>
     </div>
-
-    <div class="inspector-body" id="inspector-content">
-      <div style="color: var(--text-subtle); text-align: center; margin-top: 40px;">
-        Click on any node in the diagram to inspect its metadata, roles, URLs and screen sheet.
-      </div>
+    <div class="inspector-content" id="inspector-content">
+      <p style="color:var(--text-muted);">Cliquez sur un écran ou un composant pour afficher ses propriétés détaillées.</p>
     </div>
   </aside>
 
-  <!-- Screen Sheet Modal -->
-  <div class="modal-overlay" id="screen-sheet-modal">
-    <div class="modal-content">
+  <!-- 4. Carte de Survol (Tooltip Flottant) -->
+  <div id="hover-card"></div>
+
+  <!-- 5. Modale Fiche Écran Markdown -->
+  <div class="modal-overlay" id="sheet-modal">
+    <div class="modal-card">
       <div class="modal-header">
-        <h3 id="modal-sheet-title">Screen Sheet</h3>
+        <span id="modal-sheet-title">Fiche Écran</span>
         <button class="btn-tool" id="btn-close-modal">✕</button>
       </div>
-      <div class="modal-body" id="modal-sheet-body">
-        <!-- Rendered Screen Sheet markdown/pre -->
-      </div>
+      <div class="modal-body" id="modal-sheet-content"></div>
     </div>
   </div>
 
-  <!-- Visualizer Application Logic (Solution 1: Direct Folder Scanning) -->
+  <!-- 6. Modale Diagnostics Structurels -->
+  <div class="modal-overlay" id="diag-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span>Diagnostics Structurels (§11)</span>
+        <button class="btn-tool" id="btn-close-diag-modal">✕</button>
+      </div>
+      <div class="modal-body" id="modal-diag-content"></div>
+    </div>
+  </div>
+
+  <!-- ----------------------------------------------------
+       7. Moteur d'Application Vanilla JavaScript (Spec v1.1)
+       ---------------------------------------------------- -->
   <script>
-    (function() {
-      // 1. In-memory data store populated from disk scanning
-      let diagrams = [];
-      let nodesMetadata = {};
-      let screenSheets = {};
+    (function () {
+      'use strict';
 
-      // 2. State
-      let activeDirectoryHandle = null;
-      let cachedFileList = null;
-      let activeDiagramId = null;
-      let activeCategory = 'all';
-      let searchQuery = '';
-      let selectedNodeCode = null;
+      // État Global de l'Application
+      const state = {
+        diagrams: [],
+        activeDiagram: null,
+        metadata: {},
+        screenSheets: {},
+        globalIndex: {}, // code -> [{ diagramId, nodeId, code, title }]
+        diagnostics: [],
+        activeCategory: 'all',
+        selectedRole: 'ALL',
+        searchQuery: '',
+        selectedNodeCode: null,
+        previousFlowRef: null, // Mémorise le retour en navigation croisée
 
-      // Pan & Zoom state
-      let scale = 1;
-      let panX = 40;
-      let panY = 40;
-      let isPanning = false;
-      let startX = 0;
-      let startY = 0;
-
-      const viewport = document.getElementById('canvas-viewport');
-      const canvasWrapper = document.getElementById('svg-canvas-wrapper');
-      const renderTarget = document.getElementById('mermaid-render-target');
-      const diagramListEl = document.getElementById('diagram-list');
-      const inspectorEl = document.getElementById('inspector');
-      const inspectorContent = document.getElementById('inspector-content');
-      const emptyStateEl = document.getElementById('empty-state');
-      const fallbackInput = document.getElementById('fallback-folder-input');
-
-      // Initialize Mermaid
-      mermaid.initialize({
-        startOnLoad: false,
-        securityLevel: 'loose',
-        theme: 'base',
-        themeVariables: {
-          primaryColor: '#3b82f6',
-          primaryTextColor: '#ffffff',
-          primaryBorderColor: '#2563eb',
-          lineColor: '#64748b',
-          secondaryColor: '#8b5cf6',
-          tertiaryColor: '#1e293b'
+        // Calques
+        layers: {
+          levels: true,
+          renvois: true,
+          numbers: false,
+          avatars: false,
+          tags: true,
+          coverage: false,
+          mermaid: false
         },
-        flowchart: {
-          curve: 'basis',
-          nodeSpacing: 50,
-          rankSpacing: 60,
-          htmlLabels: true
+
+        // Pan & Zoom
+        scale: 1.0,
+        panX: 60,
+        panY: 60,
+        isPanning: false,
+        startX: 0,
+        startY: 0
+      };
+
+      // Éléments DOM
+      const dom = {
+        sidebar: document.getElementById('sidebar'),
+        inspector: document.getElementById('inspector'),
+        inspectorContent: document.getElementById('inspector-content'),
+        canvasViewport: document.getElementById('canvas-viewport'),
+        svgWrapper: document.getElementById('svg-canvas-wrapper'),
+        renderTarget: document.getElementById('render-target'),
+        diagramList: document.getElementById('diagram-list'),
+        activeTitle: document.getElementById('active-title'),
+        activeBadge: document.getElementById('active-kind-badge'),
+        hoverCard: document.getElementById('hover-card'),
+        backBtn: document.getElementById('back-to-flow-btn'),
+        legendPanel: document.getElementById('legend-panel'),
+        legendContent: document.getElementById('legend-content'),
+        sheetModal: document.getElementById('sheet-modal'),
+        sheetModalContent: document.getElementById('modal-sheet-content'),
+        sheetModalTitle: document.getElementById('modal-sheet-title'),
+        diagModal: document.getElementById('diag-modal'),
+        diagModalContent: document.getElementById('modal-diag-content'),
+        diagBadge: document.getElementById('diag-badge'),
+        roleFilter: document.getElementById('role-filter'),
+        searchInput: document.getElementById('search-input'),
+        fallbackInput: document.getElementById('fallback-input'),
+        layersDropdown: document.getElementById('layers-dropdown'),
+        emptyState: document.getElementById('empty-state')
+      };
+
+      // Thème initial (Décision #10 : Détection selon OS avec mémorisation)
+      function initTheme() {
+        const saved = localStorage.getItem('ia_theme');
+        if (saved) {
+          document.body.dataset.theme = saved;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.body.dataset.theme = 'dark';
+        } else {
+          document.body.dataset.theme = 'light';
         }
+      }
+      initTheme();
+
+      document.getElementById('btn-theme').addEventListener('click', () => {
+        const current = document.body.dataset.theme;
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.body.dataset.theme = next;
+        localStorage.setItem('ia_theme', next);
+        if (state.activeDiagram) renderCurrentDiagram();
       });
 
-      // 3. YAML Frontmatter Parser
-      function parseFrontmatter(content) {
-        const meta = {};
-        let source = content.trim();
-        if (source.startsWith('---')) {
-          const endIdx = source.indexOf('---', 3);
-          if (endIdx !== -1) {
-            const yamlStr = source.substring(3, endIdx).trim();
-            source = source.substring(endIdx + 3).trim();
-            yamlStr.split('\n').forEach(line => {
-              const colonIdx = line.indexOf(':');
-              if (colonIdx !== -1) {
-                const key = line.substring(0, colonIdx).trim();
-                let val = line.substring(colonIdx + 1).trim();
-                if (val.startsWith('[') && val.endsWith(']')) {
-                  val = val.substring(1, val.length - 1).split(',').map(s => s.trim()).filter(Boolean);
-                }
-                meta[key] = val;
-              }
+      // ----------------------------------------------------
+      // 8. Parser Syntaxique de Fichier Mermaid + Meta %%@
+      // ----------------------------------------------------
+      function parseMermaidFile(rawText, filename) {
+        const ast = {
+          filename,
+          meta: { id: filename.replace('.mmd', ''), title: filename.replace('.mmd', ''), kind: 'sitemap' },
+          tags: {},
+          nodes: {},
+          edges: [],
+          rawMermaid: rawText
+        };
+
+        const lines = rawText.split('\n');
+        const mermaidLines = [];
+
+        for (let line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('%%@file')) {
+            parseKeyValues(trimmed.slice(7), ast.meta);
+          } else if (trimmed.startsWith('%%@tag')) {
+            const parts = trimmed.slice(6).trim().split(/\s+/);
+            const tagId = parts[0];
+            const tagProps = {};
+            parseKeyValues(parts.slice(1).join(' '), tagProps);
+            ast.tags[tagId] = tagProps;
+          } else if (trimmed.startsWith('%%@node')) {
+            const parts = trimmed.slice(7).trim().split(/\s+/);
+            const nodeId = parts[0];
+            const nodeProps = { id: nodeId, code: nodeId };
+            parseKeyValues(parts.slice(1).join(' '), nodeProps);
+            ast.nodes[nodeId] = nodeProps;
+          } else if (trimmed.startsWith('%%@edge')) {
+            const parts = trimmed.slice(7).trim().split(/\s+/);
+            const linkPair = parts[0]; // src>dst
+            const [src, dst] = linkPair.split('>');
+            const edgeProps = { src, dst, kind: 'nominal' };
+            parseKeyValues(parts.slice(1).join(' '), edgeProps);
+            ast.edges.push(edgeProps);
+          } else {
+            mermaidLines.push(line);
+          }
+        }
+
+        // Si kind non spécifié, déduction par le nom
+        if (!ast.meta.kind) {
+          ast.meta.kind = filename.toLowerCase().includes('sitemap') ? 'sitemap' : 'userflow';
+        }
+
+        // Extraction topologique depuis les lignes Mermaid standard
+        parseMermaidTopology(mermaidLines.join('\n'), ast);
+        return ast;
+      }
+
+      function parseKeyValues(str, target) {
+        const regex = /([a-zA-Z0-9_-]+)=(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+        let match;
+        while ((match = regex.exec(str)) !== null) {
+          const k = match[1];
+          const v = match[2] !== undefined ? match[2] : (match[3] !== undefined ? match[3] : match[4]);
+          if (v && v.includes(',') && !k.includes('label') && !k.includes('title')) {
+            target[k] = v.split(',').map(s => s.trim());
+          } else {
+            target[k] = v;
+          }
+        }
+      }
+
+      function parseMermaidTopology(mText, ast) {
+        // Détection direction (TD ou LR)
+        ast.direction = mText.includes('flowchart LR') || mText.includes('graph LR') ? 'LR' : 'TD';
+
+        // Extraction simple des nœuds déclarés dans Mermaid
+        const nodeDeclRegex = /^\s*([A-Za-z0-9_]+)\s*(?:\[\(\s*["']?(.*?)["']?\s*\)\]|\(\[\s*["']?(.*?)["']?\s*\]\)|\{\{\s*["']?(.*?)["']?\s*\}\}|\[\[\s*["']?(.*?)["']?\s*\]\]|\[\/\s*["']?(.*?)["']?\s*\/\]|\{\s*["']?(.*?)["']?\s*\}|\[\s*["']?(.*?)["']?\s*\]|\>\s*["']?(.*?)["']?\s*\])/gm;
+        let match;
+        while ((match = nodeDeclRegex.exec(mText)) !== null) {
+          const id = match[1];
+          const rawLabel = match[2] || match[3] || match[4] || match[5] || match[6] || match[7] || match[8] || match[9] || id;
+          if (!ast.nodes[id]) {
+            ast.nodes[id] = { id, code: id, label: rawLabel };
+          } else if (!ast.nodes[id].label) {
+            ast.nodes[id].label = rawLabel;
+          }
+        }
+
+        // Extraction simple des liens Mermaid
+        const edgeRegex = /^\s*([A-Za-z0-9_]+)\s*(-->|-\.->|==>)\s*([A-Za-z0-9_]+)/gm;
+        while ((match = edgeRegex.exec(mText)) !== null) {
+          const src = match[1];
+          const typeArrow = match[2];
+          const dst = match[3];
+          const existing = ast.edges.find(e => e.src === src && e.dst === dst);
+          if (!existing) {
+            ast.edges.push({
+              src,
+              dst,
+              kind: typeArrow === '-.->' ? 'variant' : (ast.meta.kind === 'sitemap' ? 'navigation' : 'nominal')
             });
           }
         }
-        return { meta, source };
       }
 
-      // 4. Folder Scanner Functions
-      async function triggerFolderSelection() {
-        if (window.showDirectoryPicker) {
-          try {
-            const dirHandle = await window.showDirectoryPicker();
-            activeDirectoryHandle = dirHandle;
-            cachedFileList = null;
-            await scanDirectoryHandle(dirHandle);
-          } catch (err) {
-            if (err.name !== 'AbortError') {
-              console.warn('showDirectoryPicker failed, trying fallback input:', err);
-              fallbackInput.click();
+      // ----------------------------------------------------
+      // 9. Indexation Globale & Navigation Croisée Exacte
+      // ----------------------------------------------------
+      function buildGlobalIndex() {
+        state.globalIndex = {};
+        state.diagnostics = [];
+
+        state.diagrams.forEach(diag => {
+          Object.values(diag.nodes).forEach(n => {
+            const canonicalCode = n.code || n.id;
+            if (!state.globalIndex[canonicalCode]) {
+              state.globalIndex[canonicalCode] = [];
             }
-          }
-        } else {
-          fallbackInput.click();
-        }
-      }
-
-      fallbackInput.addEventListener('change', async (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length > 0) {
-          cachedFileList = files;
-          activeDirectoryHandle = null;
-          await scanFileList(files);
-        }
-      });
-
-      // Scan via File System Access API
-      async function scanDirectoryHandle(dirHandle) {
-        diagrams = [];
-        nodesMetadata = {};
-        screenSheets = {};
-
-        for await (const entry of dirHandle.values()) {
-          if (entry.kind === 'file') {
-            if (entry.name.endsWith('.mmd')) {
-              const file = await entry.getFile();
-              const text = await file.text();
-              const { meta, source } = parseFrontmatter(text);
-              const dType = meta.type || (entry.name.includes('sitemap') ? 'sitemap' : 'userflow');
-              diagrams.push({
-                id: meta.id || entry.name.replace('.mmd', ''),
-                filename: entry.name,
-                title: meta.title || entry.name.replace('.mmd', ''),
-                type: dType,
-                roles: meta.roles || ['ALL'],
-                tags: meta.tags || [dType],
-                description: meta.description || '',
-                source: source
-              });
-            } else if (entry.name === 'metadata.json') {
-              try {
-                const file = await entry.getFile();
-                const text = await file.text();
-                nodesMetadata = JSON.parse(text);
-              } catch (err) {
-                console.warn('Could not parse metadata.json:', err);
-              }
-            }
-          } else if (entry.kind === 'directory' && entry.name === 'screen-sheets') {
-            for await (const subEntry of entry.values()) {
-              if (subEntry.kind === 'file' && subEntry.name.endsWith('.md')) {
-                const file = await subEntry.getFile();
-                const text = await file.text();
-                const cleanCode = subEntry.name.replace(/^screen-/, '').replace(/\.md$/, '');
-                screenSheets[cleanCode] = { filename: subEntry.name, content: text };
-              }
-            }
-          }
-        }
-
-        onScanComplete();
-      }
-
-      // Scan via FileList (Fallback for Firefox / Safari)
-      async function scanFileList(files) {
-        diagrams = [];
-        nodesMetadata = {};
-        screenSheets = {};
-
-        for (const file of files) {
-          if (file.name.endsWith('.mmd')) {
-            const text = await file.text();
-            const { meta, source } = parseFrontmatter(text);
-            const dType = meta.type || (file.name.includes('sitemap') ? 'sitemap' : 'userflow');
-            diagrams.push({
-              id: meta.id || file.name.replace('.mmd', ''),
-              filename: file.name,
-              title: meta.title || file.name.replace('.mmd', ''),
-              type: dType,
-              roles: meta.roles || ['ALL'],
-              tags: meta.tags || [dType],
-              description: meta.description || '',
-              source: source
+            state.globalIndex[canonicalCode].push({
+              diagramId: diag.meta.id,
+              diagramKind: diag.meta.kind,
+              diagramTitle: diag.meta.title || diag.filename,
+              nodeId: n.id,
+              code: canonicalCode,
+              label: n.label || canonicalCode
             });
-          } else if (file.name === 'metadata.json') {
-            try {
-              const text = await file.text();
-              nodesMetadata = JSON.parse(text);
-            } catch (err) {
-              console.warn('Could not parse metadata.json:', err);
-            }
-          } else if (file.name.endsWith('.md') && file.webkitRelativePath && file.webkitRelativePath.includes('screen-sheets')) {
-            const text = await file.text();
-            const cleanCode = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
-            screenSheets[cleanCode] = { filename: file.name, content: text };
-          }
-        }
-
-        onScanComplete();
-      }
-
-      function onScanComplete() {
-        if (diagrams.length > 0) {
-          emptyStateEl.style.display = 'none';
-          canvasWrapper.style.display = 'inline-block';
-          renderDiagramList();
-          renderDiagram(diagrams[0]);
-        } else {
-          alert('No .mmd diagrams found in the selected directory.');
-        }
-      }
-
-      // 5. Canvas Pan & Zoom Transform
-      function updateCanvasTransform() {
-        canvasWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-      }
-
-      function resetZoom() {
-        const svg = renderTarget.querySelector('svg');
-        if (!svg) return;
-        const rect = svg.getBoundingClientRect();
-        const vRect = viewport.getBoundingClientRect();
-        
-        const scaleX = (vRect.width - 100) / (rect.width / scale);
-        const scaleY = (vRect.height - 100) / (rect.height / scale);
-        scale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.25), 1.5);
-        
-        panX = Math.max(30, (vRect.width - (rect.width / (scale || 1) * scale)) / 2);
-        panY = Math.max(30, (vRect.height - (rect.height / (scale || 1) * scale)) / 2);
-        updateCanvasTransform();
-      }
-
-      // Pan & Zoom Events
-      viewport.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.floating-controls') || e.target.closest('g.node') || e.target.closest('.empty-state')) return;
-        isPanning = true;
-        startX = e.clientX - panX;
-        startY = e.clientY - panY;
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (!isPanning) return;
-        panX = e.clientX - startX;
-        panY = e.clientY - startY;
-        updateCanvasTransform();
-      });
-
-      window.addEventListener('mouseup', () => {
-        isPanning = false;
-      });
-
-      viewport.addEventListener('wheel', (e) => {
-        if (emptyStateEl.style.display !== 'none') return;
-        e.preventDefault();
-        const zoomFactor = 1.12;
-        const mouseX = e.clientX - viewport.getBoundingClientRect().left;
-        const mouseY = e.clientY - viewport.getBoundingClientRect().top;
-
-        const prevScale = scale;
-        if (e.deltaY < 0) {
-          scale = Math.min(scale * zoomFactor, 4.0);
-        } else {
-          scale = Math.max(scale / zoomFactor, 0.15);
-        }
-
-        panX = mouseX - (mouseX - panX) * (scale / prevScale);
-        panY = mouseY - (mouseY - panY) * (scale / prevScale);
-        updateCanvasTransform();
-      }, { passive: false });
-
-      document.getElementById('btn-zoom-in').addEventListener('click', () => {
-        scale = Math.min(scale * 1.25, 4.0);
-        updateCanvasTransform();
-      });
-
-      document.getElementById('btn-zoom-out').addEventListener('click', () => {
-        scale = Math.max(scale / 1.25, 0.15);
-        updateCanvasTransform();
-      });
-
-      document.getElementById('btn-zoom-reset').addEventListener('click', resetZoom);
-
-      document.getElementById('btn-zoom-actual').addEventListener('click', () => {
-        scale = 1.0;
-        panX = 50;
-        panY = 50;
-        updateCanvasTransform();
-      });
-
-      // 6. Render Diagram
-      async function renderDiagram(diagram) {
-        if (!diagram) return;
-        activeDiagramId = diagram.id;
-
-        document.getElementById('current-diagram-title').textContent = diagram.title || diagram.id;
-        const badgeEl = document.getElementById('current-diagram-badge');
-        badgeEl.textContent = (diagram.type || 'sitemap').toUpperCase();
-        badgeEl.className = 'badge-tag ' + (diagram.type === 'userflow' ? 'badge-userflow' : 'badge-sitemap');
-        badgeEl.style.display = 'inline-block';
-
-        // Update active class in sidebar
-        document.querySelectorAll('.diagram-item').forEach(el => {
-          el.classList.toggle('active', el.dataset.id === diagram.id);
+          });
         });
 
-        renderTarget.innerHTML = '<div style="padding: 40px; color: var(--text-muted);"><span class="spinner"></span> Rendering diagram...</div>';
-
-        try {
-          const renderId = 'mermaid-' + Math.random().toString(36).substring(2, 9);
-          const { svg } = await mermaid.render(renderId, diagram.source);
-          renderTarget.innerHTML = svg;
-
-          setupNodeInteractivity();
-          resetZoom();
-        } catch (err) {
-          console.error('Mermaid render error:', err);
-          renderTarget.innerHTML = `<div style="padding: 24px; color: #ef4444; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-            <strong>Render Error:</strong><br>${err.message || err}
-          </div>`;
-        }
+        // Contrôles structurels non bloquants (§11)
+        checkStructuralDiagnostics();
       }
 
-      // 7. Node Interactivity & Inspector
-      function setupNodeInteractivity() {
-        const svg = renderTarget.querySelector('svg');
-        if (!svg) return;
+      function checkStructuralDiagnostics() {
+        state.diagnostics = [];
+        const sitemaps = state.diagrams.filter(d => d.meta.kind === 'sitemap');
+        const userflows = state.diagrams.filter(d => d.meta.kind === 'userflow');
 
-        const nodes = svg.querySelectorAll('g.node');
-        nodes.forEach(nodeEl => {
-          nodeEl.style.cursor = 'pointer';
-
-          const rawText = nodeEl.textContent.trim();
-          let matchedCode = null;
-
-          for (const code of Object.keys(nodesMetadata || {})) {
-            if (rawText.startsWith(code) || rawText.includes(code)) {
-              matchedCode = code;
-              break;
-            }
-          }
-
-          if (matchedCode) {
-            nodeEl.dataset.nodeCode = matchedCode;
-          }
-
-          nodeEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            nodes.forEach(n => n.classList.remove('selected'));
-            nodeEl.classList.add('selected');
-
-            const code = nodeEl.dataset.nodeCode;
-            if (code && nodesMetadata[code]) {
-              showInspector(nodesMetadata[code]);
-            } else {
-              showInspector({
-                code: rawText.split(' ')[0] || 'Node',
-                label: rawText,
-                url: '-'
-              });
+        // Diagnostic 1 : Nœuds ECR dans userflow introuvables dans l'arborescence
+        userflows.forEach(uf => {
+          Object.values(uf.nodes).forEach(node => {
+            if (node.type === 'ECR') {
+              const code = node.code || node.id;
+              const foundInArbo = sitemaps.some(sm => Object.values(sm.nodes).some(sn => (sn.code || sn.id) === code));
+              if (!foundInArbo) {
+                state.diagnostics.push({
+                  level: 'warning',
+                  msg: `Écran [${code}] dans le parcours '${uf.meta.title}' absent de toute arborescence.`
+                });
+              }
             }
           });
         });
-      }
 
-      function showInspector(node) {
-        selectedNodeCode = node.code;
-        inspectorEl.classList.remove('collapsed');
-
-        let rolesHtml = '';
-        if (node.roles && node.roles.length) {
-          rolesHtml = node.roles.map(r => `<span class="meta-pill">${r}</span>`).join(' ');
-        } else {
-          rolesHtml = '<span class="meta-pill">ALL</span>';
-        }
-
-        let inputsHtml = '-';
-        if (node.inputs && node.inputs.length) {
-          inputsHtml = node.inputs.map(i => `<span class="meta-pill">${i}</span>`).join(' ');
-        }
-
-        let outputsHtml = '-';
-        if (node.outputs && node.outputs.length) {
-          outputsHtml = node.outputs.map(o => `<span class="meta-pill">${o}</span>`).join(' ');
-        }
-
-        let signalsHtml = '-';
-        if (node.signals && node.signals.length) {
-          signalsHtml = node.signals.map(s => `<span class="meta-pill">${s}</span>`).join(' ');
-        }
-
-        const safeCode = node.code.replace(/[:@!#]/g, '_');
-        const sheet = screenSheets[node.code] || screenSheets[safeCode];
-
-        inspectorContent.innerHTML = `
-          <div class="node-header-card">
-            <div class="node-code">${node.code}</div>
-            <div class="node-label">${node.label || node.code}</div>
-            <div class="node-url">${node.url || '/'}</div>
-          </div>
-
-          <div class="meta-section">
-            <div class="meta-label">Properties</div>
-            <table class="meta-table">
-              <tr><td>Template</td><td>${node.template_label || node.template || 'Page'}</td></tr>
-              <tr><td>Access</td><td>${node.is_protected ? '🔒 Protected (Auth)' : '🌐 Public'}</td></tr>
-              <tr><td>Nature</td><td>${node.nature || 'Relative'}</td></tr>
-              <tr><td>Order</td><td>#${node.order != null ? String(node.order).padStart(2, '0') : '01'}</td></tr>
-            </table>
-          </div>
-
-          <div class="meta-section">
-            <div class="meta-label">Roles & Permissions</div>
-            <div class="meta-pills">${rolesHtml}</div>
-          </div>
-
-          <div class="meta-section">
-            <div class="meta-label">Inputs (ctx_in)</div>
-            <div class="meta-pills">${inputsHtml}</div>
-          </div>
-
-          <div class="meta-section">
-            <div class="meta-label">Outputs (ctx_out)</div>
-            <div class="meta-pills">${outputsHtml}</div>
-          </div>
-
-          <div class="meta-section">
-            <div class="meta-label">Tracking Signals</div>
-            <div class="meta-pills">${signalsHtml}</div>
-          </div>
-
-          ${sheet ? `
-            <button class="screen-sheet-btn" id="btn-view-sheet">
-              📄 View Screen Sheet (${node.code})
-            </button>
-          ` : ''}
-        `;
-
-        if (sheet) {
-          document.getElementById('btn-view-sheet').addEventListener('click', () => {
-            document.getElementById('modal-sheet-title').textContent = `Screen Sheet: ${node.code}`;
-            document.getElementById('modal-sheet-body').innerHTML = `<pre>${sheet.content || 'No content'}</pre>`;
-            document.getElementById('screen-sheet-modal').classList.add('active');
-          });
-        }
-      }
-
-      // 8. Sidebar List Filtering
-      function renderDiagramList() {
-        const filtered = diagrams.filter(d => {
-          const matchCategory = activeCategory === 'all' || d.type === activeCategory;
-          const matchSearch = !searchQuery || 
-            (d.title && d.title.toLowerCase().includes(searchQuery)) ||
-            (d.id && d.id.toLowerCase().includes(searchQuery)) ||
-            (d.description && d.description.toLowerCase().includes(searchQuery));
-          return matchCategory && matchSearch;
+        // Diagnostic 2 : Double racine HOME dans une arborescence
+        sitemaps.forEach(sm => {
+          const homeNodes = Object.values(sm.nodes).filter(n => n.type === 'HOME' || n.code === 'HOME');
+          if (homeNodes.length > 1) {
+            state.diagnostics.push({
+              level: 'error',
+              msg: `Arborescence '${sm.meta.title}' contient ${homeNodes.length} pages déclarées comme HOME.`
+            });
+          }
         });
 
-        diagramListEl.innerHTML = '';
-        if (filtered.length === 0) {
-          diagramListEl.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-subtle);">No diagrams found.</div>';
+        // Mise à jour du badge dans la barre d'outils
+        if (state.diagnostics.length > 0) {
+          dom.diagBadge.style.display = 'inline-block';
+          dom.diagBadge.textContent = state.diagnostics.length;
+        } else {
+          dom.diagBadge.style.display = 'none';
+        }
+      }
+
+      // Résolution exacte "Voir dans l'arbo" avec cascade de repli (§6.3)
+      function resolveSeeInArbo(code) {
+        const sitemaps = state.diagrams.filter(d => d.meta.kind === 'sitemap');
+        if (sitemaps.length === 0) {
+          alert("Aucune arborescence chargée pour afficher ce code.");
           return;
         }
 
-        filtered.forEach(diagram => {
-          const item = document.createElement('div');
-          item.className = 'diagram-item' + (diagram.id === activeDiagramId ? ' active' : '');
-          item.dataset.id = diagram.id;
+        // Priorité : sitemap detailed, puis générale
+        const targetSitemap = sitemaps.find(s => s.meta.view === 'detailed') || sitemaps[0];
 
-          const isUserflow = diagram.type === 'userflow';
-          const badgeClass = isUserflow ? 'badge-userflow' : 'badge-sitemap';
-          const badgeText = isUserflow ? 'FLOW' : 'MAP';
+        // 1. Essai exact
+        let targetNodeId = null;
+        for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
+          if ((node.code || nid) === code) {
+            targetNodeId = nid;
+            break;
+          }
+        }
 
-          item.innerHTML = `
-            <div class="diagram-item__header">
-              <span class="diagram-item__title" title="${diagram.title || diagram.id}">${diagram.title || diagram.id}</span>
-              <span class="badge-tag ${badgeClass}">${badgeText}</span>
-            </div>
-            <div class="diagram-item__desc">${diagram.description || 'No description'}</div>
-          `;
+        // 2. Repli : suppression variante (:VAR)
+        if (!targetNodeId && code.includes(':')) {
+          const base = code.split(':')[0];
+          for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
+            if ((node.code || nid) === base) {
+              targetNodeId = nid;
+              break;
+            }
+          }
+        }
 
-          item.addEventListener('click', () => renderDiagram(diagram));
-          diagramListEl.appendChild(item);
-        });
+        // 3. Repli : suppression rôle (@ROLE)
+        if (!targetNodeId && code.includes('@')) {
+          const base = code.split('@')[0];
+          for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
+            if ((node.code || nid) === base) {
+              targetNodeId = nid;
+              break;
+            }
+          }
+        }
 
-        const allCount = diagrams.length;
-        const mapCount = diagrams.filter(d => d.type === 'sitemap').length;
-        const flowCount = diagrams.filter(d => d.type === 'userflow').length;
+        if (targetSitemap && targetNodeId) {
+          // Mémorise la provenance pour le bouton "← Retour au parcours"
+          state.previousFlowRef = {
+            diagram: state.activeDiagram,
+            scale: state.scale,
+            panX: state.panX,
+            panY: state.panY
+          };
+          dom.backBtn.style.display = 'block';
 
-        document.getElementById('count-all').textContent = allCount;
-        document.getElementById('count-sitemap').textContent = mapCount;
-        document.getElementById('count-userflow').textContent = flowCount;
+          switchDiagram(targetSitemap);
+          setTimeout(() => {
+            zoomToNode(targetNodeId);
+            pulseNode(targetNodeId);
+          }, 150);
+        } else {
+          alert(`Code [${code}] introuvable dans les arborescences.`);
+        }
       }
 
-      // 9. Export & Print Handlers
-      function downloadBlob(blob, filename) {
+      // Résolution "Voir dans les parcours"
+      function resolveSeeInUserflows(code) {
+        const occurrences = (state.globalIndex[code] || []).filter(o => o.diagramKind === 'userflow');
+        if (occurrences.length === 0) {
+          alert(`Aucun parcours utilisateur ne traverse l'écran [${code}].`);
+          return;
+        }
+        if (occurrences.length === 1) {
+          const occ = occurrences[0];
+          const targetFlow = state.diagrams.find(d => d.meta.id === occ.diagramId);
+          if (targetFlow) {
+            switchDiagram(targetFlow);
+            setTimeout(() => {
+              zoomToNode(occ.nodeId);
+              pulseNode(occ.nodeId);
+            }, 150);
+          }
+        } else {
+          // Affichage d'une liste de choix
+          const optionsText = occurrences.map((o, idx) => `${idx + 1}. ${o.diagramTitle}`).join('\n');
+          const choice = prompt(`L'écran [${code}] est présent dans ${occurrences.length} parcours :\n${optionsText}\nEntrez le numéro du parcours à afficher :`, '1');
+          const num = parseInt(choice, 10);
+          if (!isNaN(num) && num >= 1 && num <= occurrences.length) {
+            const occ = occurrences[num - 1];
+            const targetFlow = state.diagrams.find(d => d.meta.id === occ.diagramId);
+            if (targetFlow) {
+              switchDiagram(targetFlow);
+              setTimeout(() => {
+                zoomToNode(occ.nodeId);
+                pulseNode(occ.nodeId);
+              }, 150);
+            }
+          }
+        }
+      }
+
+      // ----------------------------------------------------
+      // 10. Moteur de Rendu SVG Vectoriel Natif (Spec §4)
+      // ----------------------------------------------------
+      function renderCurrentDiagram() {
+        const diag = state.activeDiagram;
+        if (!diag) return;
+
+        // Mise à jour de l'en-tête
+        dom.activeTitle.textContent = diag.meta.title || diag.filename;
+        dom.activeBadge.textContent = (diag.meta.kind || 'sitemap').toUpperCase();
+        dom.activeBadge.className = `item-badge ${diag.meta.kind === 'sitemap' ? 'badge-sitemap' : 'badge-userflow'}`;
+
+        // Mode Repli Vue Mermaid brute
+        if (state.layers.mermaid) {
+          renderRawMermaid(diag);
+          return;
+        }
+
+        if (diag.meta.kind === 'sitemap') {
+          renderSitemapTree(diag);
+        } else {
+          renderUserflowGraph(diag);
+        }
+
+        updateLegend(diag);
+      }
+
+      // Algorithme de Mise en Page Arborescence (Arbre Hiérarchique Compact TD)
+      function renderSitemapTree(diag) {
+        const cardW = 200;
+        const cardH = 118;
+        const gapX = 48;
+        const gapY = 72;
+
+        // Identification des racines (HOME ou nœuds sans parent entrant)
+        const nodeIds = Object.keys(diag.nodes);
+        const incoming = {};
+        nodeIds.forEach(id => incoming[id] = 0);
+        diag.edges.forEach(e => {
+          if (incoming[e.dst] !== undefined && e.kind === 'navigation') incoming[e.dst]++;
+        });
+
+        let roots = nodeIds.filter(id => incoming[id] === 0);
+        // Si HOME existe, HOME est racine principale en tête
+        roots.sort((a, b) => {
+          if (diag.nodes[a].type === 'HOME' || a === 'HOME') return -1;
+          if (diag.nodes[b].type === 'HOME' || b === 'HOME') return 1;
+          return 0;
+        });
+        if (roots.length === 0 && nodeIds.length > 0) roots = [nodeIds[0]];
+
+        // Calcul de la profondeur (niveaux)
+        const levels = {};
+        const childrenMap = {};
+        nodeIds.forEach(id => { childrenMap[id] = []; });
+        diag.edges.forEach(e => {
+          if (e.kind === 'navigation' && childrenMap[e.src]) {
+            childrenMap[e.src].push(e.dst);
+          }
+        });
+
+        function assignLevels(id, lvl) {
+          levels[id] = lvl;
+          childrenMap[id].forEach(c => assignLevels(c, lvl + 1));
+        }
+        roots.forEach(r => assignLevels(r, 0));
+        // Tout nœud orphelin va au niveau 1
+        nodeIds.forEach(id => { if (levels[id] === undefined) levels[id] = 1; });
+
+        // Placement horizontal compact
+        const positions = {};
+        let currentX = 60;
+        let maxLevel = 0;
+
+        function layoutSubtree(id) {
+          const children = childrenMap[id] || [];
+          if (children.length === 0) {
+            positions[id] = { x: currentX, y: 60 + levels[id] * (cardH + gapY) };
+            currentX += cardW + gapX;
+          } else {
+            children.forEach(c => layoutSubtree(c));
+            const firstChild = positions[children[0]];
+            const lastChild = positions[children[children.length - 1]];
+            const centerX = (firstChild.x + lastChild.x) / 2;
+            positions[id] = { x: centerX, y: 60 + levels[id] * (cardH + gapY) };
+          }
+          if (levels[id] > maxLevel) maxLevel = levels[id];
+        }
+        roots.forEach(r => layoutSubtree(r));
+
+        // Placement des éléments rattachés (DLG '!' et ANC '#') en colonne à droite
+        diag.edges.forEach(e => {
+          if (e.kind === 'attach' && positions[e.src] && diag.nodes[e.dst]) {
+            positions[e.dst] = {
+              x: positions[e.src].x + cardW + 30,
+              y: positions[e.src].y
+            };
+          }
+        });
+
+        // Placement des modules transverses (MOD) dans une bande dédiée en pied
+        const modNodes = Object.values(diag.nodes).filter(n => n.type === 'MOD' || (n.code && n.code.startsWith('M')));
+        const bottomY = 60 + (maxLevel + 1) * (cardH + gapY);
+        modNodes.forEach((m, idx) => {
+          positions[m.id] = { x: 60 + idx * (cardW + gapX), y: bottomY + 30 };
+        });
+
+        // Construction du SVG
+        const svgW = Math.max(currentX + 200, 1200);
+        const svgH = bottomY + (modNodes.length > 0 ? cardH + 120 : 100);
+
+        let svgHtml = `<svg class="dg-canvas" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
+
+        // 1. Lignes de niveau horizontales
+        if (state.layers.levels) {
+          svgHtml += `<g class="level-lines">`;
+          for (let lvl = 0; lvl <= maxLevel; lvl++) {
+            const lineY = 60 + lvl * (cardH + gapY) + cardH + (gapY / 2);
+            svgHtml += `<line x1="20" y1="${lineY}" x2="${svgW - 20}" y2="${lineY}" />`;
+            svgHtml += `<text x="30" y="${lineY - 6}">Niveau ${lvl}</text>`;
+          }
+          svgHtml += `</g>`;
+        }
+
+        // 2. Bande des Modules Transverses
+        if (modNodes.length > 0) {
+          svgHtml += `<g class="module-band">
+            <rect x="30" y="${bottomY}" width="${svgW - 60}" height="${cardH + 60}" fill="none" stroke="var(--border-color)" stroke-dasharray="4 4" rx="8" />
+            <text x="44" y="${bottomY + 20}" fill="var(--dg-muted)" font-size="11" font-weight="700">MODULES TRANSVERSES (HORS ARBRE)</text>
+          </g>`;
+        }
+
+        // 3. Dessin des Liens (Edges)
+        svgHtml += `<g class="dg-edges">`;
+        diag.edges.forEach(e => {
+          const p1 = positions[e.src];
+          const p2 = positions[e.dst];
+          if (!p1 || !p2) return;
+
+          if (e.kind === 'navigation') {
+            // Trait coudé orthogonal avec bus médian
+            const startX = p1.x + cardW / 2;
+            const startY = p1.y + cardH;
+            const endX = p2.x + cardW / 2;
+            const endY = p2.y;
+            const midY = startY + (gapY / 2);
+
+            const pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
+            svgHtml += `<g class="dg-edge"><path d="${pathD}" marker-end="url(#arrow)" /></g>`;
+          } else if (e.kind === 'attach' || e.kind === 'action' || e.kind === 'invoke') {
+            if (!state.layers.renvois) return;
+            // Lien pointillé horizontal ou coudé
+            const startX = p1.x + cardW;
+            const startY = p1.y + cardH / 2;
+            const endX = p2.x;
+            const endY = p2.y + cardH / 2;
+            const pathD = `M ${startX} ${startY} C ${startX + 30} ${startY}, ${endX - 30} ${endY}, ${endX} ${endY}`;
+            svgHtml += `<g class="dg-edge cross"><path d="${pathD}" /></g>`;
+          }
+        });
+        svgHtml += `</g>`;
+
+        // 4. Dessin des Cartes Nœuds
+        svgHtml += `<g class="dg-nodes">`;
+        Object.entries(positions).forEach(([nid, pos]) => {
+          const node = diag.nodes[nid];
+          if (node) {
+            svgHtml += renderNodeCard(node, pos.x, pos.y, diag);
+          }
+        });
+        svgHtml += `</g>`;
+
+        // Définition des Marqueurs SVG
+        svgHtml += `<defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dg-edge)" />
+          </marker>
+        </defs>`;
+
+        svgHtml += `</svg>`;
+        dom.renderTarget.innerHTML = svgHtml;
+        attachNodeInteractions();
+      }
+
+      // Algorithme de Mise en Page Parcours Utilisateur (Userflows LR)
+      function renderUserflowGraph(diag) {
+        const cardW = 200;
+        const cardH = 118;
+        const chipW = 120;
+        const chipH = 30;
+        const flowGap = 88;
+
+        const nodeIds = Object.keys(diag.nodes);
+        const positions = {};
+        let currentX = 60;
+        const currentY = 120;
+
+        // Ordre nominal sur la ligne 0
+        nodeIds.forEach(nid => {
+          const node = diag.nodes[nid];
+          const isChip = node.type === 'ACT' || node.type === 'ATT';
+          const w = isChip ? chipW : cardW;
+          const h = isChip ? chipH : cardH;
+          const y = isChip ? currentY + (cardH - chipH) / 2 : currentY;
+
+          positions[nid] = { x: currentX, y, w, h, isChip };
+          currentX += w + flowGap;
+        });
+
+        const svgW = Math.max(currentX + 100, 1000);
+        const svgH = 400;
+
+        let svgHtml = `<svg class="dg-canvas" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
+
+        // Liens
+        svgHtml += `<g class="dg-edges">`;
+        diag.edges.forEach(e => {
+          const p1 = positions[e.src];
+          const p2 = positions[e.dst];
+          if (!p1 || !p2) return;
+
+          const startX = p1.x + p1.w;
+          const startY = p1.y + p1.h / 2;
+          const endX = p2.x;
+          const endY = p2.y + p2.h / 2;
+
+          let edgeClass = 'dg-edge';
+          if (diag.nodes[e.src] && diag.nodes[e.src].type === 'CALL') edgeClass += ' call';
+          if (diag.nodes[e.src] && diag.nodes[e.src].type === 'EXT') edgeClass += ' ext';
+          if (e.kind === 'variant' || e.kind === 'diverge' || e.kind === 'rejoin') edgeClass += ' cross';
+
+          svgHtml += `<g class="${edgeClass}"><line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" marker-end="url(#arrow)" /></g>`;
+        });
+        svgHtml += `</g>`;
+
+        // Nœuds
+        svgHtml += `<g class="dg-nodes">`;
+        Object.entries(positions).forEach(([nid, pos]) => {
+          const node = diag.nodes[nid];
+          if (node) {
+            if (pos.isChip) {
+              svgHtml += renderChip(node, pos.x, pos.y, pos.w, pos.h);
+            } else {
+              svgHtml += renderNodeCard(node, pos.x, pos.y, diag);
+            }
+          }
+        });
+        svgHtml += `</g>`;
+
+        svgHtml += `<defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dg-edge)" />
+          </marker>
+        </defs></svg>`;
+
+        dom.renderTarget.innerHTML = svgHtml;
+        attachNodeInteractions();
+      }
+
+      // Rendu du Composant "Carte Page" Unique (200 x 118 px, Spec §3.3)
+      function renderNodeCard(node, x, y, diag) {
+        const w = 200;
+        const h = 118;
+        const code = node.code || node.id;
+        const type = node.type || (code.startsWith('H') ? 'H' : 'L');
+        const subtype = node.subtype || type;
+        const url = node.url || `/${code.toLowerCase()}`;
+        const isHome = type === 'HOME' || code === 'HOME';
+        const isState = code.includes(':');
+        const isAccent = node.tone === 'accent';
+        const isDynamic = node.dynamic === 'yes' || url.includes('[') || url.includes(':');
+        const isProtected = node.access === 'protected';
+        const isCall = type === 'CALL';
+        const isExt = type === 'EXT';
+
+        // Filtrage par Rôle (Atténuation)
+        let isDimmed = false;
+        if (state.selectedRole !== 'ALL') {
+          const roles = Array.isArray(node.roles) ? node.roles : (node.roles ? [node.roles] : ['ALL']);
+          if (!roles.includes('ALL') && !roles.includes(state.selectedRole)) {
+            isDimmed = true;
+          }
+        }
+
+        // Calque Couverture : Compteur de parcours
+        let coverageCount = 0;
+        let isUncovered = false;
+        if (state.layers.coverage && diag.meta.kind === 'sitemap') {
+          const occs = (state.globalIndex[code] || []).filter(o => o.diagramKind === 'userflow');
+          coverageCount = occs.length;
+          isUncovered = (coverageCount === 0);
+        }
+
+        let bgClass = '';
+        let strokeColor = 'var(--dg-card-border)';
+        let strokeWidth = '1';
+
+        if (isHome) {
+          strokeColor = 'var(--dg-home)';
+          strokeWidth = '3';
+        } else if (isCall) {
+          strokeColor = 'var(--dg-call)';
+          strokeWidth = '2';
+        } else if (isExt) {
+          strokeColor = 'var(--dg-ext)';
+          strokeWidth = '2';
+        }
+
+        let fillBg = 'var(--dg-card)';
+        if (isAccent) fillBg = 'var(--dg-fill-accent)';
+        else if (isState) fillBg = 'var(--dg-fill-state)';
+
+        let cardSvg = `<g class="dg-card ${isDimmed ? 'dimmed' : ''} ${isUncovered ? 'uncovered' : ''}" data-id="${node.id}" data-code="${code}" transform="translate(${x}, ${y})">`;
+
+        // Pile Dynamique (2 couches décalées en bas-droite)
+        if (isDynamic) {
+          cardSvg += `<rect x="6" y="6" width="${w}" height="${h}" rx="5" fill="var(--dg-stack-2)" stroke="var(--dg-card-border)" stroke-width="1" />`;
+          cardSvg += `<rect x="3" y="3" width="${w}" height="${h}" rx="5" fill="var(--dg-stack-1)" stroke="var(--dg-card-border)" stroke-width="1" />`;
+        }
+
+        // Fond Principal
+        cardSvg += `<rect class="card-main" width="${w}" height="${h}" rx="5" fill="${fillBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
+
+        // 1. URL + Mode URL (Haut-gauche)
+        const urlMode = isHome ? 'Absolu' : 'Relatif';
+        cardSvg += `<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${truncate(url, 18)}</text>`;
+        cardSvg += `<text x="12" y="32" fill="var(--dg-muted)" font-size="8">${urlMode}</text>`;
+
+        // 2. Titre de la Page (Centre gras, centré)
+        const title = node.label || code;
+        cardSvg += `<text x="${w / 2}" y="64" fill="var(--dg-title)" font-size="13" font-weight="700" text-anchor="middle">${truncate(title, 22)}</text>`;
+
+        // 3. Pastille d'Ordre (Bas-gauche, Calque Numérotation activé, sitemap uniquement)
+        if (state.layers.numbers && diag.meta.kind === 'sitemap') {
+          const ord = node.order || '01';
+          cardSvg += `<circle cx="22" cy="${h - 20}" r="10" fill="var(--order-circle)" />`;
+          cardSvg += `<text x="22" y="${h - 16}" fill="#fff" font-size="9" font-weight="700" text-anchor="middle">${ord}</text>`;
+        }
+
+        // 4. Code & Type/Subtype (Bas-droite)
+        cardSvg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${code}</text>`;
+        cardSvg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${subtype}</text>`;
+
+        // 5. Bulles d'icônes (Coin Haut-Gauche, débordant de 10px)
+        const bubbles = [];
+        if (node.icon) {
+          const icons = Array.isArray(node.icon) ? node.icon : [node.icon];
+          icons.forEach(ic => bubbles.push(ic));
+        }
+        if (isProtected) bubbles.push('lock');
+
+        bubbles.slice(0, 2).forEach((b, idx) => {
+          const bx = -4 + idx * 28;
+          const by = -8;
+          let bColor = 'var(--bubble-peach)';
+          let bGlyph = '📱';
+          if (b === 'a11y') { bColor = 'var(--bubble-amber)'; bGlyph = '♿'; }
+          else if (b === 'entry') { bColor = 'var(--bubble-blue)'; bGlyph = '🎯'; }
+          else if (b === 'info') { bColor = 'var(--bubble-lavender)'; bGlyph = 'ℹ️'; }
+          else if (b === 'lock') { bColor = '#475569'; bGlyph = '🔒'; }
+
+          cardSvg += `<circle cx="${bx + 12}" cy="${by + 12}" r="13" fill="${bColor}" stroke="#fff" stroke-width="1.5" />`;
+          cardSvg += `<text x="${bx + 12}" y="${by + 16}" font-size="10" text-anchor="middle">${bGlyph}</text>`;
+        });
+
+        // 6. Tags (Coin Haut-Droit, Calque Tags)
+        if (state.layers.tags && node.tags) {
+          const tags = Array.isArray(node.tags) ? node.tags : [node.tags];
+          tags.slice(0, 2).forEach((tg, idx) => {
+            const tx = w - 10 - (idx + 1) * 44;
+            const tColor = tg === 'MVP' ? 'var(--tag-blue)' : (tg === 'SP1' ? 'var(--tag-green)' : 'var(--tag-orange)');
+            cardSvg += `<rect x="${tx}" y="-8" width="40" height="18" rx="3" fill="#fff" stroke="${tColor}" stroke-width="1.5" />`;
+            cardSvg += `<text x="${tx + 20}" y="5" fill="${tColor}" font-size="9" font-weight="700" text-anchor="middle">${tg}</text>`;
+          });
+        }
+
+        // 7. Avatars Rôles (Calque Avatars)
+        if (state.layers.avatars && node.roles) {
+          const roles = Array.isArray(node.roles) ? node.roles : [node.roles];
+          roles.slice(0, 2).forEach((r, idx) => {
+            const ax = w - 16 - idx * 20;
+            const ay = h + 6;
+            const initial = r.slice(0, 2).toUpperCase();
+            cardSvg += `<circle cx="${ax}" cy="${ay}" r="10" fill="#6366f1" stroke="#fff" stroke-width="2" />`;
+            cardSvg += `<text x="${ax}" y="${ay + 3}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${initial}</text>`;
+          });
+        }
+
+        // 8. Badge Calque Couverture
+        if (state.layers.coverage && diag.meta.kind === 'sitemap') {
+          const badgeBg = isUncovered ? '#ef4444' : '#10b981';
+          const txt = isUncovered ? '0 parcours' : `${coverageCount} parcours`;
+          cardSvg += `<rect x="12" y="${h - 18}" width="65" height="14" rx="3" fill="${badgeBg}" />`;
+          cardSvg += `<text x="44" y="${h - 8}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${txt}</text>`;
+        }
+
+        cardSvg += `</g>`;
+        return cardSvg;
+      }
+
+      // Rendu des Pastilles Chips (Actions ACT & Attentes ATT, Décision #8)
+      function renderChip(node, x, y, w, h) {
+        const isAtt = node.type === 'ATT';
+        const glyph = isAtt ? '⏳' : '⚡';
+        const stroke = isAtt ? 'var(--dg-att)' : 'var(--primary)';
+        const label = node.label || (isAtt ? 'Attente' : 'Action');
+
+        return `
+          <g class="dg-chip" data-id="${node.id}" data-code="${node.code || node.id}" transform="translate(${x}, ${y})">
+            <rect width="${w}" height="${h}" rx="15" fill="var(--dg-card)" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="${isAtt ? '4 3' : 'none'}" />
+            <text x="16" y="19" font-size="11">${glyph}</text>
+            <text x="${w / 2 + 6}" y="19" fill="var(--text-main)" font-size="10" font-weight="600" text-anchor="middle">${truncate(label, 14)}</text>
+          </g>
+        `;
+      }
+
+      function truncate(str, len) {
+        if (!str) return '';
+        return str.length > len ? str.slice(0, len) + '…' : str;
+      }
+
+      // Repli Vue Mermaid Brute
+      function renderRawMermaid(diag) {
+        dom.renderTarget.innerHTML = `<div class="mermaid">${diag.rawMermaid}</div>`;
+        if (window.mermaid) {
+          mermaid.init(undefined, dom.renderTarget.querySelectorAll('.mermaid'));
+        }
+      }
+
+      // ----------------------------------------------------
+      // 11. Interactions : Survol (Hover Card 200ms) & Inspecteur
+      // ----------------------------------------------------
+      let hoverTimer = null;
+
+      function attachNodeInteractions() {
+        const nodeEls = dom.renderTarget.querySelectorAll('.dg-card, .dg-chip');
+        nodeEls.forEach(el => {
+          const nid = el.getAttribute('data-id');
+          const code = el.getAttribute('data-code');
+          const node = state.activeDiagram.nodes[nid];
+
+          // Clic -> Inspecteur
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectNode(nid, code);
+          });
+
+          // Survol -> Carte 200 ms
+          el.addEventListener('mouseenter', (e) => {
+            clearTimeout(hoverTimer);
+            hoverTimer = setTimeout(() => {
+              showHoverCard(node, e.clientX, e.clientY);
+            }, 200);
+          });
+
+          el.addEventListener('mouseleave', () => {
+            clearTimeout(hoverTimer);
+          });
+        });
+      }
+
+      function selectNode(nid, code) {
+        state.selectedNodeCode = code;
+        dom.renderTarget.querySelectorAll('.dg-card').forEach(c => c.classList.remove('selected'));
+        const activeCard = dom.renderTarget.querySelector(`[data-id="${nid}"]`);
+        if (activeCard) activeCard.classList.add('selected');
+
+        // Alimente l'inspecteur
+        const node = state.activeDiagram.nodes[nid] || { id: nid, code };
+        const meta = state.metadata[code] || {};
+        const sheet = state.screenSheets[code];
+
+        let html = `
+          <div class="prop-group">
+            <div class="prop-label">Code Canonique</div>
+            <div class="prop-val"><span class="prop-code">${code}</span></div>
+          </div>
+          <div class="prop-group">
+            <div class="prop-label">Titre & URL</div>
+            <div class="prop-val"><strong>${node.label || code}</strong><br><span style="font-family:monospace;color:var(--dg-url);">${node.url || meta.url || '/'}</span></div>
+          </div>
+          <div class="prop-group">
+            <div class="prop-label">Gabarit & Accès</div>
+            <div class="prop-val">Type : <code>${node.type || 'L'}</code> · Accès : ${node.access === 'protected' ? '🔒 Protégé' : '🌐 Public'}</div>
+          </div>
+        `;
+
+        if (node.roles || meta.roles) {
+          const roles = node.roles || meta.roles;
+          html += `<div class="prop-group"><div class="prop-label">Rôles</div><div class="prop-val">${Array.isArray(roles) ? roles.join(', ') : roles}</div></div>`;
+        }
+
+        if (meta.ctx_in) {
+          html += `<div class="prop-group"><div class="prop-label">Contexte Requis (ctx_in)</div><div class="prop-val"><pre>${JSON.stringify(meta.ctx_in, null, 2)}</pre></div></div>`;
+        }
+        if (meta.ctx_out) {
+          html += `<div class="prop-group"><div class="prop-label">Contexte Produit (ctx_out)</div><div class="prop-val"><pre>${JSON.stringify(meta.ctx_out, null, 2)}</pre></div></div>`;
+        }
+        if (meta.tracking) {
+          html += `<div class="prop-group"><div class="prop-label">Observabilité & Tracking</div><div class="prop-val"><pre>${JSON.stringify(meta.tracking, null, 2)}</pre></div></div>`;
+        }
+
+        // Actions Croisées
+        html += `<div class="prop-group" style="margin-top:20px;border-top:1px solid var(--border-color);padding-top:14px;">
+          <div class="prop-label">Navigation Croisée</div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
+            <button class="btn-tool" onclick="window.iaViewer.resolveSeeInArbo('${code}')">🔍 Voir dans l'arborescence</button>
+            <button class="btn-tool" onclick="window.iaViewer.resolveSeeInUserflows('${code}')">🗺️ Voir dans les parcours</button>
+            ${sheet ? `<button class="btn-tool primary" onclick="window.iaViewer.openSheet('${code}')">📄 Ouvrir la fiche écran</button>` : ''}
+          </div>
+        </div>`;
+
+        dom.inspectorContent.innerHTML = html;
+        dom.inspector.classList.remove('collapsed');
+      }
+
+      function showHoverCard(node, clientX, clientY) {
+        const code = node.code || node.id;
+        const meta = state.metadata[code] || {};
+        const sheet = state.screenSheets[code];
+
+        dom.hoverCard.innerHTML = `
+          <div class="hover-header">
+            <span class="hover-code">${code}</span>
+            <span class="hover-badge">${node.type || 'ECR'}</span>
+          </div>
+          <div class="hover-title">${node.label || code}</div>
+          <div class="hover-url">${node.url || meta.url || '/'}</div>
+          <div class="hover-meta">
+            ${node.access === 'protected' ? '🔒 Protégée' : '🌐 Publique'} · Rôles : ${(node.roles || ['ALL'])}
+          </div>
+          <div class="hover-actions">
+            <button class="hover-action-btn" onclick="window.iaViewer.resolveSeeInArbo('${code}')">Voir dans l'arbo</button>
+            <button class="hover-action-btn" onclick="window.iaViewer.resolveSeeInUserflows('${code}')">Voir dans parcours</button>
+            ${sheet ? `<button class="hover-action-btn" onclick="window.iaViewer.openSheet('${code}')">Fiche écran</button>` : ''}
+            <button class="hover-action-btn" onclick="navigator.clipboard.writeText('${code}')">Copier code</button>
+          </div>
+        `;
+
+        dom.hoverCard.style.left = `${Math.min(clientX + 15, window.innerWidth - 310)}px`;
+        dom.hoverCard.style.top = `${Math.min(clientY + 15, window.innerHeight - 200)}px`;
+        dom.hoverCard.style.display = 'block';
+      }
+
+      dom.canvasViewport.addEventListener('mousemove', (e) => {
+        if (!e.target.closest('.dg-card') && !e.target.closest('#hover-card') && !e.target.closest('.dg-chip')) {
+          dom.hoverCard.style.display = 'none';
+        }
+      });
+
+      // Zoom Centré et Animation vers un Nœud (§7.3)
+      function zoomToNode(nid) {
+        const el = dom.renderTarget.querySelector(`[data-id="${nid}"]`);
+        if (!el) return;
+        const bbox = el.getBBox();
+        const matrix = el.getCTM();
+        const vpW = dom.canvasViewport.clientWidth;
+        const vpH = dom.canvasViewport.clientHeight;
+
+        state.scale = 1.15;
+        state.panX = vpW / 2 - (bbox.x + bbox.width / 2) * state.scale;
+        state.panY = vpH / 2 - (bbox.y + bbox.height / 2) * state.scale;
+        updateTransform();
+      }
+
+      function pulseNode(nid) {
+        const el = dom.renderTarget.querySelector(`[data-id="${nid}"]`);
+        if (el) {
+          el.classList.add('pulse');
+          setTimeout(() => el.classList.remove('pulse'), 1300);
+        }
+      }
+
+      // ----------------------------------------------------
+      // 12. Moteur de Pan & Zoom Vectoriel (Spec §7)
+      // ----------------------------------------------------
+      function updateTransform() {
+        dom.svgWrapper.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.scale})`;
+      }
+
+      dom.canvasViewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const rect = dom.canvasViewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const zoomFactor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+        const newScale = Math.min(Math.max(state.scale * zoomFactor, 0.15), 4.0);
+
+        state.panX = mouseX - (mouseX - state.panX) * (newScale / state.scale);
+        state.panY = mouseY - (mouseY - state.panY) * (newScale / state.scale);
+        state.scale = newScale;
+        updateTransform();
+      });
+
+      dom.canvasViewport.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.floating-controls') || e.target.closest('#legend-panel')) return;
+        state.isPanning = true;
+        state.startX = e.clientX - state.panX;
+        state.startY = e.clientY - state.panY;
+        dom.canvasViewport.classList.add('panning');
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!state.isPanning) return;
+        state.panX = e.clientX - state.startX;
+        state.panY = e.clientY - state.startY;
+        updateTransform();
+      });
+
+      window.addEventListener('mouseup', () => {
+        state.isPanning = false;
+        dom.canvasViewport.classList.remove('panning');
+      });
+
+      // Boutons Flottants Zoom
+      document.getElementById('btn-zoom-in').addEventListener('click', () => {
+        state.scale = Math.min(state.scale * 1.2, 4.0);
+        updateTransform();
+      });
+      document.getElementById('btn-zoom-out').addEventListener('click', () => {
+        state.scale = Math.max(state.scale / 1.2, 0.15);
+        updateTransform();
+      });
+      document.getElementById('btn-zoom-reset').addEventListener('click', () => {
+        state.scale = 1.0;
+        state.panX = 60;
+        state.panY = 60;
+        updateTransform();
+      });
+      document.getElementById('btn-zoom-fit').addEventListener('click', () => {
+        const svgEl = dom.renderTarget.querySelector('svg');
+        if (!svgEl) return;
+        const vpW = dom.canvasViewport.clientWidth;
+        const vpH = dom.canvasViewport.clientHeight;
+        const sW = parseFloat(svgEl.getAttribute('width')) || 1200;
+        const sH = parseFloat(svgEl.getAttribute('height')) || 800;
+
+        state.scale = Math.min((vpW - 100) / sW, (vpH - 100) / sH, 1.5);
+        state.panX = (vpW - sW * state.scale) / 2;
+        state.panY = (vpH - sH * state.scale) / 2;
+        updateTransform();
+      });
+
+      // ----------------------------------------------------
+      // 13. Découverte de Fichiers & Données de Démonstration
+      // ----------------------------------------------------
+      async function autoFetchLocal() {
+        try {
+          const resp = await fetch('./metadata.json');
+          if (resp.ok) {
+            state.metadata = await resp.json();
+          }
+        } catch (e) {
+          console.log("Auto-fetch metadata.json non disponible en local direct.");
+        }
+      }
+
+      // Gestion sélection de dossier (Chromium FSA API & input fallback)
+      document.getElementById('btn-open-folder').addEventListener('click', async () => {
+        if (window.showDirectoryPicker) {
+          try {
+            const dirHandle = await window.showDirectoryPicker();
+            await loadFromDirectoryHandle(dirHandle);
+          } catch (err) {
+            if (err.name !== 'AbortError') dom.fallbackInput.click();
+          }
+        } else {
+          dom.fallbackInput.click();
+        }
+      });
+
+      dom.fallbackInput.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 0) await loadFromFileList(files);
+      });
+
+      async function loadFromDirectoryHandle(dirHandle) {
+        state.diagrams = [];
+        for await (const entry of dirHandle.values()) {
+          if (entry.kind === 'file' && entry.name.endsWith('.mmd')) {
+            const file = await entry.getFile();
+            const text = await file.text();
+            state.diagrams.push(parseMermaidFile(text, entry.name));
+          } else if (entry.kind === 'file' && entry.name === 'metadata.json') {
+            const file = await entry.getFile();
+            state.metadata = JSON.parse(await file.text());
+          } else if (entry.kind === 'directory' && entry.name === 'screen-sheets') {
+            for await (const sheetEntry of entry.values()) {
+              if (sheetEntry.kind === 'file' && sheetEntry.name.endsWith('.md')) {
+                const sFile = await sheetEntry.getFile();
+                const code = sheetEntry.name.replace(/^screen-/, '').replace(/\.md$/, '');
+                state.screenSheets[code] = await sFile.text();
+              }
+            }
+          }
+        }
+        onDataLoaded();
+      }
+
+      async function loadFromFileList(files) {
+        state.diagrams = [];
+        for (let file of files) {
+          if (file.name.endsWith('.mmd')) {
+            const text = await file.text();
+            state.diagrams.push(parseMermaidFile(text, file.name));
+          } else if (file.name === 'metadata.json') {
+            state.metadata = JSON.parse(await file.text());
+          } else if (file.name.endsWith('.md') && file.webkitRelativePath.includes('screen-sheets')) {
+            const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
+            state.screenSheets[code] = await file.text();
+          }
+        }
+        onDataLoaded();
+      }
+
+      function onDataLoaded() {
+        buildGlobalIndex();
+        updateSidebar();
+        updateRoleOptions();
+        if (state.diagrams.length > 0) {
+          switchDiagram(state.diagrams[0]);
+        }
+      }
+
+      function switchDiagram(diag) {
+        state.activeDiagram = diag;
+        renderCurrentDiagram();
+
+        // Met à jour la classe active dans la barre latérale
+        dom.diagramList.querySelectorAll('.diagram-item').forEach(el => {
+          el.classList.toggle('active', el.getAttribute('data-id') === diag.meta.id);
+        });
+      }
+
+      function updateSidebar() {
+        dom.diagramList.innerHTML = '';
+        const filtered = state.diagrams.filter(d => {
+          if (state.activeCategory === 'sitemap' && d.meta.kind !== 'sitemap') return false;
+          if (state.activeCategory === 'userflow' && d.meta.kind !== 'userflow') return false;
+          if (state.searchQuery) {
+            const q = state.searchQuery.toLowerCase();
+            const matchTitle = (d.meta.title || d.filename).toLowerCase().includes(q);
+            const matchNode = Object.values(d.nodes).some(n => (n.code || n.id).toLowerCase().includes(q) || (n.label || '').toLowerCase().includes(q));
+            return matchTitle || matchNode;
+          }
+          return true;
+        });
+
+        filtered.forEach(diag => {
+          const item = document.createElement('div');
+          item.className = `diagram-item ${state.activeDiagram === diag ? 'active' : ''}`;
+          item.setAttribute('data-id', diag.meta.id);
+          item.innerHTML = `
+            <div class="item-header">
+              <span class="item-title">${diag.meta.title || diag.filename}</span>
+              <span class="item-badge ${diag.meta.kind === 'sitemap' ? 'badge-sitemap' : 'badge-userflow'}">${diag.meta.kind}</span>
+            </div>
+            <div class="item-desc">${Object.keys(diag.nodes).length} nœuds · ${diag.meta.view || 'standard'}</div>
+          `;
+          item.addEventListener('click', () => switchDiagram(diag));
+          dom.diagramList.appendChild(item);
+        });
+      }
+
+      function updateRoleOptions() {
+        const rolesSet = new Set(['ALL']);
+        state.diagrams.forEach(diag => {
+          Object.values(diag.nodes).forEach(n => {
+            if (n.roles) {
+              const rs = Array.isArray(n.roles) ? n.roles : [n.roles];
+              rs.forEach(r => rolesSet.add(r));
+            }
+          });
+        });
+
+        dom.roleFilter.innerHTML = '';
+        rolesSet.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r;
+          opt.textContent = r === 'ALL' ? 'Tous les rôles' : r;
+          dom.roleFilter.appendChild(opt);
+        });
+      }
+
+      // Gestion des Filtres
+      document.querySelectorAll('.filter-pills .pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-pills .pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.activeCategory = btn.getAttribute('data-filter');
+          updateSidebar();
+        });
+      });
+
+      dom.roleFilter.addEventListener('change', () => {
+        state.selectedRole = dom.roleFilter.value;
+        if (state.activeDiagram) renderCurrentDiagram();
+      });
+
+      dom.searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value.trim();
+        updateSidebar();
+      });
+
+      // Gestion des Calques
+      document.getElementById('btn-layers').addEventListener('click', (e) => {
+        e.stopPropagation();
+        dom.layersDropdown.classList.toggle('open');
+      });
+      window.addEventListener('click', () => dom.layersDropdown.classList.remove('open'));
+
+      const layerBindings = [
+        ['layer-levels', 'levels'],
+        ['layer-renvois', 'renvois'],
+        ['layer-numbers', 'numbers'],
+        ['layer-avatars', 'avatars'],
+        ['layer-tags', 'tags'],
+        ['layer-coverage', 'coverage'],
+        ['layer-mermaid', 'mermaid']
+      ];
+      layerBindings.forEach(([elId, prop]) => {
+        const checkbox = document.getElementById(elId);
+        checkbox.addEventListener('change', (e) => {
+          state.layers[prop] = e.target.checked;
+          if (state.activeDiagram) renderCurrentDiagram();
+        });
+      });
+
+      // Bouton Retour au Parcours
+      dom.backBtn.addEventListener('click', () => {
+        if (state.previousFlowRef) {
+          switchDiagram(state.previousFlowRef.diagram);
+          state.scale = state.previousFlowRef.scale;
+          state.panX = state.previousFlowRef.panX;
+          state.panY = state.previousFlowRef.panY;
+          updateTransform();
+          dom.backBtn.style.display = 'none';
+          state.previousFlowRef = null;
+        }
+      });
+
+      // Légende
+      document.getElementById('btn-legend').addEventListener('click', () => {
+        dom.legendPanel.classList.toggle('active');
+      });
+
+      function updateLegend(diag) {
+        let html = '';
+        html += `<div class="legend-row"><div class="legend-color" style="border:2px solid var(--dg-home);"></div><span>Homepage (3px bleu)</span></div>`;
+        html += `<div class="legend-row"><div class="legend-color" style="background:var(--dg-fill-state);"></div><span>État / Variante (Bleu-gris)</span></div>`;
+        html += `<div class="legend-row"><div class="legend-color" style="background:var(--dg-fill-accent);"></div><span>Accentuation (Lavande)</span></div>`;
+        html += `<div class="legend-row"><div class="legend-color" style="border:1.5px solid var(--dg-call);"></div><span>Sous-Parcours (CALL violet)</span></div>`;
+        html += `<div class="legend-row"><div class="legend-color" style="border:1.5px solid var(--dg-ext);"></div><span>Événement Externe (EXT orange)</span></div>`;
+        html += `<div class="legend-row"><div class="legend-color" style="border:1.5px dashed var(--dg-att);"></div><span>Attente (ATT pastille ⏳)</span></div>`;
+        dom.legendContent.innerHTML = html;
+      }
+
+      // Diagnostics Modal
+      document.getElementById('btn-diagnostics').addEventListener('click', () => {
+        if (state.diagnostics.length === 0) {
+          dom.diagModalContent.innerHTML = `<p style="color:#10b981;font-weight:600;">✓ Aucun problème structurel détecté.</p>`;
+        } else {
+          dom.diagModalContent.innerHTML = state.diagnostics.map(d => `
+            <div style="padding:8px;border-left:3px solid ${d.level === 'error' ? '#ef4444' : '#f59e0b'};background:var(--bg-app);margin-bottom:8px;">
+              <strong>${d.level.toUpperCase()}</strong> : ${d.msg}
+            </div>
+          `).join('');
+        }
+        dom.diagModal.classList.add('active');
+      });
+      document.getElementById('btn-close-diag-modal').addEventListener('click', () => dom.diagModal.classList.remove('active'));
+
+      // Modale Fiche Écran
+      function openSheet(code) {
+        const content = state.screenSheets[code] || `# Fiche Écran : ${code}\n\nAucun contenu disponible.`;
+        dom.sheetModalTitle.textContent = `Fiche Écran : ${code}`;
+        dom.sheetModalContent.innerHTML = `<pre>${content}</pre>`;
+        dom.sheetModal.classList.add('active');
+      }
+      document.getElementById('btn-close-modal').addEventListener('click', () => dom.sheetModal.classList.remove('active'));
+
+      // Exports (§8)
+      document.getElementById('btn-export-svg').addEventListener('click', () => {
+        const svg = dom.renderTarget.querySelector('svg');
+        if (!svg) return;
+        const serializer = new XMLSerializer();
+        const svgStr = serializer.serializeToString(svg);
+        const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
+        a.download = `${state.activeDiagram ? state.activeDiagram.meta.id : 'diagram'}.svg`;
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-
-      function getCleanSvgString() {
-        const svg = renderTarget.querySelector('svg');
-        if (!svg) return null;
-        const clone = svg.cloneNode(true);
-        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        return new XMLSerializer().serializeToString(clone);
-      }
-
-      document.getElementById('btn-export-svg').addEventListener('click', () => {
-        const svgStr = getCleanSvgString();
-        if (!svgStr) return;
-        const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-        downloadBlob(blob, `${activeDiagramId || 'diagram'}.svg`);
       });
 
-      function exportPngWithScale(multiplier, filenameSuffix) {
-        const svg = renderTarget.querySelector('svg');
+      document.getElementById('btn-export-png').addEventListener('click', () => exportPng(1));
+      document.getElementById('btn-export-hd').addEventListener('click', () => exportPng(2.5));
+      document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+      function exportPng(scaleMultiplier) {
+        const svg = dom.renderTarget.querySelector('svg');
         if (!svg) return;
-        const svgStr = getCleanSvgString();
-        if (!svgStr) return;
-
-        const rect = svg.getBoundingClientRect();
-        const baseWidth = rect.width / (scale || 1);
-        const baseHeight = rect.height / (scale || 1);
-
-        const canvas = document.createElement('canvas');
-        canvas.width = baseWidth * multiplier;
-        canvas.height = baseHeight * multiplier;
-        const ctx = canvas.getContext('2d');
-
+        const serializer = new XMLSerializer();
+        const svgStr = serializer.serializeToString(svg);
         const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+        const svgW = parseFloat(svg.getAttribute('width')) || 1200;
+        const svgH = parseFloat(svg.getAttribute('height')) || 800;
 
         img.onload = () => {
-          ctx.fillStyle = document.body.dataset.theme === 'light' ? '#ffffff' : '#0f172a';
+          const canvas = document.createElement('canvas');
+          canvas.width = svgW * scaleMultiplier;
+          canvas.height = svgH * scaleMultiplier;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = document.body.dataset.theme === 'dark' ? '#090d16' : '#ffffff';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-          canvas.toBlob((blob) => {
-            if (blob) {
-              downloadBlob(blob, `${activeDiagramId || 'diagram'}${filenameSuffix}.png`);
-            }
-          }, 'image/png');
+          const a = document.createElement('a');
+          a.download = `${state.activeDiagram ? state.activeDiagram.meta.id : 'diagram'}${scaleMultiplier > 1 ? '-hd' : ''}.png`;
+          a.href = canvas.toDataURL('image/png');
+          a.click();
         };
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
       }
 
-      document.getElementById('btn-export-png').addEventListener('click', () => {
-        exportPngWithScale(1.0, '');
+      // Panneaux Escamotables
+      document.getElementById('btn-toggle-sidebar').addEventListener('click', () => dom.sidebar.classList.toggle('collapsed'));
+      document.getElementById('btn-toggle-inspector').addEventListener('click', () => dom.inspector.classList.toggle('collapsed'));
+      document.getElementById('btn-close-inspector').addEventListener('click', () => dom.inspector.classList.add('collapsed'));
+
+      // Exposition globale pour les boutons d'action en ligne
+      window.iaViewer = {
+        resolveSeeInArbo,
+        resolveSeeInUserflows,
+        openSheet
+      };
+
+      // ----------------------------------------------------
+      // 14. Initialisation Automatique & Données Démo
+      // ----------------------------------------------------
+      autoFetchLocal();
+
+      // Données de Démonstration intégrées par défaut (Spec §2.4.5 & §1.1)
+      const demoDiagrams = [
+        `%%@file id=sitemap-overview project=SALLES kind=sitemap view=general title="Arborescence Générale"
+%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,ADMIN url=/ order=1
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms order=2
+%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms/[id] order=3
+%%@node F001 code=F001 type=F subtype=stepper access=protected roles=CLIENT,ADMIN url=/booking/[id] order=4
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,ADMIN url=/dashboard order=5
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,ADMIN url=/404 order=6
+%%@edge HOME>L001 kind=navigation
+%%@edge HOME>D001 kind=navigation
+%%@edge HOME>E404 kind=navigation
+%%@edge L001>C001 kind=navigation
+%%@edge C001>F001 kind=navigation
+flowchart TD
+  HOME(["HOME · Accueil & Vitrine"])
+  L001["L001 · Catalogue des Salles"]
+  C001(["C001 · Fiche Détail Salle"])
+  F001{"F001 · Tunnel de Réservation"}
+  D001["D001 · Tableau de Bord"]
+  E404["E404 · Page Introuvable"]
+  HOME --> L001
+  HOME --> D001
+  HOME --> E404
+  L001 --> C001
+  C001 --> F001`,
+
+        `%%@file id=sitemap-detailed project=SALLES kind=sitemap view=detailed title="Arborescence Détaillée"
+%%@tag MVP color=blue style=fill label="MVP"
+%%@tag SP1 color=green style=outline label="Sprint 1"
+%%@tag SP2 color=orange style=outline label="Sprint 2"
+%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,ADMIN url=/ order=1 tags=MVP icon=entry
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms order=2 tags=MVP,SP1 icon=device
+%%@node L001_dlg_filtres code=L001!filtres type=DLG order=1
+%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms/[id] dynamic=yes order=3 tags=MVP
+%%@node C001_anc_avis code=C001#avis type=ANC order=1
+%%@node F001 code=F001 type=F subtype=stepper access=protected roles=CLIENT,ADMIN url=/booking/[id] order=4 tags=MVP,SP2 who=CLIENT
+%%@node F001_recap code=F001:RECAP type=F subtype=recap access=protected roles=CLIENT,ADMIN url=/booking/[id]/recap order=5
+%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=ADMIN url=/rooms/new tone=accent order=6 tags=SP2 who=ADMIN
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,ADMIN url=/dashboard order=7 tags=SP1 who=CLIENT,ADMIN
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,ADMIN url=/404 order=8
+%%@node M001 code=M001 type=MOD scope=ALL order=1
+%%@node M002 code=M002 type=MOD scope=AUTH order=2
+%%@edge HOME>L001 kind=navigation
+%%@edge HOME>D001 kind=navigation
+%%@edge HOME>E404 kind=navigation
+%%@edge L001>C001 kind=navigation
+%%@edge L001>L001_dlg_filtres kind=attach ref=FEAT-FILTRES
+%%@edge L001>F002 kind=action ref=FEAT-AJOUTER-SALLE
+%%@edge C001>F001 kind=navigation
+%%@edge C001>C001_anc_avis kind=attach
+%%@edge F001>F001_recap kind=navigation
+%%@edge L001>M001 kind=invoke
+%%@edge F001>M002 kind=invoke
+flowchart TD
+  HOME(["HOME · Accueil & Vitrine"])
+  L001["L001 · Catalogue des Salles"]
+  L001_dlg_filtres["!filtres · Filtres Avancés"]
+  C001(["C001 · Fiche Détail Salle"])
+  C001_anc_avis["#avis · Avis Clients"]
+  F001{"F001 · Tunnel de Réservation"}
+  F001_recap{"F001:RECAP · Récapitulatif"}
+  F002{"F002 · Créer une Nouvelle Salle"}
+  D001["D001 · Tableau de Bord"]
+  E404["E404 · Page Introuvable"]
+  M001>"M001 · Centre d'Aide & FAQ"]
+  M002>"M002 · Panier & Sélection"]
+  HOME --> L001
+  HOME --> D001
+  HOME --> E404
+  L001 --> C001
+  L001 -.-> L001_dlg_filtres
+  L001 -.-> F002
+  C001 --> F001
+  C001 -.-> C001_anc_avis
+  F001 --> F001_recap
+  L001 -.-> M001
+  F001 -.-> M002`,
+
+        `%%@file id=PF-RESERVATION-NOM-collapsed project=SALLES kind=userflow view=collapsed uc=UC-RESERVATION statut=nominal roles=CLIENT title="Parcours Nominal Réservation" atterrissage=D001
+%%@node ND_HOME code=HOME type=ECR order=1
+%%@node ND_ACT1 ref=FEAT-RECHERCHER type=ACT order=2
+%%@node ND_L001 code=L001 type=ECR order=3
+%%@node ND_ACT2 ref=FEAT-CHOISIR-SALLE type=ACT order=4
+%%@node ND_C001 code=C001 type=ECR order=5
+%%@node ND_ACT3 ref=FEAT-CONFIG-OPTIONS type=ACT order=6
+%%@node ND_F001 code=F001 type=ECR order=7
+%%@node ND_ATT1 type=ATT order=8
+%%@node ND_F001_RECAP code=F001:RECAP type=ECR order=9
+%%@node ND_CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=10
+%%@node ND_D001 code=D001 type=ECR order=11
+%%@edge ND_HOME>ND_ACT1 kind=nominal
+%%@edge ND_ACT1>ND_L001 kind=nominal
+%%@edge ND_L001>ND_ACT2 kind=nominal
+%%@edge ND_ACT2>ND_C001 kind=nominal
+%%@edge ND_C001>ND_ACT3 kind=nominal
+%%@edge ND_ACT3>ND_F001 kind=nominal
+%%@edge ND_F001>ND_ATT1 kind=nominal
+%%@edge ND_ATT1>ND_F001_RECAP kind=nominal
+%%@edge ND_F001_RECAP>ND_CALL_PAY kind=nominal
+%%@edge ND_CALL_PAY>ND_D001 kind=nominal
+flowchart LR
+  ND_HOME(["ND-001 · Accueil"])
+  ND_ACT1["ND-002 · Recherche par ville"]
+  ND_L001["ND-003 · Catalogue des salles"]
+  ND_ACT2["ND-004 · Sélectionne la salle"]
+  ND_C001(["ND-005 · Fiche détaillée"])
+  ND_ACT3["ND-006 · Choix du créneau"]
+  ND_F001{"ND-007 · Tunnel options"}
+  ND_ATT1{{"ND-008 · Vérification créneau"}}
+  ND_F001_RECAP{"ND-009 · Récapitulatif commande"}
+  ND_CALL_PAY[["PF-PAIEMENT-SEG · Paiement sécurisé"]]
+  ND_D001["ND-011 · Tableau de bord"]
+  ND_HOME --> ND_ACT1 --> ND_L001 --> ND_ACT2 --> ND_C001 --> ND_ACT3 --> ND_F001 --> ND_ATT1 --> ND_F001_RECAP --> ND_CALL_PAY --> ND_D001`,
+
+        `%%@file id=PF-RESERVATION-VAR-ASSIST project=SALLES kind=userflow view=collapsed uc=UC-RESERVATION statut=variante roles=CLIENT title="Variante avec Rupture ⏸" diverge=PF-RESERVATION-NOM@7 rejoint=PF-RESERVATION-NOM@9
+%%@node ND_F001 code=F001 type=ECR order=1
+%%@node ND_ACT_HELP ref=FEAT-DEMANDE-AIDE type=ACT order=2
+%%@node ND_EXT_SUPPORT code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND_F001_RECAP persist=external delay=24h order=3
+%%@node ND_F001_RECAP code=F001:RECAP type=ECR order=4
+%%@node ND_CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=5
+%%@edge ND_F001>ND_ACT_HELP kind=diverge
+%%@edge ND_ACT_HELP>ND_EXT_SUPPORT kind=variant
+%%@edge ND_EXT_SUPPORT>ND_F001_RECAP kind=rejoin
+%%@edge ND_F001_RECAP>ND_CALL_PAY kind=nominal
+flowchart LR
+  ND_F001{"ND-001 · Tunnel réservation"}
+  ND_ACT_HELP["ND-002 · Demande de devis sur mesure"]
+  ND_EXT_SUPPORT[/"ND-003 · Échange téléphonique conseiller ⏸"/]
+  ND_F001_RECAP{"ND-004 · Récapitulatif avec devis"}
+  ND_CALL_PAY[["PF-PAIEMENT-SEG · Paiement validé"]]
+  ND_F001 -.-> ND_ACT_HELP -.-> ND_EXT_SUPPORT -.-> ND_F001_RECAP
+  ND_F001_RECAP --> ND_CALL_PAY`
+      ];
+
+      // Chargement initial des démos
+      demoDiagrams.forEach((src, idx) => {
+        state.diagrams.push(parseMermaidFile(src, `demo-${idx + 1}.mmd`));
       });
+      onDataLoaded();
 
-      document.getElementById('btn-export-png-hd').addEventListener('click', () => {
-        exportPngWithScale(2.5, '-hd');
-      });
-
-      document.getElementById('btn-print').addEventListener('click', () => {
-        window.print();
-      });
-
-      // 10. UI Listeners
-      document.getElementById('btn-open-folder').addEventListener('click', triggerFolderSelection);
-      document.getElementById('btn-welcome-open').addEventListener('click', triggerFolderSelection);
-
-      document.getElementById('btn-refresh-folder').addEventListener('click', async () => {
-        if (activeDirectoryHandle) {
-          await scanDirectoryHandle(activeDirectoryHandle);
-        } else if (cachedFileList) {
-          await scanFileList(cachedFileList);
-        } else {
-          triggerFolderSelection();
-        }
-      });
-
-      document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('collapsed');
-      });
-
-      document.getElementById('btn-toggle-inspector').addEventListener('click', () => {
-        inspectorEl.classList.toggle('collapsed');
-      });
-
-      document.getElementById('btn-close-inspector').addEventListener('click', () => {
-        inspectorEl.classList.add('collapsed');
-      });
-
-      document.getElementById('btn-theme-toggle').addEventListener('click', () => {
-        const current = document.body.dataset.theme;
-        document.body.dataset.theme = current === 'light' ? 'dark' : 'light';
-      });
-
-      document.getElementById('btn-close-modal').addEventListener('click', () => {
-        document.getElementById('screen-sheet-modal').classList.remove('active');
-      });
-
-      document.getElementById('screen-sheet-modal').addEventListener('click', (e) => {
-        if (e.target.id === 'screen-sheet-modal') {
-          e.target.classList.remove('active');
-        }
-      });
-
-      document.getElementById('search-input').addEventListener('input', (e) => {
-        searchQuery = e.target.value.toLowerCase().trim();
-        renderDiagramList();
-      });
-
-      document.querySelectorAll('.filter-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-          document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          activeCategory = pill.dataset.category;
-          renderDiagramList();
-        });
-      });
-
-      // Optional Auto-fetch if served via local web server (http:// or https://)
-      if (window.location.protocol.startsWith('http')) {
-        fetch('./metadata.json')
-          .then(res => res.json())
-          .then(data => {
-            nodesMetadata = data;
-          })
-          .catch(() => {});
-      }
     })();
   </script>
 </body>

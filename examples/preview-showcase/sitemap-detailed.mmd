@@ -1,0 +1,53 @@
+%%@file id=sitemap-detailed project=SALLES kind=sitemap view=detailed title="Arborescence Détaillée" version="1.1"
+%%@tag MVP color=blue style=fill label="MVP"
+%%@tag SP1 color=green style=outline label="Sprint 1"
+%%@tag SP2 color=orange style=outline label="Sprint 2"
+%%@tag VIP color=red style=outline label="VIP"
+%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,ADMIN url=/ order=1 tags=MVP icon=entry
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms order=2 tags=MVP,SP1 icon=device
+%%@node L001_dlg_filtres code=L001!filtres type=DLG order=1
+%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms/[id] dynamic=yes order=3 tags=MVP
+%%@node C001_anc_avis code=C001#avis type=ANC order=1
+%%@node F001 code=F001 type=F subtype=stepper access=protected roles=CLIENT,ADMIN url=/booking/[id] order=4 tags=MVP,SP2 who=CLIENT
+%%@node F001_recap code=F001:RECAP type=F subtype=recap access=protected roles=CLIENT,ADMIN url=/booking/[id]/recap order=5
+%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=ADMIN url=/rooms/new tone=accent order=6 tags=SP2 who=ADMIN
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,ADMIN url=/dashboard order=7 tags=SP1 who=CLIENT,ADMIN
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,ADMIN url=/404 order=8
+%%@node M001 code=M001 type=MOD scope=ALL order=1
+%%@node M002 code=M002 type=MOD scope=AUTH order=2
+%%@edge HOME>L001 kind=navigation
+%%@edge HOME>D001 kind=navigation
+%%@edge HOME>E404 kind=navigation
+%%@edge L001>C001 kind=navigation
+%%@edge L001>L001_dlg_filtres kind=attach ref=FEAT-FILTRES
+%%@edge L001>F002 kind=action ref=FEAT-AJOUTER-SALLE
+%%@edge C001>F001 kind=navigation
+%%@edge C001>C001_anc_avis kind=attach
+%%@edge F001>F001_recap kind=navigation
+%%@edge L001>M001 kind=invoke
+%%@edge F001>M002 kind=invoke
+flowchart TD
+  HOME(["HOME · Accueil & Vitrine"])
+  L001["L001 · Catalogue des Salles"]
+  L001_dlg_filtres["!filtres · Filtres Avancés"]
+  C001(["C001 · Fiche Détail Salle"])
+  C001_anc_avis["#avis · Avis Clients"]
+  F001{"F001 · Tunnel de Réservation"}
+  F001_recap{"F001:RECAP · Récapitulatif"}
+  F002{"F002 · Créer une Nouvelle Salle"}
+  D001["D001 · Tableau de Bord"]
+  E404["E404 · Page Introuvable"]
+  M001>"M001 · Centre d'Aide & FAQ"]
+  M002>"M002 · Panier & Sélection"]
+
+  HOME --> L001
+  HOME --> D001
+  HOME --> E404
+  L001 --> C001
+  L001 -.-> L001_dlg_filtres
+  L001 -.-> F002
+  C001 --> F001
+  C001 -.-> C001_anc_avis
+  F001 --> F001_recap
+  L001 -.-> M001
+  F001 -.-> M002

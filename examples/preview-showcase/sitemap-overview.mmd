@@ -1,0 +1,25 @@
+%%@file id=sitemap-overview project=SALLES kind=sitemap view=general title="Arborescence Générale" version="1.1"
+%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,ADMIN url=/ order=1
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms order=2
+%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms/[id] order=3
+%%@node F001 code=F001 type=F subtype=stepper access=protected roles=CLIENT,ADMIN url=/booking/[id] order=4
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,ADMIN url=/dashboard order=5
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,ADMIN url=/404 order=6
+%%@edge HOME>L001 kind=navigation
+%%@edge HOME>D001 kind=navigation
+%%@edge HOME>E404 kind=navigation
+%%@edge L001>C001 kind=navigation
+%%@edge C001>F001 kind=navigation
+flowchart TD
+  HOME(["HOME · Accueil & Vitrine"])
+  L001["L001 · Catalogue des Salles"]
+  C001(["C001 · Fiche Détail Salle"])
+  F001{"F001 · Tunnel de Réservation"}
+  D001["D001 · Tableau de Bord"]
+  E404["E404 · Page Introuvable"]
+
+  HOME --> L001
+  HOME --> D001
+  HOME --> E404
+  L001 --> C001
+  C001 --> F001

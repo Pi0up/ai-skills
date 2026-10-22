@@ -1,0 +1,19 @@
+%%@file id=sitemap-by-role-admin project=SALLES kind=sitemap view=role role=ADMIN title="Arborescence Administrateur" version="1.1"
+%%@tag SP1 color=green style=outline label="Sprint 1"
+%%@tag SP2 color=orange style=outline label="Sprint 2"
+%%@node HOME code=HOME type=HOME access=public roles=ADMIN url=/ order=1
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ADMIN url=/rooms order=2
+%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=ADMIN url=/rooms/new tone=accent order=3 tags=SP2 who=ADMIN
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=ADMIN url=/dashboard order=4 tags=SP1 who=ADMIN
+%%@edge HOME>L001 kind=navigation
+%%@edge HOME>D001 kind=navigation
+%%@edge L001>F002 kind=navigation
+flowchart TD
+  HOME(["HOME · Accueil & Vitrine"])
+  L001["L001 · Catalogue des Salles"]
+  F002{"F002 · Créer une Nouvelle Salle"}
+  D001["D001 · Tableau de Bord Admin"]
+
+  HOME --> L001
+  HOME --> D001
+  L001 --> F002

@@ -1,0 +1,36 @@
+%%@file id=PF-RESERVATION-NOM-collapsed project=SALLES kind=userflow view=collapsed uc=UC-RESERVATION obj=OBJ-RES-01 statut=nominal roles=CLIENT title="Réservation Nominale (Vue Repliée)" version="1.1" atterrissage=D001
+%%@node ND_HOME code=HOME type=ECR order=1
+%%@node ND_ACT1 ref=FEAT-RECHERCHER type=ACT order=2
+%%@node ND_L001 code=L001 type=ECR order=3
+%%@node ND_ACT2 ref=FEAT-CHOISIR-SALLE type=ACT order=4
+%%@node ND_C001 code=C001 type=ECR order=5
+%%@node ND_ACT3 ref=FEAT-CONFIG-OPTIONS type=ACT order=6
+%%@node ND_F001 code=F001 type=ECR order=7
+%%@node ND_ATT1 type=ATT order=8
+%%@node ND_F001_RECAP code=F001:RECAP type=ECR order=9
+%%@node ND_CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=10
+%%@node ND_D001 code=D001 type=ECR order=11
+%%@edge ND_HOME>ND_ACT1 kind=nominal
+%%@edge ND_ACT1>ND_L001 kind=nominal
+%%@edge ND_L001>ND_ACT2 kind=nominal
+%%@edge ND_ACT2>ND_C001 kind=nominal
+%%@edge ND_C001>ND_ACT3 kind=nominal
+%%@edge ND_ACT3>ND_F001 kind=nominal
+%%@edge ND_F001>ND_ATT1 kind=nominal
+%%@edge ND_ATT1>ND_F001_RECAP kind=nominal
+%%@edge ND_F001_RECAP>ND_CALL_PAY kind=nominal
+%%@edge ND_CALL_PAY>ND_D001 kind=nominal
+flowchart LR
+  ND_HOME(["ND-001 · Accueil"])
+  ND_ACT1["ND-002 · Recherche par ville"]
+  ND_L001["ND-003 · Catalogue des salles"]
+  ND_ACT2["ND-004 · Sélectionne la salle"]
+  ND_C001(["ND-005 · Fiche détaillée"])
+  ND_ACT3["ND-006 · Choix du créneau"]
+  ND_F001{"ND-007 · Tunnel options"}
+  ND_ATT1{{"ND-008 · Vérification créneau"}}
+  ND_F001_RECAP{"ND-009 · Récapitulatif commande"}
+  ND_CALL_PAY[["PF-PAIEMENT-SEG · Paiement sécurisé"]]
+  ND_D001["ND-011 · Tableau de bord"]
+
+  ND_HOME --> ND_ACT1 --> ND_L001 --> ND_ACT2 --> ND_C001 --> ND_ACT3 --> ND_F001 --> ND_ATT1 --> ND_F001_RECAP --> ND_CALL_PAY --> ND_D001
