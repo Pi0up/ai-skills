@@ -6,7 +6,7 @@
 %%@node ND_C001 code=C001 type=ECR order=5
 %%@node ND_ACT3 ref=FEAT-CONFIG-OPTIONS type=ACT order=6
 %%@node ND_F001 code=F001 type=ECR order=7
-%%@node ND_ATT1 type=ATT order=8
+%%@node ND_ATT1 type=ATT break=yes delay=3m persist=session resume=ND_F001_RECAP order=8
 %%@node ND_F001_RECAP code=F001:RECAP type=ECR order=9
 %%@node ND_CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=10
 %%@node ND_D001 code=D001 type=ECR order=11
@@ -28,7 +28,7 @@ flowchart LR
   ND_C001(["ND-005 · Fiche détaillée"])
   ND_ACT3["ND-006 · Choix du créneau"]
   ND_F001{"ND-007 · Tunnel options"}
-  ND_ATT1{{"ND-008 · Vérification créneau"}}
+  ND_ATT1{{"ND-008 · Vérification créneau ⏸"}}
   ND_F001_RECAP{"ND-009 · Récapitulatif commande"}
   ND_CALL_PAY[["PF-PAIEMENT-SEG · Paiement sécurisé"]]
   ND_D001["ND-011 · Tableau de bord"]

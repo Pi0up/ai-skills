@@ -4,10 +4,14 @@
 %%@node PJ code=PF-DOSSIER-PJ-SEG type=CALL order=3
 %%@node ND020 code=C010 type=ECR order=4
 %%@node ND021 ref=FEAT-SOUMETTRE type=ACT order=5
+%%@node ND022 type=ATT break=yes resume=ND030 persist=session delay=5m order=6
+%%@node ND030 code=D001 type=ECR order=7
 %%@edge ND010>ND011 kind=nominal
 %%@edge ND011>PJ kind=nominal
 %%@edge PJ>ND020 kind=nominal
 %%@edge ND020>ND021 kind=nominal
+%%@edge ND021>ND022 kind=nominal
+%%@edge ND022>ND030 kind=nominal
 flowchart LR
 
     %% --------------------------------------------------------------------------
@@ -19,5 +23,7 @@ flowchart LR
     PJ[["PJ · Sous-Parcours Pièces Justificatives"]]
     ND020(["ND-020 · C010 (Récapitulatif)"])
     ND021["ND-021 · Soumettre le dossier"]
+    ND022{{"ND-022 · Contrôle asynchrone ⏸"}}
+    ND030(["ND-030 · Confirmation dossier"])
 
-    ND010 --> ND011 --> PJ --> ND020 --> ND021
+    ND010 --> ND011 --> PJ --> ND020 --> ND021 --> ND022 --> ND030
