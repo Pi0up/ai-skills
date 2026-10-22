@@ -3,2259 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Information Architecture Studio — Visualiseur Unifié v1.1</title>
-  <!-- Mermaid.js chargé en différé pour le mode repli "Vue Mermaid brute" -->
+  <title>Information Architecture Studio — Visualiseur Unifié v1.2</title>
+
+  <!-- Google Material Symbols Outlined (CDN) — Point 2 -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <!-- Mermaid.js v10 (Repli Vue Brute uniquement) -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-  <style>
-    /* ----------------------------------------------------
-       1. Design System Tokens (Spec v1.1 §3.2 & Annexe B)
-       ---------------------------------------------------- */
-    :root, [data-theme="light"] {
-      /* Interface */
-      --bg-app: #f8fafc;
-      --bg-sidebar: #ffffff;
-      --bg-inspector: #ffffff;
-      --bg-canvas: #f5f5f5;
-      --border-color: #e2e8f0;
-      --border-focus: #2563eb;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --text-subtle: #94a3b8;
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --primary-subtle: rgba(37, 99, 235, 0.1);
-      --badge-sitemap: #7c3aed;
-      --badge-userflow: #0284c7;
-      --badge-bg: rgba(0, 0, 0, 0.06);
-      --grid-dot: #cfcfcf;
-      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
-      --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.18);
 
-      /* Canvas Diagramme */
-      --dg-canvas: #f5f5f5;
-      --dg-dot: #cfcfcf;
-      --dg-frame: #ffffff;
-      --dg-frame-border: #e5e5e5;
-      --dg-level-line: #d9d9d9;
+  <!-- Feuilles de Style Modulaires (Vite injectera/inlinera en dist) -->
+  <script type="module" crossorigin>(function(){const e=document.createElement("link").relList;if(e&&e.supports&&e.supports("modulepreload"))return;for(const a of document.querySelectorAll('link[rel="modulepreload"]'))t(a);new MutationObserver(a=>{for(const i of a)if(i.type==="childList")for(const n of i.addedNodes)n.tagName==="LINK"&&n.rel==="modulepreload"&&t(n)}).observe(document,{childList:!0,subtree:!0});function s(a){const i={};return a.integrity&&(i.integrity=a.integrity),a.referrerPolicy&&(i.referrerPolicy=a.referrerPolicy),a.crossOrigin==="use-credentials"?i.credentials="include":a.crossOrigin==="anonymous"?i.credentials="omit":i.credentials="same-origin",i}function t(a){if(a.ep)return;a.ep=!0;const i=s(a);fetch(a.href,i)}})();function z(o,e){const s={filename:e,meta:{id:e.replace(".mmd",""),title:e.replace(".mmd",""),kind:"sitemap"},tags:{},nodes:{},edges:[],rawMermaid:o,direction:"TD"},t=o.split(`
+`),a=[];for(let i of t){const n=i.trim();if(n.startsWith("%%@file"))X(n.slice(7),s.meta);else if(n.startsWith("%%@tag")){const c=n.slice(6).trim().split(/\s+/),l=c[0],r={};X(c.slice(1).join(" "),r),s.tags[l]=r}else if(n.startsWith("%%@node")){const c=n.slice(7).trim().split(/\s+/),l=c[0],r={id:l,code:l};X(c.slice(1).join(" "),r),s.nodes[l]=r}else if(n.startsWith("%%@edge")){const c=n.slice(7).trim().split(/\s+/),l=c[0],[r,h]=l.split(">"),g={src:r,dst:h,kind:"nominal"};X(c.slice(1).join(" "),g),s.edges.push(g)}else a.push(i)}return s.meta.kind||(s.meta.kind=e.toLowerCase().includes("sitemap")?"sitemap":"userflow"),V(a.join(`
+`),s),s}function X(o,e){const s=/([a-zA-Z0-9_-]+)=(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;let t;for(;(t=s.exec(o))!==null;){const a=t[1],i=t[2]!==void 0?t[2]:t[3]!==void 0?t[3]:t[4];a==="tags"||a==="roles"||i&&i.includes(",")&&!a.includes("label")&&!a.includes("title")?e[a]=i.split(",").map(n=>n.trim()):e[a]=i}}function j(o,e,s){if(!o)return e||s||"";let t=o.trim();t=t.replace(/<br\s*\/?>/gi," ").replace(/<\/?[^>]+(>|$)/g,"");const a=[e,s];s&&s.includes("_")&&a.push(s.split("_")[0]);for(const i of a){if(!i)continue;const n=i.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),c=new RegExp(`^${n}\\s*([·\\-–—:]+)\\s*`,"i");t=t.replace(c,"")}return t=t.replace(/^ND-?\d+\s*([·\\-–—:]+)\s*/i,""),t.trim()}function V(o,e){e.direction=o.includes("flowchart LR")||o.includes("graph LR")?"LR":"TD";const s=/^\s*([A-Za-z0-9_]+)\s*(?:\[\(\s*["']?(.*?)["']?\s*\)\]|\(\[\s*["']?(.*?)["']?\s*\]\)|\{\{\s*["']?(.*?)["']?\s*\}\}|\[\[\s*["']?(.*?)["']?\s*\]\]|\[\/\s*["']?(.*?)["']?\s*\/\]|\{\s*["']?(.*?)["']?\s*\}|\[\s*["']?(.*?)["']?\s*\]|\>\s*["']?(.*?)["']?\s*\])/gm;let t;for(;(t=s.exec(o))!==null;){const i=t[1],n=t[2]||t[3]||t[4]||t[5]||t[6]||t[7]||t[8]||t[9]||i;e.nodes[i]||(e.nodes[i]={id:i,code:i}),e.nodes[i].rawLabel=n,e.nodes[i].label||(e.nodes[i].label=j(n,e.nodes[i].code,i))}const a=/^\s*([A-Za-z0-9_]+)\s*(-->|-\.->|==>)\s*(?:\|["']?(.*?)["']?\|\s*)?([A-Za-z0-9_]+)/gm;for(;(t=a.exec(o))!==null;){const i=t[1],n=t[2],c=t[3],l=t[4];e.edges.find(h=>h.src===i&&h.dst===l)||e.edges.push({src:i,dst:l,label:c||"",kind:n==="-.->"?"variant":e.meta.kind==="sitemap"?"navigation":"nominal"})}for(const i of Object.values(e.nodes))i.label&&(i.label=j(i.label,i.code,i.id))}function G(o,e,s){if(!o||s==="HOME"||o==="/")return"/";if(o.startsWith("!")||o.startsWith("#"))return o;if(e&&e!=="/"&&o.startsWith(e)){let t=o.slice(e.length);return t.startsWith("/")&&(t=t.slice(1)),t||o}if(o.startsWith("/")&&o.length>1){const t=o.split("/").filter(Boolean);return t[t.length-1]||o}return o}function W(o){const e={},s={};o.edges.forEach(n=>{n.kind==="navigation"&&(s[n.dst]=n.src)});const t=n=>o.edges.some(c=>c.dst===n&&c.kind==="attach"),a=Object.keys(o.nodes).filter(n=>!s[n]&&!t(n));function i(n,c){const l=o.nodes[n];if(!l)return;let r=l.url||`/${l.code?l.code.toLowerCase():n.toLowerCase()}`;(l.type==="HOME"||l.code==="HOME")&&(r="/");let h=r;if(c.length>0&&r!=="/"){const m=e[c[c.length-1]]?.absolute||"";if(!r.startsWith(m)){const u=m.endsWith("/")?m.slice(0,-1):m,p=r.startsWith("/")?r:`/${r}`;h=`${u}${p}`}}const g=s[n],b=g?o.nodes[g]:null,y=b?e[g]?.absolute||b.url:null,A=G(l.url||r,y,l.type);e[n]={relative:A,absolute:h||"/"},o.edges.filter(m=>m.src===n&&m.kind==="navigation").map(m=>m.dst).forEach(m=>i(m,[...c,n])),o.edges.filter(m=>m.src===n&&m.kind==="attach").map(m=>m.dst).forEach(m=>{const u=o.nodes[m];if(u){const p=u.code||m,T=p.includes("!")?`!${p.split("!")[1]}`:p.includes("#")?`#${p.split("#")[1]}`:"";e[m]={relative:T||p,absolute:`${h}${T}`}}})}return a.forEach(n=>i(n,[])),e}function Z(o,e={}){const s=e.cardW||200,t=e.cardH||118,a=e.gapX||48,i=e.gapY||72,n=60,c=60,l={},r={},h={},g={},b=Object.keys(o.nodes);b.forEach(d=>{r[d]=[],h[d]=[],g[d]=0}),o.edges.forEach(d=>{d.kind==="navigation"?(r[d.src]&&r[d.src].push(d.dst),g[d.dst]!==void 0&&g[d.dst]++):d.kind==="attach"&&h[d.src]&&h[d.src].push(d.dst)});const y=d=>{const E=o.nodes[d];return E&&(E.type==="MOD"||E.code&&E.code.startsWith("M"))},A=d=>o.edges.some(E=>E.dst===d&&E.kind==="attach");let x=b.filter(d=>g[d]===0&&!y(d)&&!A(d));x.sort((d,E)=>{const D=o.nodes[d],N=o.nodes[E];return D.type==="HOME"||D.code==="HOME"||d==="HOME"?-1:N.type==="HOME"||N.code==="HOME"||E==="HOME"?1:0}),x.length===0&&b.length>0&&(x=[b[0]]);const w={};function m(d){const E=(h[d]||[]).length,D=s+E*(s+30),N=(r[d]||[]).filter(v=>!y(v));if(N.length===0)return w[d]=D,D;let O=0;N.forEach((v,B)=>{const U=m(v);O+=U+(B>0?a:0)});const $=Math.max(D,O);return w[d]=$,$}x.forEach(d=>m(d));let u=0;function p(d,E,D){D>u&&(u=D),w[d];const N=(r[d]||[]).filter(M=>!y(M)),O=(h[d]||[]).length,$=s+O*(s+30);let v=E;if(N.length>0){let M=0;N.forEach((C,k)=>{M+=w[C]+(k>0?a:0)});let F=E;if($>M&&(F=E+($-M)/2,v=E),N.forEach(C=>{p(C,F,D+1),F+=w[C]+a}),M>=$){const C=l[N[0]],k=l[N[N.length-1]];v=(C.x+k.x)/2}}const B=c+D*(t+i);l[d]={x:v,y:B,level:D,w:s,h:t},(h[d]||[]).forEach((M,F)=>{l[M]={x:v+s+30+F*(s+30),y:B,level:D,w:s,h:t,isAttached:!0}})}let T=n;x.forEach(d=>{p(d,T,0),T+=(w[d]||s)+a});const _=b.filter(y),f=c+(u+1)*(t+i)+30;_.forEach((d,E)=>{l[d]={x:n+E*(s+a),y:f,level:u+1,w:s,h:t,isModule:!0}});let L=1200,S=800;return Object.values(l).forEach(d=>{d.x+d.w+100>L&&(L=d.x+d.w+100),d.y+d.h+100>S&&(S=d.y+d.h+100)}),{positions:l,maxLevel:u,width:L,height:S,moduleCount:_.length,bottomModulesY:f}}function J(o,e={}){const s=e.cardW||200,t=e.cardH||118,a=e.flowGap||88,i=e.gapY||100,n=60,c=120,l={},r=Object.keys(o.nodes),h={},g={};r.forEach(p=>{h[p]=[],g[p]=[]}),o.edges.forEach(p=>{h[p.src]&&h[p.src].push(p),g[p.dst]&&g[p.dst].push(p)});let b=r.filter(p=>g[p].length===0);b.length===0&&r.length>0&&(b=[r[0]]);const y={},A={};r.forEach(p=>{y[p]=0,A[p]=0});function x(p,T,_){T>(y[p]||0)&&(y[p]=T),_>(A[p]||0)&&(A[p]=_),(h[p]||[]).forEach(L=>{const S=L.kind==="variant"||L.kind==="diverge"?_+1:_;x(L.dst,y[p]+1,S)})}b.forEach(p=>x(p,0,0));let w=0;r.forEach(p=>{(y[p]===void 0||y[p]===0&&p!==b[0])&&(y[p]=w,w++)});let m=1e3,u=500;return r.forEach(p=>{const T=o.nodes[p],_=y[p]||0,f=A[p]||0,L=n+_*(s+a),S=c+f*(t+i),d=T.type==="ACT",E=T.type==="ATT";l[p]={x:L,y:S,w:s,h:t,isAct:d,isAtt:E,rank:_,row:f},L+s+100>m&&(m=L+s+100),S+t+100>u&&(u=S+t+100)}),{positions:l,width:m,height:u}}function Q(o,e,s,t={}){const a=o.meta.kind==="sitemap",i=e.width,n=e.height,c=118;let l=`<svg class="dg-canvas" width="${i}" height="${n}" viewBox="0 0 ${i} ${n}" xmlns="http://www.w3.org/2000/svg">`;if(l+=`<defs>
+    \x3C!-- Grille de points vectorielle pure (Spec v1.2 Point 13) -->
+    <pattern id="canvas-dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="1.2" fill="var(--dg-dot)" />
+    </pattern>
 
-      /* Carte Page (Spec §3.2) */
-      --dg-card: #ffffff;
-      --dg-card-border: #d4d4d4;
-      --dg-radius: 5px;
-      --dg-card-shadow: 0 1px 3px rgba(0,0,0,.18);
-      --dg-card-w: 200px;
-      --dg-card-h: 118px;
-
-      /* Accents de Carte */
-      --dg-home: #3232f5;
-      --dg-fill-state: #dbe6ec;
-      --dg-fill-state-border: #c5d3db;
-      --dg-fill-accent: #ebebfb;
-      --dg-fill-accent-border: #d6d6f2;
-      --dg-stack-1: #f3f3f3;
-      --dg-stack-2: #e8e8e8;
-
-      /* Textes Carte */
-      --dg-title: #222222;
-      --dg-url: #6b6b6b;
-      --dg-muted: #a8a8a8;
-      --dg-code: #333333;
-      --dg-type: #777777;
-
-      /* Liens */
-      --dg-edge: #666666;
-      --dg-edge-cross: #a3a3a3;
-
-      /* Entités Userflow */
-      --dg-call: #8b4dff;
-      --dg-ext: #ff9500;
-      --dg-att: #8a8f9b;
-
-      /* Tags */
-      --tag-blue: #0f5bff;
-      --tag-red: #f4153e;
-      --tag-gray: #8a8f9b;
-      --tag-green: #7bcc0f;
-      --tag-orange: #ff8a14;
-
-      /* Bulles & Marqueurs */
-      --bubble-peach: #fdd3b0;
-      --bubble-amber: #fcc36b;
-      --bubble-blue: #a6d3f6;
-      --bubble-lavender: #d2c5f4;
-      --bubble-ink: #2b3a55;
-      --marker-violet: #b5a1ee;
-      --marker-slate: #5d6475;
-      --marker-green: #4a9a2c;
-      --order-circle: #b7a6ea;
-
-      /* Géométrie */
-      --dg-gap-x: 48px;
-      --dg-gap-y: 72px;
-      --dg-flow-gap: 88px;
-      --dg-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-
-    [data-theme="dark"] {
-      /* Interface */
-      --bg-app: #0f172a;
-      --bg-sidebar: #1e293b;
-      --bg-inspector: #1e293b;
-      --bg-canvas: #090d16;
-      --border-color: #334155;
-      --border-focus: #3b82f6;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-subtle: #64748b;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --primary-subtle: rgba(59, 130, 246, 0.15);
-      --badge-sitemap: #8b5cf6;
-      --badge-userflow: #0ea5e9;
-      --badge-bg: rgba(255, 255, 255, 0.08);
-      --grid-dot: #1e293b;
-      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5);
-      --shadow-lg: 0 14px 32px rgba(0, 0, 0, 0.65);
-
-      /* Canvas & Carte Sombre */
-      --dg-canvas: #090d16;
-      --dg-dot: #1e293b;
-      --dg-frame: #111827;
-      --dg-frame-border: #1f2a3d;
-      --dg-level-line: #1e293b;
-
-      --dg-card: #1e293b;
-      --dg-card-border: #334155;
-      --dg-card-shadow: 0 1px 3px rgba(0,0,0,.5);
-      --dg-home: #818cf8;
-      --dg-fill-state: #1e3a4a;
-      --dg-fill-state-border: #2b5568;
-      --dg-fill-accent: #2a2a52;
-      --dg-fill-accent-border: #3b3b72;
-      --dg-stack-1: #182235;
-      --dg-stack-2: #131c2c;
-
-      --dg-title: #f1f5f9;
-      --dg-url: #94a3b8;
-      --dg-muted: #64748b;
-      --dg-code: #cbd5e1;
-      --dg-type: #94a3b8;
-      --dg-edge: #94a3b8;
-      --dg-edge-cross: #64748b;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--dg-font);
-      background: var(--bg-app);
-      color: var(--text-main);
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-      font-size: 13px;
-    }
-
-    /* ----------------------------------------------------
-       2. Structure des Panneaux
-       ---------------------------------------------------- */
-    #sidebar {
-      width: 320px;
-      min-width: 320px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      z-index: 20;
-      transition: transform 0.25s ease, margin-left 0.25s ease;
-    }
-    #sidebar.collapsed { margin-left: -320px; }
-
-    #main-viewport {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      overflow: hidden;
-      background: var(--bg-canvas);
-    }
-
-    #inspector {
-      width: 360px;
-      min-width: 360px;
-      background: var(--bg-inspector);
-      border-left: 1px solid var(--border-color);
-      display: flex;
-      flex-direction: column;
-      z-index: 20;
-      transition: transform 0.25s ease, margin-right 0.25s ease;
-    }
-    #inspector.collapsed { margin-right: -360px; display: none; }
-
-    /* ----------------------------------------------------
-       3. En-têtes, Outils et Menus
-       ---------------------------------------------------- */
-    .sidebar-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .brand-title {
-      font-weight: 700;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .brand-badge {
-      font-size: 10px;
-      background: var(--primary);
-      color: #fff;
-      padding: 2px 6px;
-      border-radius: 4px;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-    }
-
-    .folder-controls {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      gap: 8px;
-    }
-    .btn-tool {
-      background: var(--bg-app);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
-    }
-    .btn-tool:hover { background: var(--border-color); }
-    .btn-tool.primary {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-      font-weight: 500;
-    }
-    .btn-tool.primary:hover { background: var(--primary-hover); }
-
-    .search-box {
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .search-input {
-      width: 100%;
-      background: var(--bg-app);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      outline: none;
-    }
-    .search-input:focus { border-color: var(--border-focus); }
-
-    .filter-pills {
-      display: flex;
-      gap: 6px;
-      padding: 8px 16px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .pill {
-      background: transparent;
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      padding: 3px 9px;
-      border-radius: 12px;
-      font-size: 11px;
-      cursor: pointer;
-    }
-    .pill.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-    }
-
-    .filter-roles-bar {
-      padding: 6px 16px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-    .select-role {
-      background: var(--bg-app);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      padding: 3px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      outline: none;
-    }
-
-    .sidebar-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px 12px;
-    }
-    .diagram-item {
-      padding: 10px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 4px;
-      border: 1px solid transparent;
-      background: var(--bg-app);
-      transition: all 0.15s ease;
-    }
-    .diagram-item:hover { border-color: var(--border-color); }
-    .diagram-item.active {
-      border-color: var(--primary);
-      background: var(--primary-subtle);
-    }
-    .item-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-    .item-title {
-      font-weight: 600;
-      font-size: 12px;
-    }
-    .item-badge {
-      font-size: 9px;
-      font-weight: 600;
-      padding: 1px 5px;
-      border-radius: 3px;
-      text-transform: uppercase;
-    }
-    .badge-sitemap { background: var(--badge-sitemap); color: #fff; }
-    .badge-userflow { background: var(--badge-userflow); color: #fff; }
-    .item-desc {
-      font-size: 11px;
-      color: var(--text-muted);
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    /* ----------------------------------------------------
-       4. Barre Supérieure Viewport
-       ---------------------------------------------------- */
-    .top-toolbar {
-      height: 48px;
-      min-height: 48px;
-      background: var(--bg-sidebar);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 16px;
-      z-index: 10;
-    }
-    .toolbar-left, .toolbar-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .active-diagram-title {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    /* Menu Calques Déroulant */
-    .dropdown { position: relative; display: inline-block; }
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-md);
-      border-radius: 6px;
-      padding: 8px 12px;
-      min-width: 190px;
-      z-index: 100;
-    }
-    .dropdown.open .dropdown-content { display: block; }
-    .layer-option {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 0;
-      font-size: 12px;
-      cursor: pointer;
-    }
-
-    /* Bouton Flottant "Retour au Parcours" */
-    #back-to-flow-btn {
-      position: absolute;
-      top: 60px;
-      left: 20px;
-      z-index: 30;
-      display: none;
-      background: #7c3aed;
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 20px;
-      font-weight: 600;
-      font-size: 12px;
-      cursor: pointer;
-      box-shadow: var(--shadow-md);
-      transition: transform 0.15s ease;
-    }
-    #back-to-flow-btn:hover { transform: scale(1.04); }
-
-    /* ----------------------------------------------------
-       5. Viewport Canvas, Grille et SVG
-       ---------------------------------------------------- */
-    .canvas-viewport {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-      cursor: grab;
-      background-color: var(--dg-canvas);
-      background-image: radial-gradient(var(--dg-dot) 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-    .canvas-viewport.panning { cursor: grabbing; }
-
-    #svg-canvas-wrapper {
-      position: absolute;
-      top: 0;
-      left: 0;
-      transform-origin: 0 0;
-      will-change: transform;
-    }
-
-    /* Contrôles Flottants de Zoom */
-    .floating-controls {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
-      padding: 6px;
-      border-radius: 8px;
-      box-shadow: var(--shadow-md);
-      z-index: 15;
-    }
-    .btn-zoom {
-      width: 32px;
-      height: 32px;
-      background: var(--bg-app);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-    }
-    .btn-zoom:hover { background: var(--border-color); }
-
-    /* ----------------------------------------------------
-       6. Styles des Éléments SVG du Rendu Propre
-       ---------------------------------------------------- */
-    svg.dg-canvas {
-      overflow: visible;
-      font-family: var(--dg-font);
-    }
-
-    /* Carte Page Standard */
-    g.dg-card {
-      cursor: pointer;
-      transition: filter 0.15s ease, transform 0.15s ease;
-    }
-    g.dg-card:hover {
-      filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.25));
-    }
-    g.dg-card.selected rect.card-main {
-      stroke: var(--primary) !important;
-      stroke-width: 2.5px !important;
-    }
-    g.dg-card.pulse {
-      animation: cardPulse 1.2s ease-in-out;
-    }
-    @keyframes cardPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.06); filter: drop-shadow(0 0 14px rgba(124, 58, 237, 0.8)); }
-    }
-
-    /* Lignes de Niveau */
-    g.level-lines line {
-      stroke: var(--dg-level-line);
-      stroke-width: 1px;
-      stroke-dasharray: 4 4;
-    }
-    g.level-lines text {
-      fill: var(--dg-muted);
-      font-size: 10px;
-      font-weight: 500;
-    }
-
-    /* Liens */
-    g.dg-edge path {
-      stroke: var(--dg-edge);
-      stroke-width: 1.5px;
-      fill: none;
-      transition: stroke 0.15s ease, stroke-width 0.15s ease;
-    }
-    g.dg-edge.cross path {
-      stroke: var(--dg-edge-cross);
-      stroke-dasharray: 6 4;
-    }
-    g.dg-edge.call path { stroke: var(--dg-call); }
-    g.dg-edge.ext path { stroke: var(--dg-ext); }
-    g.dg-edge:hover path {
-      stroke: var(--primary);
-      stroke-width: 2.5px;
-    }
-
-    /* Pastilles Chips (ACT & ATT) */
-    g.dg-chip {
-      cursor: pointer;
-      transition: transform 0.15s ease;
-    }
-    g.dg-chip:hover { transform: scale(1.05); }
-
-    /* Couverture Non Réf */
-    g.dg-card.uncovered rect.card-main {
-      stroke: #ef4444 !important;
-      stroke-width: 2px !important;
-      stroke-dasharray: 5 3 !important;
-    }
-
-    /* Atténuation filtre rôle */
-    g.dg-card.dimmed, g.dg-chip.dimmed {
-      opacity: 0.25;
-    }
-
-    /* ----------------------------------------------------
-       7. Carte de Survol (Hover Preview Tooltip §6.1)
-       ---------------------------------------------------- */
-    #hover-card {
-      position: fixed;
-      display: none;
-      width: 290px;
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
-      box-shadow: var(--shadow-lg);
-      border-radius: 8px;
-      padding: 12px 14px;
-      z-index: 1000;
-      pointer-events: auto;
-      font-size: 12px;
-      animation: fadeIn 0.15s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .hover-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 6px;
-    }
-    .hover-code {
-      font-weight: 700;
-      color: var(--primary);
-    }
-    .hover-badge {
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 4px;
-      background: var(--border-color);
-      color: var(--text-muted);
-    }
-    .hover-title {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .hover-url {
-      color: var(--dg-url);
-      font-family: monospace;
-      font-size: 11px;
-      margin-bottom: 8px;
-    }
-    .hover-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-      line-height: 1.4;
-    }
-    .hover-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      border-top: 1px solid var(--border-color);
-      padding-top: 8px;
-    }
-    .hover-action-btn {
-      background: var(--bg-app);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .hover-action-btn:hover {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #fff;
-    }
-
-    /* ----------------------------------------------------
-       8. Tiroir d'Inspection & Modales
-       ---------------------------------------------------- */
-    .inspector-header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .inspector-content {
-      padding: 16px;
-      overflow-y: auto;
-      flex: 1;
-    }
-    .prop-group { margin-bottom: 16px; }
-    .prop-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .prop-val {
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .prop-code {
-      font-family: monospace;
-      background: var(--bg-app);
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid var(--border-color);
-    }
-    .tag-chip {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 10px;
-      font-weight: 600;
-      margin-right: 4px;
-      margin-bottom: 4px;
-    }
-
-    /* Modale Fiche Écran */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 2000;
-      padding: 20px;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal-card {
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      width: 100%;
-      max-width: 760px;
-      max-height: 85vh;
-      display: flex;
-      flex-direction: column;
-      box-shadow: var(--shadow-lg);
-    }
-    .modal-header {
-      padding: 14px 18px;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-weight: 700;
-    }
-    .modal-body {
-      padding: 20px;
-      overflow-y: auto;
-      line-height: 1.6;
-      font-size: 13px;
-    }
-    .modal-body pre {
-      background: var(--bg-canvas);
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid var(--border-color);
-      font-family: monospace;
-      font-size: 12px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-    }
-
-    /* Panneau Légende Flottant */
-    #legend-panel {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      background: var(--bg-sidebar);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 12px 16px;
-      box-shadow: var(--shadow-md);
-      z-index: 15;
-      display: none;
-      max-width: 320px;
-      font-size: 11px;
-    }
-    #legend-panel.active { display: block; }
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-    .legend-color {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border: 1px solid var(--border-color);
-    }
-
-    /* État Vide */
-    #empty-state {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      color: var(--text-muted);
-      display: none;
-    }
-    #empty-state.active { display: block; }
-
-    /* Mode Impression (@media print) */
-    @media print {
-      body { background: #fff !important; color: #000 !important; }
-      #sidebar, #inspector, .top-toolbar, .floating-controls, #hover-card, #back-to-flow-btn { display: none !important; }
-      .canvas-viewport { background: #fff !important; }
-      #svg-canvas-wrapper { transform: none !important; }
-    }
-  </style>
-</head>
-<body data-theme="light">
-
-  <!-- 1. Panneau Latéral Gauche -->
-  <aside id="sidebar">
-    <div class="sidebar-header">
-      <div class="brand-title">
-        <span>Information Architecture</span>
-        <span class="brand-badge">STUDIO</span>
-      </div>
-      <button class="btn-tool" id="btn-theme" title="Basculer Thème">🌓</button>
-    </div>
-
-    <div class="folder-controls">
-      <button class="btn-tool primary" id="btn-open-folder">📁 Dossier</button>
-      <button class="btn-tool" id="btn-refresh">🔄 Rafraîchir</button>
-      <input type="file" id="fallback-input" webkitdirectory directory multiple style="display:none">
-    </div>
-
-    <div class="search-box">
-      <input type="text" id="search-input" class="search-input" placeholder="🔍 Rechercher diagramme ou code...">
-    </div>
-
-    <div class="filter-pills">
-      <button class="pill active" data-filter="all">Tous</button>
-      <button class="pill" data-filter="sitemap">Arbos</button>
-      <button class="pill" data-filter="userflow">Parcours</button>
-    </div>
-
-    <div class="filter-roles-bar">
-      <span>Filtrer rôle :</span>
-      <select id="role-filter" class="select-role">
-        <option value="ALL">Tous les rôles</option>
-      </select>
-    </div>
-
-    <div class="sidebar-list" id="diagram-list">
-      <!-- Rempli dynamiquement -->
-    </div>
-  </aside>
-
-  <!-- 2. Zone Centrale Viewport -->
-  <main id="main-viewport">
-    <div class="top-toolbar">
-      <div class="toolbar-left">
-        <button class="btn-tool" id="btn-toggle-sidebar" title="Masquer panneau">☰</button>
-        <span class="active-diagram-title" id="active-title">Chargement...</span>
-        <span class="item-badge badge-sitemap" id="active-kind-badge">SITEMAP</span>
-
-        <!-- Menu Déroulant Calques -->
-        <div class="dropdown" id="layers-dropdown">
-          <button class="btn-tool" id="btn-layers">Calques ▾</button>
-          <div class="dropdown-content">
-            <label class="layer-option"><input type="checkbox" id="layer-levels" checked> Niveaux (arbo)</label>
-            <label class="layer-option"><input type="checkbox" id="layer-renvois" checked> Renvois & modules</label>
-            <label class="layer-option"><input type="checkbox" id="layer-numbers"> Numérotation (01)</label>
-            <label class="layer-option"><input type="checkbox" id="layer-avatars"> Avatars rôles</label>
-            <label class="layer-option"><input type="checkbox" id="layer-tags" checked> Tags (SP1...)</label>
-            <label class="layer-option"><input type="checkbox" id="layer-coverage"> Couverture parcours</label>
-            <label class="layer-option"><input type="checkbox" id="layer-mermaid"> Vue Mermaid brute</label>
-          </div>
+    \x3C!-- Marqueurs de Flèche -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--dg-edge)" />
+    </marker>
+    <marker id="arrow-call" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--dg-call)" />
+    </marker>
+    <marker id="arrow-ext" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--dg-ext)" />
+    </marker>
+  </defs>`,l+=`<rect width="${i}" height="${n}" fill="url(#canvas-dots)" />`,a&&s.layers.levels){l+='<g class="level-lines">';const r=72;for(let h=0;h<=e.maxLevel;h++){const g=60+h*(c+r)+c+r/2;l+=`<line x1="20" y1="${g}" x2="${i-20}" y2="${g}" />`,l+=`<text x="30" y="${g-6}">Niveau ${h}</text>`}l+="</g>"}if(a&&e.moduleCount>0){const r=e.bottomModulesY-24;l+=`<g class="module-band">
+      <rect x="30" y="${r}" width="${i-60}" height="${c+50}" fill="none" stroke="var(--border-color)" stroke-dasharray="4 4" rx="8" />
+      <text x="44" y="${r+18}" fill="var(--dg-muted)" font-size="11" font-weight="700">MODULES TRANSVERSES (HORS ARBRE)</text>
+    </g>`}return l+='<g class="dg-edges">',o.edges.forEach(r=>{const h=e.positions[r.src],g=e.positions[r.dst];if(!(!h||!g))if(a){if(r.kind==="navigation"){const b=h.x+h.w/2,y=h.y+h.h,A=g.x+g.w/2,x=g.y,w=y+(x-y)/2,m=`M ${b} ${y} L ${b} ${w} L ${A} ${w} L ${A} ${x}`;l+=`<g class="dg-edge"><path d="${m}" marker-end="url(#arrow)" /></g>`}else if(s.layers.renvois){const b=h.x+h.w,y=h.y+h.h/2,A=g.x,x=g.y+g.h/2,w=`M ${b} ${y} C ${b+30} ${y}, ${A-30} ${x}, ${A} ${x}`;l+=`<g class="dg-edge cross"><path d="${w}" /></g>`}}else{const b=h.x+h.w,y=h.y+h.h/2,A=g.x,x=g.y+g.h/2;let w="dg-edge",m="arrow";const u=o.nodes[r.src];u?.type==="CALL"?(w+=" call",m="arrow-call"):u?.type==="EXT"&&(w+=" ext",m="arrow-ext"),(r.kind==="variant"||r.kind==="diverge"||r.kind==="rejoin")&&(w+=" cross");let p=`M ${b} ${y} L ${A} ${x}`;if(Math.abs(y-x)>10){const T=b+(A-b)/2;p=`M ${b} ${y} C ${T} ${y}, ${T} ${x}, ${A} ${x}`}l+=`<g class="${w}"><path d="${p}" marker-end="url(#${m})" /></g>`}}),l+="</g>",l+='<g class="dg-nodes">',Object.entries(e.positions).forEach(([r,h])=>{const g=o.nodes[r];g&&(l+=K(g,h,o,s,t))}),l+="</g>",l+="</svg>",l}function K(o,e,s,t,a){const i=o.code||o.id,n=o.type||(i.startsWith("H")?"H":"L"),c=o.subtype||n,l=n==="HOME"||i==="HOME",r=o.type==="ACT"||e.isAct,h=o.type==="ATT"||e.isAtt,g=n==="CALL",b=n==="EXT",y=o.access==="protected",A=o.tone==="accent",x=i.includes(":"),w=o.dynamic==="yes"||o.url&&(o.url.includes("[")||o.url.includes(":")),m=e.w||200,u=e.h||118,p=e.x,T=e.y,_=a[o.id]?.relative||o.url||"/",f=l?"Absolu":"Relatif";let L=!1;if(t.selectedRole!=="ALL"){const C=Array.isArray(o.roles)?o.roles:o.roles?[o.roles]:["ALL"];!C.includes("ALL")&&!C.includes(t.selectedRole)&&(L=!0)}let S=!1,d=0;t.layers.coverage&&s.meta.kind==="sitemap"&&(d=(t.globalIndex[i]||[]).filter(k=>k.diagramKind==="userflow").length,S=d===0);const E=["dg-card"];L&&E.push("dimmed"),S&&E.push("uncovered"),r&&E.push("act-card");const D=E.join(" ");let N="var(--dg-card-border)",O="1";l?(N="var(--dg-home)",O="3"):g?(N="var(--dg-call)",O="2"):b&&(N="var(--dg-ext)",O="2");let $="var(--dg-card)";A?$="var(--dg-fill-accent)":x&&($="var(--dg-fill-state)"),r&&(N="none",O="0");let v=`<g class="${D}" data-id="${o.id}" data-code="${i}" transform="translate(${p}, ${T})">`;w&&!r&&(v+=`<rect x="6" y="6" width="${m}" height="${u}" rx="5" fill="var(--dg-stack-2)" stroke="var(--dg-card-border)" stroke-width="1" />`,v+=`<rect x="3" y="3" width="${m}" height="${u}" rx="5" fill="var(--dg-stack-1)" stroke="var(--dg-card-border)" stroke-width="1" />`),v+=`<rect class="card-main" width="${m}" height="${u}" rx="5" fill="${$}" stroke="${N}" stroke-width="${O}" />`,r?(v+='<text x="14" y="26" class="material-symbols-outlined" fill="var(--primary)" font-size="20">ads_click</text>',v+='<text x="38" y="22" fill="var(--primary)" font-size="10" font-weight="700">ACTION</text>'):h?(v+='<text x="14" y="26" class="material-symbols-outlined" fill="var(--dg-att)" font-size="20">schedule</text>',v+='<text x="38" y="22" fill="var(--dg-att)" font-size="10" font-weight="700">ATTENTE</text>'):(v+=`<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${te(_,18)}</text>`,v+=`<text x="12" y="31" fill="var(--dg-muted)" font-size="8">${f}</text>`);const B=o.label||i,[U,M]=ee(B,18),F=M?56:64;if(v+=`<text x="${m/2}" y="${F}" fill="var(--dg-title)" font-size="12" font-weight="700" text-anchor="middle">
+    <tspan x="${m/2}" dy="0">${U}</tspan>
+    ${M?`<tspan x="${m/2}" dy="16">${M}</tspan>`:""}
+  </text>`,t.layers.numbers&&s.meta.kind==="sitemap"){const C=String(o.order||1).padStart(2,"0");v+=`<circle cx="22" cy="${u-20}" r="10" fill="var(--order-circle)" />`,v+=`<text x="22" y="${u-16}" fill="#fff" font-size="9" font-weight="700" text-anchor="middle">${C}</text>`}if(v+=`<text x="${m-12}" y="${u-22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${i}</text>`,v+=`<text x="${m-12}" y="${u-10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${c}</text>`,!r&&!h){const C=[];o.icon&&(Array.isArray(o.icon)?o.icon:[o.icon]).forEach(P=>C.push(P)),y&&C.push("lock"),C.slice(0,2).forEach((k,P)=>{const R=-4+P*28,I=-8;let H="var(--bubble-peach)",Y="smartphone";k==="a11y"?(H="var(--bubble-amber)",Y="accessibility_new"):k==="entry"?(H="var(--bubble-blue)",Y="login"):k==="info"?(H="var(--bubble-lavender)",Y="info"):k==="lock"&&(H="#475569",Y="lock"),v+=`<circle cx="${R+12}" cy="${I+12}" r="13" fill="${H}" stroke="#ffffff" stroke-width="1.5" />`,v+=`<text x="${R+12}" y="${I+17}" class="material-symbols-outlined" fill="#2b3a55" font-size="14" text-anchor="middle">${Y}</text>`})}if(t.layers.tags&&o.tags&&!r&&(Array.isArray(o.tags)?o.tags:[o.tags]).slice(0,2).forEach((k,P)=>{const R=m-10-(P+1)*44,I=k==="MVP"?"var(--tag-blue)":k==="SP1"?"var(--tag-green)":"var(--tag-orange)";v+=`<rect x="${R}" y="-8" width="40" height="18" rx="3" fill="#fff" stroke="${I}" stroke-width="1.5" />`,v+=`<text x="${R+20}" y="5" fill="${I}" font-size="9" font-weight="700" text-anchor="middle">${k}</text>`}),t.layers.avatars&&o.roles&&!r&&(Array.isArray(o.roles)?o.roles:[o.roles]).slice(0,2).forEach((k,P)=>{const R=m-16-P*20,I=u+8,H=k.slice(0,2).toUpperCase();v+=`<circle cx="${R}" cy="${I}" r="9" fill="#6366f1" stroke="#fff" stroke-width="2" />`,v+=`<text x="${R}" y="${I+3}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${H}</text>`}),t.layers.coverage&&s.meta.kind==="sitemap"){const C=S?"#ef4444":"#10b981",k=S?"0 parcours":`${d} parcours`;v+=`<rect x="12" y="${u-18}" width="65" height="14" rx="3" fill="${C}" />`,v+=`<text x="44" y="${u-8}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${k}</text>`}return v+="</g>",v}function ee(o,e=18){if(!o)return["",""];if(o.length<=e)return[o,""];const s=o.split(" ");if(s.length===1)return[o.slice(0,e),o.slice(e,e*2)];let t="",a="";for(let i of s)(t+" "+i).trim().length<=e&&!a?t=(t+" "+i).trim():a=(a+" "+i).trim();return a.length>e&&(a=a.slice(0,e-1)+"…"),[t,a]}function te(o,e){return o.length>e?o.slice(0,e)+"…":o}class se{constructor(e,s){this.viewport=e,this.wrapper=s,this.scale=1,this.panX=60,this.panY=60,this.isPanning=!1,this.startX=0,this.startY=0,this.initEvents()}initEvents(){this.viewport.addEventListener("wheel",e=>{e.preventDefault();const s=this.viewport.getBoundingClientRect(),t=e.clientX-s.left,a=e.clientY-s.top,i=e.deltaY<0?1.12:1/1.12,n=Math.min(Math.max(this.scale*i,.15),4);this.panX=t-(t-this.panX)*(n/this.scale),this.panY=a-(a-this.panY)*(n/this.scale),this.scale=n,this.applyTransform()}),this.viewport.addEventListener("mousedown",e=>{e.target.closest(".canvas-floating-toolbar")||e.target.closest("#inspector-modal")||(this.isPanning=!0,this.startX=e.clientX-this.panX,this.startY=e.clientY-this.panY,this.viewport.classList.add("panning"))}),window.addEventListener("mousemove",e=>{this.isPanning&&(this.panX=e.clientX-this.startX,this.panY=e.clientY-this.startY,this.applyTransform())}),window.addEventListener("mouseup",()=>{this.isPanning=!1,this.viewport.classList.remove("panning")})}applyTransform(){this.wrapper.style.transform=`translate(${this.panX}px, ${this.panY}px) scale(${this.scale})`}zoomIn(){this.scale=Math.min(this.scale*1.2,4),this.applyTransform()}zoomOut(){this.scale=Math.max(this.scale/1.2,.15),this.applyTransform()}reset(){this.scale=1,this.panX=60,this.panY=60,this.applyTransform()}fitToView(e,s){const t=this.viewport.clientWidth,a=this.viewport.clientHeight;this.scale=Math.min((t-120)/e,(a-120)/s,1.5),this.panX=(t-e*this.scale)/2,this.panY=(a-s*this.scale)/2,this.applyTransform()}centerOnNode(e,s=1.15){const t=this.wrapper.querySelector(`[data-id="${e}"]`);if(!t)return;const a=t.getBBox(),i=this.viewport.clientWidth,n=this.viewport.clientHeight;this.scale=s,this.panX=i/2-(a.x+a.width/2)*this.scale,this.panY=n/2-(a.y+a.height/2)*this.scale,this.applyTransform(),this.pulse(e)}pulse(e){const s=this.wrapper.querySelector(`[data-id="${e}"]`);s&&(s.classList.add("pulse"),setTimeout(()=>s.classList.remove("pulse"),1300))}}class ie{constructor(e,s,t={}){this.dom=e,this.panZoom=s,this.callbacks=t}show(e,s,t,a){const i=s.nodes[e];if(!i)return;const n=i.code||i.id,c=t.metadata[n]||{},l=t.screenSheets[n];this.panZoom.centerOnNode(e),this.dom.svgWrapper.querySelectorAll(".dg-card").forEach(f=>f.classList.remove("selected"));const r=this.dom.svgWrapper.querySelector(`[data-id="${e}"]`);r&&r.classList.add("selected");const h=s.edges.find(f=>f.dst===e&&f.kind==="navigation"),g=h?s.nodes[h.src]:null,y=s.edges.filter(f=>f.src===e&&f.kind==="navigation").map(f=>s.nodes[f.dst]).filter(Boolean),x=s.edges.filter(f=>f.src===e&&f.kind==="attach").map(f=>s.nodes[f.dst]).filter(Boolean),w=a[e]?.relative||i.url||"/",m=a[e]?.absolute||i.url||"/";let u=`
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <span style="font-family: monospace; font-weight: 700; color: var(--primary); font-size: 13px;">${n}</span>
+          <span class="hover-badge">${i.type||"ECR"}</span>
         </div>
-
-        <button class="btn-tool" id="btn-legend">Légende</button>
-        <button class="btn-tool" id="btn-diagnostics" title="Diagnostics structurels">Diagnostics <span id="diag-badge" style="background:#ef4444;color:#fff;border-radius:10px;padding:0 5px;font-size:10px;display:none;">0</span></button>
+        <h3 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">${i.label||n}</h3>
       </div>
 
-      <div class="toolbar-right">
-        <button class="btn-tool" id="btn-export-svg" title="Exporter au format SVG">SVG</button>
-        <button class="btn-tool" id="btn-export-png" title="Exporter PNG 1x">PNG</button>
-        <button class="btn-tool" id="btn-export-hd" title="Exporter PNG Haute Définition">PNG HD</button>
-        <button class="btn-tool" id="btn-print" title="Imprimer le diagramme">🖨️</button>
-        <button class="btn-tool" id="btn-toggle-inspector" title="Volet inspecteur">ℹ️</button>
-      </div>
-    </div>
-
-    <!-- Bouton Retour au Parcours (Navigation Croisée) -->
-    <button id="back-to-flow-btn">← Retour au parcours</button>
-
-    <!-- Zone Canevas & Zoom -->
-    <div class="canvas-viewport" id="canvas-viewport">
-      <div id="svg-canvas-wrapper">
-        <div id="render-target"></div>
+      \x3C!-- Section URLs (Point 7) -->
+      <div style="background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px;">
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">URL Relative (carte) :</div>
+        <div style="font-family: monospace; font-size: 12px; color: var(--dg-url); font-weight: 600; margin-bottom: 6px;">${w}</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">URL Absolue Calculée :</div>
+        <div style="font-family: monospace; font-size: 12px; color: var(--primary); font-weight: 600;">${m}</div>
       </div>
 
-      <!-- Contrôles Zoom Flottants -->
-      <div class="floating-controls">
-        <button class="btn-zoom" id="btn-zoom-in" title="Zoom avant">+</button>
-        <button class="btn-zoom" id="btn-zoom-out" title="Zoom arrière">-</button>
-        <button class="btn-zoom" id="btn-zoom-fit" title="Ajuster à la vue">⛶</button>
-        <button class="btn-zoom" id="btn-zoom-reset" title="Échelle 100%">1:1</button>
+      \x3C!-- Attributs clés -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; font-size: 11px;">
+        <div style="background: var(--bg-app); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+          <div style="color: var(--text-muted);">Accès</div>
+          <div style="font-weight: 600; margin-top: 2px;">${i.access==="protected"?"🔒 Protégé":"🌐 Public"}</div>
+        </div>
+        <div style="background: var(--bg-app); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+          <div style="color: var(--text-muted);">Sous-type</div>
+          <div style="font-weight: 600; margin-top: 2px;">${i.subtype||i.type||"Standard"}</div>
+        </div>
       </div>
-
-      <!-- Légende Flottante -->
-      <div id="legend-panel">
-        <div style="font-weight:700;margin-bottom:8px;">Légende du Diagramme</div>
-        <div id="legend-content"></div>
+    `;if(i.roles||i.tags){if(u+='<div style="margin-bottom: 14px;">',i.roles){const f=Array.isArray(i.roles)?i.roles:[i.roles];u+=`<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Rôles autorisés :</div>
+          <div style="margin-bottom: 6px;">${f.map(L=>`<span class="tag-chip" style="background:#e0e7ff;color:#3730a3;">${L}</span>`).join("")}</div>`}if(i.tags){const f=Array.isArray(i.tags)?i.tags:[i.tags];u+=`<div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Tags :</div>
+          <div>${f.map(L=>`<span class="tag-chip" style="background:#dcfce7;color:#166534;">${L}</span>`).join("")}</div>`}u+="</div>"}u+=`
+      <div class="node-nav-group">
+        <div class="node-nav-title">
+          <span class="material-symbols-outlined icon-sm">account_tree</span>
+          Hiérarchie & Navigation Directe
+        </div>
+        <div class="node-nav-list">
+    `,g?u+=`
+        <button class="node-nav-btn" data-nav-id="${g.id}">
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined icon-sm" style="color:var(--primary);">arrow_upward</span>
+            <span>Parent : <strong class="node-nav-code">${g.code||g.id}</strong></span>
+          </span>
+          <span class="node-nav-label">${g.label||""}</span>
+        </button>
+      `:u+='<div style="font-size: 11px; color: var(--text-muted); padding: 4px 0;">Racine (aucun nœud parent)</div>',y.length>0&&y.forEach(f=>{u+=`
+          <button class="node-nav-btn" data-nav-id="${f.id}">
+            <span style="display:flex;align-items:center;gap:6px;">
+              <span class="material-symbols-outlined icon-sm" style="color:#10b981;">subdirectory_arrow_right</span>
+              <span>Enfant : <strong class="node-nav-code">${f.code||f.id}</strong></span>
+            </span>
+            <span class="node-nav-label">${f.label||""}</span>
+          </button>
+        `}),x.length>0&&x.forEach(f=>{u+=`
+          <button class="node-nav-btn" data-nav-id="${f.id}">
+            <span style="display:flex;align-items:center;gap:6px;">
+              <span class="material-symbols-outlined icon-sm" style="color:#f59e0b;">attach_file</span>
+              <span>Rattaché : <strong class="node-nav-code">${f.code||f.id}</strong></span>
+            </span>
+            <span class="node-nav-label">${f.label||""}</span>
+          </button>
+        `}),u+="</div></div>",c.ctx_in&&Object.keys(c.ctx_in).length>0&&(u+=`
+        <div style="margin-top: 14px;">
+          <div class="node-nav-title">Contexte Requis (ctx_in)</div>
+          <pre style="background:var(--bg-app);border:1px solid var(--border-color);border-radius:6px;padding:8px;font-size:11px;overflow-x:auto;">${JSON.stringify(c.ctx_in,null,2)}</pre>
+        </div>
+      `),c.ctx_out&&Object.keys(c.ctx_out).length>0&&(u+=`
+        <div style="margin-top: 10px;">
+          <div class="node-nav-title">Contexte Produit (ctx_out)</div>
+          <pre style="background:var(--bg-app);border:1px solid var(--border-color);border-radius:6px;padding:8px;font-size:11px;overflow-x:auto;">${JSON.stringify(c.ctx_out,null,2)}</pre>
+        </div>
+      `),u+=`
+      <div style="margin-top: 18px; border-top: 1px solid var(--border-color); padding-top: 14px; display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-tool" id="btn-see-arbo">
+          <span class="material-symbols-outlined icon-sm">account_tree</span>
+          Voir dans l'arborescence
+        </button>
+        <button class="btn-tool" id="btn-see-flows">
+          <span class="material-symbols-outlined icon-sm">alt_route</span>
+          Voir dans les parcours
+        </button>
+        ${l?'<button class="btn-tool primary" id="btn-open-sheet"><span class="material-symbols-outlined icon-sm">description</span> Ouvrir la fiche écran</button>':""}
       </div>
-
-      <!-- État Vide -->
-      <div id="empty-state">
-        <h2>Aucun diagramme chargé</h2>
-        <p style="margin-top:8px;">Sélectionnez un dossier de livrables <code>generated/</code></p>
+    `,this.dom.inspectorBody.innerHTML=u,this.dom.inspectorModal.classList.add("active"),this.dom.inspectorBody.querySelectorAll(".node-nav-btn").forEach(f=>{f.addEventListener("click",()=>{const L=f.getAttribute("data-nav-id");L&&this.show(L,s,t,a)})});const p=this.dom.inspectorBody.querySelector("#btn-see-arbo");p&&p.addEventListener("click",()=>this.callbacks.onSeeInArbo(n));const T=this.dom.inspectorBody.querySelector("#btn-see-flows");T&&T.addEventListener("click",()=>this.callbacks.onSeeInFlows(n));const _=this.dom.inspectorBody.querySelector("#btn-open-sheet");_&&_.addEventListener("click",()=>this.callbacks.onOpenSheet(n))}hide(){this.dom.inspectorModal.classList.remove("active"),this.dom.svgWrapper.querySelectorAll(".dg-card").forEach(e=>e.classList.remove("selected"))}}class ae{constructor(e,s={}){this.el=e,this.callbacks=s,this.timer=null,this.currentNode=null}attach(e,s,t,a,i){e.querySelectorAll(".dg-card").forEach(n=>{const c=n.getAttribute("data-id");n.addEventListener("mouseenter",l=>{clearTimeout(this.timer),this.timer=setTimeout(()=>{const r=s(c);r&&this.show(r,l.clientX,l.clientY,t(r.code||c),a(r.code||c),i(c))},200)}),n.addEventListener("mouseleave",()=>{clearTimeout(this.timer)})}),window.addEventListener("mousemove",n=>{!n.target.closest(".dg-card")&&!n.target.closest("#hover-card")&&this.hide()})}show(e,s,t,a={},i=!1,n="/"){this.currentNode=e;const c=e.code||e.id;this.el.innerHTML=`
+      <div class="hover-header">
+        <span class="hover-code">${c}</span>
+        <span class="hover-badge">${e.type||"ECR"}</span>
       </div>
-    </div>
-  </main>
-
-  <!-- 3. Tiroir d'Inspection Droit -->
-  <aside id="inspector">
-    <div class="inspector-header">
-      <span style="font-weight:700;">Inspecteur de Nœud</span>
-      <button class="btn-tool" id="btn-close-inspector">✕</button>
-    </div>
-    <div class="inspector-content" id="inspector-content">
-      <p style="color:var(--text-muted);">Cliquez sur un écran ou un composant pour afficher ses propriétés détaillées.</p>
-    </div>
-  </aside>
-
-  <!-- 4. Carte de Survol (Tooltip Flottant) -->
-  <div id="hover-card"></div>
-
-  <!-- 5. Modale Fiche Écran Markdown -->
-  <div class="modal-overlay" id="sheet-modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <span id="modal-sheet-title">Fiche Écran</span>
-        <button class="btn-tool" id="btn-close-modal">✕</button>
+      <div class="hover-title">${e.label||c}</div>
+      <div class="hover-url">${n}</div>
+      <div class="hover-meta">
+        ${e.access==="protected"?"🔒 Protégée":"🌐 Publique"} · Rôles : ${Array.isArray(e.roles)?e.roles.join(", "):e.roles||"ALL"}
       </div>
-      <div class="modal-body" id="modal-sheet-content"></div>
-    </div>
-  </div>
-
-  <!-- 6. Modale Diagnostics Structurels -->
-  <div class="modal-overlay" id="diag-modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <span>Diagnostics Structurels (§11)</span>
-        <button class="btn-tool" id="btn-close-diag-modal">✕</button>
+      <div class="hover-actions">
+        <button class="hover-action-btn" data-action="arbo">
+          <span class="material-symbols-outlined icon-sm">account_tree</span>
+          Arbo
+        </button>
+        <button class="hover-action-btn" data-action="flows">
+          <span class="material-symbols-outlined icon-sm">alt_route</span>
+          Parcours
+        </button>
+        ${i?'<button class="hover-action-btn" data-action="sheet"><span class="material-symbols-outlined icon-sm">description</span> Fiche</button>':""}
+        <button class="hover-action-btn" data-action="copy">
+          <span class="material-symbols-outlined icon-sm">content_copy</span>
+          Copier
+        </button>
       </div>
-      <div class="modal-body" id="modal-diag-content"></div>
-    </div>
-  </div>
-
-  <!-- ----------------------------------------------------
-       7. Moteur d'Application Vanilla JavaScript (Spec v1.1)
-       ---------------------------------------------------- -->
-  <script>
-    (function () {
-      'use strict';
-
-      // État Global de l'Application
-      const state = {
-        diagrams: [],
-        activeDiagram: null,
-        metadata: {},
-        screenSheets: {},
-        globalIndex: {}, // code -> [{ diagramId, nodeId, code, title }]
-        diagnostics: [],
-        activeCategory: 'all',
-        selectedRole: 'ALL',
-        searchQuery: '',
-        selectedNodeCode: null,
-        previousFlowRef: null, // Mémorise le retour en navigation croisée
-
-        // Calques
-        layers: {
-          levels: true,
-          renvois: true,
-          numbers: false,
-          avatars: false,
-          tags: true,
-          coverage: false,
-          mermaid: false
-        },
-
-        // Pan & Zoom
-        scale: 1.0,
-        panX: 60,
-        panY: 60,
-        isPanning: false,
-        startX: 0,
-        startY: 0
-      };
-
-      // Éléments DOM
-      const dom = {
-        sidebar: document.getElementById('sidebar'),
-        inspector: document.getElementById('inspector'),
-        inspectorContent: document.getElementById('inspector-content'),
-        canvasViewport: document.getElementById('canvas-viewport'),
-        svgWrapper: document.getElementById('svg-canvas-wrapper'),
-        renderTarget: document.getElementById('render-target'),
-        diagramList: document.getElementById('diagram-list'),
-        activeTitle: document.getElementById('active-title'),
-        activeBadge: document.getElementById('active-kind-badge'),
-        hoverCard: document.getElementById('hover-card'),
-        backBtn: document.getElementById('back-to-flow-btn'),
-        legendPanel: document.getElementById('legend-panel'),
-        legendContent: document.getElementById('legend-content'),
-        sheetModal: document.getElementById('sheet-modal'),
-        sheetModalContent: document.getElementById('modal-sheet-content'),
-        sheetModalTitle: document.getElementById('modal-sheet-title'),
-        diagModal: document.getElementById('diag-modal'),
-        diagModalContent: document.getElementById('modal-diag-content'),
-        diagBadge: document.getElementById('diag-badge'),
-        roleFilter: document.getElementById('role-filter'),
-        searchInput: document.getElementById('search-input'),
-        fallbackInput: document.getElementById('fallback-input'),
-        layersDropdown: document.getElementById('layers-dropdown'),
-        emptyState: document.getElementById('empty-state')
-      };
-
-      // Thème initial (Décision #10 : Détection selon OS avec mémorisation)
-      function initTheme() {
-        const saved = localStorage.getItem('ia_theme');
-        if (saved) {
-          document.body.dataset.theme = saved;
-        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.body.dataset.theme = 'dark';
-        } else {
-          document.body.dataset.theme = 'light';
-        }
-      }
-      initTheme();
-
-      document.getElementById('btn-theme').addEventListener('click', () => {
-        const current = document.body.dataset.theme;
-        const next = current === 'dark' ? 'light' : 'dark';
-        document.body.dataset.theme = next;
-        localStorage.setItem('ia_theme', next);
-        if (state.activeDiagram) renderCurrentDiagram();
-      });
-
-      // ----------------------------------------------------
-      // 8. Parser Syntaxique de Fichier Mermaid + Meta %%@
-      // ----------------------------------------------------
-      function parseMermaidFile(rawText, filename) {
-        const ast = {
-          filename,
-          meta: { id: filename.replace('.mmd', ''), title: filename.replace('.mmd', ''), kind: 'sitemap' },
-          tags: {},
-          nodes: {},
-          edges: [],
-          rawMermaid: rawText
-        };
-
-        const lines = rawText.split('\n');
-        const mermaidLines = [];
-
-        for (let line of lines) {
-          const trimmed = line.trim();
-          if (trimmed.startsWith('%%@file')) {
-            parseKeyValues(trimmed.slice(7), ast.meta);
-          } else if (trimmed.startsWith('%%@tag')) {
-            const parts = trimmed.slice(6).trim().split(/\s+/);
-            const tagId = parts[0];
-            const tagProps = {};
-            parseKeyValues(parts.slice(1).join(' '), tagProps);
-            ast.tags[tagId] = tagProps;
-          } else if (trimmed.startsWith('%%@node')) {
-            const parts = trimmed.slice(7).trim().split(/\s+/);
-            const nodeId = parts[0];
-            const nodeProps = { id: nodeId, code: nodeId };
-            parseKeyValues(parts.slice(1).join(' '), nodeProps);
-            ast.nodes[nodeId] = nodeProps;
-          } else if (trimmed.startsWith('%%@edge')) {
-            const parts = trimmed.slice(7).trim().split(/\s+/);
-            const linkPair = parts[0]; // src>dst
-            const [src, dst] = linkPair.split('>');
-            const edgeProps = { src, dst, kind: 'nominal' };
-            parseKeyValues(parts.slice(1).join(' '), edgeProps);
-            ast.edges.push(edgeProps);
-          } else {
-            mermaidLines.push(line);
-          }
-        }
-
-        // Si kind non spécifié, déduction par le nom
-        if (!ast.meta.kind) {
-          ast.meta.kind = filename.toLowerCase().includes('sitemap') ? 'sitemap' : 'userflow';
-        }
-
-        // Extraction topologique depuis les lignes Mermaid standard
-        parseMermaidTopology(mermaidLines.join('\n'), ast);
-        return ast;
-      }
-
-      function parseKeyValues(str, target) {
-        const regex = /([a-zA-Z0-9_-]+)=(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
-        let match;
-        while ((match = regex.exec(str)) !== null) {
-          const k = match[1];
-          const v = match[2] !== undefined ? match[2] : (match[3] !== undefined ? match[3] : match[4]);
-          if (v && v.includes(',') && !k.includes('label') && !k.includes('title')) {
-            target[k] = v.split(',').map(s => s.trim());
-          } else {
-            target[k] = v;
-          }
-        }
-      }
-
-      function parseMermaidTopology(mText, ast) {
-        // Détection direction (TD ou LR)
-        ast.direction = mText.includes('flowchart LR') || mText.includes('graph LR') ? 'LR' : 'TD';
-
-        // Extraction simple des nœuds déclarés dans Mermaid
-        const nodeDeclRegex = /^\s*([A-Za-z0-9_]+)\s*(?:\[\(\s*["']?(.*?)["']?\s*\)\]|\(\[\s*["']?(.*?)["']?\s*\]\)|\{\{\s*["']?(.*?)["']?\s*\}\}|\[\[\s*["']?(.*?)["']?\s*\]\]|\[\/\s*["']?(.*?)["']?\s*\/\]|\{\s*["']?(.*?)["']?\s*\}|\[\s*["']?(.*?)["']?\s*\]|\>\s*["']?(.*?)["']?\s*\])/gm;
-        let match;
-        while ((match = nodeDeclRegex.exec(mText)) !== null) {
-          const id = match[1];
-          const rawLabel = match[2] || match[3] || match[4] || match[5] || match[6] || match[7] || match[8] || match[9] || id;
-          if (!ast.nodes[id]) {
-            ast.nodes[id] = { id, code: id, label: rawLabel };
-          } else if (!ast.nodes[id].label) {
-            ast.nodes[id].label = rawLabel;
-          }
-        }
-
-        // Extraction simple des liens Mermaid
-        const edgeRegex = /^\s*([A-Za-z0-9_]+)\s*(-->|-\.->|==>)\s*([A-Za-z0-9_]+)/gm;
-        while ((match = edgeRegex.exec(mText)) !== null) {
-          const src = match[1];
-          const typeArrow = match[2];
-          const dst = match[3];
-          const existing = ast.edges.find(e => e.src === src && e.dst === dst);
-          if (!existing) {
-            ast.edges.push({
-              src,
-              dst,
-              kind: typeArrow === '-.->' ? 'variant' : (ast.meta.kind === 'sitemap' ? 'navigation' : 'nominal')
-            });
-          }
-        }
-      }
-
-      // ----------------------------------------------------
-      // 9. Indexation Globale & Navigation Croisée Exacte
-      // ----------------------------------------------------
-      function buildGlobalIndex() {
-        state.globalIndex = {};
-        state.diagnostics = [];
-
-        state.diagrams.forEach(diag => {
-          Object.values(diag.nodes).forEach(n => {
-            const canonicalCode = n.code || n.id;
-            if (!state.globalIndex[canonicalCode]) {
-              state.globalIndex[canonicalCode] = [];
-            }
-            state.globalIndex[canonicalCode].push({
-              diagramId: diag.meta.id,
-              diagramKind: diag.meta.kind,
-              diagramTitle: diag.meta.title || diag.filename,
-              nodeId: n.id,
-              code: canonicalCode,
-              label: n.label || canonicalCode
-            });
-          });
-        });
-
-        // Contrôles structurels non bloquants (§11)
-        checkStructuralDiagnostics();
-      }
-
-      function checkStructuralDiagnostics() {
-        state.diagnostics = [];
-        const sitemaps = state.diagrams.filter(d => d.meta.kind === 'sitemap');
-        const userflows = state.diagrams.filter(d => d.meta.kind === 'userflow');
-
-        // Diagnostic 1 : Nœuds ECR dans userflow introuvables dans l'arborescence
-        userflows.forEach(uf => {
-          Object.values(uf.nodes).forEach(node => {
-            if (node.type === 'ECR') {
-              const code = node.code || node.id;
-              const foundInArbo = sitemaps.some(sm => Object.values(sm.nodes).some(sn => (sn.code || sn.id) === code));
-              if (!foundInArbo) {
-                state.diagnostics.push({
-                  level: 'warning',
-                  msg: `Écran [${code}] dans le parcours '${uf.meta.title}' absent de toute arborescence.`
-                });
-              }
-            }
-          });
-        });
-
-        // Diagnostic 2 : Double racine HOME dans une arborescence
-        sitemaps.forEach(sm => {
-          const homeNodes = Object.values(sm.nodes).filter(n => n.type === 'HOME' || n.code === 'HOME');
-          if (homeNodes.length > 1) {
-            state.diagnostics.push({
-              level: 'error',
-              msg: `Arborescence '${sm.meta.title}' contient ${homeNodes.length} pages déclarées comme HOME.`
-            });
-          }
-        });
-
-        // Mise à jour du badge dans la barre d'outils
-        if (state.diagnostics.length > 0) {
-          dom.diagBadge.style.display = 'inline-block';
-          dom.diagBadge.textContent = state.diagnostics.length;
-        } else {
-          dom.diagBadge.style.display = 'none';
-        }
-      }
-
-      // Résolution exacte "Voir dans l'arbo" avec cascade de repli (§6.3)
-      function resolveSeeInArbo(code) {
-        const sitemaps = state.diagrams.filter(d => d.meta.kind === 'sitemap');
-        if (sitemaps.length === 0) {
-          alert("Aucune arborescence chargée pour afficher ce code.");
-          return;
-        }
-
-        // Priorité : sitemap detailed, puis générale
-        const targetSitemap = sitemaps.find(s => s.meta.view === 'detailed') || sitemaps[0];
-
-        // 1. Essai exact
-        let targetNodeId = null;
-        for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
-          if ((node.code || nid) === code) {
-            targetNodeId = nid;
-            break;
-          }
-        }
-
-        // 2. Repli : suppression variante (:VAR)
-        if (!targetNodeId && code.includes(':')) {
-          const base = code.split(':')[0];
-          for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
-            if ((node.code || nid) === base) {
-              targetNodeId = nid;
-              break;
-            }
-          }
-        }
-
-        // 3. Repli : suppression rôle (@ROLE)
-        if (!targetNodeId && code.includes('@')) {
-          const base = code.split('@')[0];
-          for (let [nid, node] of Object.entries(targetSitemap.nodes)) {
-            if ((node.code || nid) === base) {
-              targetNodeId = nid;
-              break;
-            }
-          }
-        }
-
-        if (targetSitemap && targetNodeId) {
-          // Mémorise la provenance pour le bouton "← Retour au parcours"
-          state.previousFlowRef = {
-            diagram: state.activeDiagram,
-            scale: state.scale,
-            panX: state.panX,
-            panY: state.panY
-          };
-          dom.backBtn.style.display = 'block';
-
-          switchDiagram(targetSitemap);
-          setTimeout(() => {
-            zoomToNode(targetNodeId);
-            pulseNode(targetNodeId);
-          }, 150);
-        } else {
-          alert(`Code [${code}] introuvable dans les arborescences.`);
-        }
-      }
-
-      // Résolution "Voir dans les parcours"
-      function resolveSeeInUserflows(code) {
-        const occurrences = (state.globalIndex[code] || []).filter(o => o.diagramKind === 'userflow');
-        if (occurrences.length === 0) {
-          alert(`Aucun parcours utilisateur ne traverse l'écran [${code}].`);
-          return;
-        }
-        if (occurrences.length === 1) {
-          const occ = occurrences[0];
-          const targetFlow = state.diagrams.find(d => d.meta.id === occ.diagramId);
-          if (targetFlow) {
-            switchDiagram(targetFlow);
-            setTimeout(() => {
-              zoomToNode(occ.nodeId);
-              pulseNode(occ.nodeId);
-            }, 150);
-          }
-        } else {
-          // Affichage d'une liste de choix
-          const optionsText = occurrences.map((o, idx) => `${idx + 1}. ${o.diagramTitle}`).join('\n');
-          const choice = prompt(`L'écran [${code}] est présent dans ${occurrences.length} parcours :\n${optionsText}\nEntrez le numéro du parcours à afficher :`, '1');
-          const num = parseInt(choice, 10);
-          if (!isNaN(num) && num >= 1 && num <= occurrences.length) {
-            const occ = occurrences[num - 1];
-            const targetFlow = state.diagrams.find(d => d.meta.id === occ.diagramId);
-            if (targetFlow) {
-              switchDiagram(targetFlow);
-              setTimeout(() => {
-                zoomToNode(occ.nodeId);
-                pulseNode(occ.nodeId);
-              }, 150);
-            }
-          }
-        }
-      }
-
-      // ----------------------------------------------------
-      // 10. Moteur de Rendu SVG Vectoriel Natif (Spec §4)
-      // ----------------------------------------------------
-      function renderCurrentDiagram() {
-        const diag = state.activeDiagram;
-        if (!diag) return;
-
-        // Mise à jour de l'en-tête
-        dom.activeTitle.textContent = diag.meta.title || diag.filename;
-        dom.activeBadge.textContent = (diag.meta.kind || 'sitemap').toUpperCase();
-        dom.activeBadge.className = `item-badge ${diag.meta.kind === 'sitemap' ? 'badge-sitemap' : 'badge-userflow'}`;
-
-        // Mode Repli Vue Mermaid brute
-        if (state.layers.mermaid) {
-          renderRawMermaid(diag);
-          return;
-        }
-
-        if (diag.meta.kind === 'sitemap') {
-          renderSitemapTree(diag);
-        } else {
-          renderUserflowGraph(diag);
-        }
-
-        updateLegend(diag);
-      }
-
-      // Algorithme de Mise en Page Arborescence (Arbre Hiérarchique Compact TD)
-      function renderSitemapTree(diag) {
-        const cardW = 200;
-        const cardH = 118;
-        const gapX = 48;
-        const gapY = 72;
-
-        // Identification des racines (HOME ou nœuds sans parent entrant)
-        const nodeIds = Object.keys(diag.nodes);
-        const incoming = {};
-        nodeIds.forEach(id => incoming[id] = 0);
-        diag.edges.forEach(e => {
-          if (incoming[e.dst] !== undefined && e.kind === 'navigation') incoming[e.dst]++;
-        });
-
-        let roots = nodeIds.filter(id => incoming[id] === 0);
-        // Si HOME existe, HOME est racine principale en tête
-        roots.sort((a, b) => {
-          if (diag.nodes[a].type === 'HOME' || a === 'HOME') return -1;
-          if (diag.nodes[b].type === 'HOME' || b === 'HOME') return 1;
-          return 0;
-        });
-        if (roots.length === 0 && nodeIds.length > 0) roots = [nodeIds[0]];
-
-        // Calcul de la profondeur (niveaux)
-        const levels = {};
-        const childrenMap = {};
-        nodeIds.forEach(id => { childrenMap[id] = []; });
-        diag.edges.forEach(e => {
-          if (e.kind === 'navigation' && childrenMap[e.src]) {
-            childrenMap[e.src].push(e.dst);
-          }
-        });
-
-        function assignLevels(id, lvl) {
-          levels[id] = lvl;
-          childrenMap[id].forEach(c => assignLevels(c, lvl + 1));
-        }
-        roots.forEach(r => assignLevels(r, 0));
-        // Tout nœud orphelin va au niveau 1
-        nodeIds.forEach(id => { if (levels[id] === undefined) levels[id] = 1; });
-
-        // Placement horizontal compact
-        const positions = {};
-        let currentX = 60;
-        let maxLevel = 0;
-
-        function layoutSubtree(id) {
-          const children = childrenMap[id] || [];
-          if (children.length === 0) {
-            positions[id] = { x: currentX, y: 60 + levels[id] * (cardH + gapY) };
-            currentX += cardW + gapX;
-          } else {
-            children.forEach(c => layoutSubtree(c));
-            const firstChild = positions[children[0]];
-            const lastChild = positions[children[children.length - 1]];
-            const centerX = (firstChild.x + lastChild.x) / 2;
-            positions[id] = { x: centerX, y: 60 + levels[id] * (cardH + gapY) };
-          }
-          if (levels[id] > maxLevel) maxLevel = levels[id];
-        }
-        roots.forEach(r => layoutSubtree(r));
-
-        // Placement des éléments rattachés (DLG '!' et ANC '#') en colonne à droite
-        diag.edges.forEach(e => {
-          if (e.kind === 'attach' && positions[e.src] && diag.nodes[e.dst]) {
-            positions[e.dst] = {
-              x: positions[e.src].x + cardW + 30,
-              y: positions[e.src].y
-            };
-          }
-        });
-
-        // Placement des modules transverses (MOD) dans une bande dédiée en pied
-        const modNodes = Object.values(diag.nodes).filter(n => n.type === 'MOD' || (n.code && n.code.startsWith('M')));
-        const bottomY = 60 + (maxLevel + 1) * (cardH + gapY);
-        modNodes.forEach((m, idx) => {
-          positions[m.id] = { x: 60 + idx * (cardW + gapX), y: bottomY + 30 };
-        });
-
-        // Construction du SVG
-        const svgW = Math.max(currentX + 200, 1200);
-        const svgH = bottomY + (modNodes.length > 0 ? cardH + 120 : 100);
-
-        let svgHtml = `<svg class="dg-canvas" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
-
-        // 1. Lignes de niveau horizontales
-        if (state.layers.levels) {
-          svgHtml += `<g class="level-lines">`;
-          for (let lvl = 0; lvl <= maxLevel; lvl++) {
-            const lineY = 60 + lvl * (cardH + gapY) + cardH + (gapY / 2);
-            svgHtml += `<line x1="20" y1="${lineY}" x2="${svgW - 20}" y2="${lineY}" />`;
-            svgHtml += `<text x="30" y="${lineY - 6}">Niveau ${lvl}</text>`;
-          }
-          svgHtml += `</g>`;
-        }
-
-        // 2. Bande des Modules Transverses
-        if (modNodes.length > 0) {
-          svgHtml += `<g class="module-band">
-            <rect x="30" y="${bottomY}" width="${svgW - 60}" height="${cardH + 60}" fill="none" stroke="var(--border-color)" stroke-dasharray="4 4" rx="8" />
-            <text x="44" y="${bottomY + 20}" fill="var(--dg-muted)" font-size="11" font-weight="700">MODULES TRANSVERSES (HORS ARBRE)</text>
-          </g>`;
-        }
-
-        // 3. Dessin des Liens (Edges)
-        svgHtml += `<g class="dg-edges">`;
-        diag.edges.forEach(e => {
-          const p1 = positions[e.src];
-          const p2 = positions[e.dst];
-          if (!p1 || !p2) return;
-
-          if (e.kind === 'navigation') {
-            // Trait coudé orthogonal avec bus médian
-            const startX = p1.x + cardW / 2;
-            const startY = p1.y + cardH;
-            const endX = p2.x + cardW / 2;
-            const endY = p2.y;
-            const midY = startY + (gapY / 2);
-
-            const pathD = `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
-            svgHtml += `<g class="dg-edge"><path d="${pathD}" marker-end="url(#arrow)" /></g>`;
-          } else if (e.kind === 'attach' || e.kind === 'action' || e.kind === 'invoke') {
-            if (!state.layers.renvois) return;
-            // Lien pointillé horizontal ou coudé
-            const startX = p1.x + cardW;
-            const startY = p1.y + cardH / 2;
-            const endX = p2.x;
-            const endY = p2.y + cardH / 2;
-            const pathD = `M ${startX} ${startY} C ${startX + 30} ${startY}, ${endX - 30} ${endY}, ${endX} ${endY}`;
-            svgHtml += `<g class="dg-edge cross"><path d="${pathD}" /></g>`;
-          }
-        });
-        svgHtml += `</g>`;
-
-        // 4. Dessin des Cartes Nœuds
-        svgHtml += `<g class="dg-nodes">`;
-        Object.entries(positions).forEach(([nid, pos]) => {
-          const node = diag.nodes[nid];
-          if (node) {
-            svgHtml += renderNodeCard(node, pos.x, pos.y, diag);
-          }
-        });
-        svgHtml += `</g>`;
-
-        // Définition des Marqueurs SVG
-        svgHtml += `<defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dg-edge)" />
-          </marker>
-        </defs>`;
-
-        svgHtml += `</svg>`;
-        dom.renderTarget.innerHTML = svgHtml;
-        attachNodeInteractions();
-      }
-
-      // Algorithme de Mise en Page Parcours Utilisateur (Userflows LR)
-      function renderUserflowGraph(diag) {
-        const cardW = 200;
-        const cardH = 118;
-        const chipW = 120;
-        const chipH = 30;
-        const flowGap = 88;
-
-        const nodeIds = Object.keys(diag.nodes);
-        const positions = {};
-        let currentX = 60;
-        const currentY = 120;
-
-        // Ordre nominal sur la ligne 0
-        nodeIds.forEach(nid => {
-          const node = diag.nodes[nid];
-          const isChip = node.type === 'ACT' || node.type === 'ATT';
-          const w = isChip ? chipW : cardW;
-          const h = isChip ? chipH : cardH;
-          const y = isChip ? currentY + (cardH - chipH) / 2 : currentY;
-
-          positions[nid] = { x: currentX, y, w, h, isChip };
-          currentX += w + flowGap;
-        });
-
-        const svgW = Math.max(currentX + 100, 1000);
-        const svgH = 400;
-
-        let svgHtml = `<svg class="dg-canvas" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`;
-
-        // Liens
-        svgHtml += `<g class="dg-edges">`;
-        diag.edges.forEach(e => {
-          const p1 = positions[e.src];
-          const p2 = positions[e.dst];
-          if (!p1 || !p2) return;
-
-          const startX = p1.x + p1.w;
-          const startY = p1.y + p1.h / 2;
-          const endX = p2.x;
-          const endY = p2.y + p2.h / 2;
-
-          let edgeClass = 'dg-edge';
-          if (diag.nodes[e.src] && diag.nodes[e.src].type === 'CALL') edgeClass += ' call';
-          if (diag.nodes[e.src] && diag.nodes[e.src].type === 'EXT') edgeClass += ' ext';
-          if (e.kind === 'variant' || e.kind === 'diverge' || e.kind === 'rejoin') edgeClass += ' cross';
-
-          svgHtml += `<g class="${edgeClass}"><line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" marker-end="url(#arrow)" /></g>`;
-        });
-        svgHtml += `</g>`;
-
-        // Nœuds
-        svgHtml += `<g class="dg-nodes">`;
-        Object.entries(positions).forEach(([nid, pos]) => {
-          const node = diag.nodes[nid];
-          if (node) {
-            if (pos.isChip) {
-              svgHtml += renderChip(node, pos.x, pos.y, pos.w, pos.h);
-            } else {
-              svgHtml += renderNodeCard(node, pos.x, pos.y, diag);
-            }
-          }
-        });
-        svgHtml += `</g>`;
-
-        svgHtml += `<defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--dg-edge)" />
-          </marker>
-        </defs></svg>`;
-
-        dom.renderTarget.innerHTML = svgHtml;
-        attachNodeInteractions();
-      }
-
-      // Rendu du Composant "Carte Page" Unique (200 x 118 px, Spec §3.3)
-      function renderNodeCard(node, x, y, diag) {
-        const w = 200;
-        const h = 118;
-        const code = node.code || node.id;
-        const type = node.type || (code.startsWith('H') ? 'H' : 'L');
-        const subtype = node.subtype || type;
-        const url = node.url || `/${code.toLowerCase()}`;
-        const isHome = type === 'HOME' || code === 'HOME';
-        const isState = code.includes(':');
-        const isAccent = node.tone === 'accent';
-        const isDynamic = node.dynamic === 'yes' || url.includes('[') || url.includes(':');
-        const isProtected = node.access === 'protected';
-        const isCall = type === 'CALL';
-        const isExt = type === 'EXT';
-
-        // Filtrage par Rôle (Atténuation)
-        let isDimmed = false;
-        if (state.selectedRole !== 'ALL') {
-          const roles = Array.isArray(node.roles) ? node.roles : (node.roles ? [node.roles] : ['ALL']);
-          if (!roles.includes('ALL') && !roles.includes(state.selectedRole)) {
-            isDimmed = true;
-          }
-        }
-
-        // Calque Couverture : Compteur de parcours
-        let coverageCount = 0;
-        let isUncovered = false;
-        if (state.layers.coverage && diag.meta.kind === 'sitemap') {
-          const occs = (state.globalIndex[code] || []).filter(o => o.diagramKind === 'userflow');
-          coverageCount = occs.length;
-          isUncovered = (coverageCount === 0);
-        }
-
-        let bgClass = '';
-        let strokeColor = 'var(--dg-card-border)';
-        let strokeWidth = '1';
-
-        if (isHome) {
-          strokeColor = 'var(--dg-home)';
-          strokeWidth = '3';
-        } else if (isCall) {
-          strokeColor = 'var(--dg-call)';
-          strokeWidth = '2';
-        } else if (isExt) {
-          strokeColor = 'var(--dg-ext)';
-          strokeWidth = '2';
-        }
-
-        let fillBg = 'var(--dg-card)';
-        if (isAccent) fillBg = 'var(--dg-fill-accent)';
-        else if (isState) fillBg = 'var(--dg-fill-state)';
-
-        let cardSvg = `<g class="dg-card ${isDimmed ? 'dimmed' : ''} ${isUncovered ? 'uncovered' : ''}" data-id="${node.id}" data-code="${code}" transform="translate(${x}, ${y})">`;
-
-        // Pile Dynamique (2 couches décalées en bas-droite)
-        if (isDynamic) {
-          cardSvg += `<rect x="6" y="6" width="${w}" height="${h}" rx="5" fill="var(--dg-stack-2)" stroke="var(--dg-card-border)" stroke-width="1" />`;
-          cardSvg += `<rect x="3" y="3" width="${w}" height="${h}" rx="5" fill="var(--dg-stack-1)" stroke="var(--dg-card-border)" stroke-width="1" />`;
-        }
-
-        // Fond Principal
-        cardSvg += `<rect class="card-main" width="${w}" height="${h}" rx="5" fill="${fillBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
-
-        // 1. URL + Mode URL (Haut-gauche)
-        const urlMode = isHome ? 'Absolu' : 'Relatif';
-        cardSvg += `<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${truncate(url, 18)}</text>`;
-        cardSvg += `<text x="12" y="32" fill="var(--dg-muted)" font-size="8">${urlMode}</text>`;
-
-        // 2. Titre de la Page (Centre gras, centré)
-        const title = node.label || code;
-        cardSvg += `<text x="${w / 2}" y="64" fill="var(--dg-title)" font-size="13" font-weight="700" text-anchor="middle">${truncate(title, 22)}</text>`;
-
-        // 3. Pastille d'Ordre (Bas-gauche, Calque Numérotation activé, sitemap uniquement)
-        if (state.layers.numbers && diag.meta.kind === 'sitemap') {
-          const ord = node.order || '01';
-          cardSvg += `<circle cx="22" cy="${h - 20}" r="10" fill="var(--order-circle)" />`;
-          cardSvg += `<text x="22" y="${h - 16}" fill="#fff" font-size="9" font-weight="700" text-anchor="middle">${ord}</text>`;
-        }
-
-        // 4. Code & Type/Subtype (Bas-droite)
-        cardSvg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${code}</text>`;
-        cardSvg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${subtype}</text>`;
-
-        // 5. Bulles d'icônes (Coin Haut-Gauche, débordant de 10px)
-        const bubbles = [];
-        if (node.icon) {
-          const icons = Array.isArray(node.icon) ? node.icon : [node.icon];
-          icons.forEach(ic => bubbles.push(ic));
-        }
-        if (isProtected) bubbles.push('lock');
-
-        bubbles.slice(0, 2).forEach((b, idx) => {
-          const bx = -4 + idx * 28;
-          const by = -8;
-          let bColor = 'var(--bubble-peach)';
-          let bGlyph = '📱';
-          if (b === 'a11y') { bColor = 'var(--bubble-amber)'; bGlyph = '♿'; }
-          else if (b === 'entry') { bColor = 'var(--bubble-blue)'; bGlyph = '🎯'; }
-          else if (b === 'info') { bColor = 'var(--bubble-lavender)'; bGlyph = 'ℹ️'; }
-          else if (b === 'lock') { bColor = '#475569'; bGlyph = '🔒'; }
-
-          cardSvg += `<circle cx="${bx + 12}" cy="${by + 12}" r="13" fill="${bColor}" stroke="#fff" stroke-width="1.5" />`;
-          cardSvg += `<text x="${bx + 12}" y="${by + 16}" font-size="10" text-anchor="middle">${bGlyph}</text>`;
-        });
-
-        // 6. Tags (Coin Haut-Droit, Calque Tags)
-        if (state.layers.tags && node.tags) {
-          const tags = Array.isArray(node.tags) ? node.tags : [node.tags];
-          tags.slice(0, 2).forEach((tg, idx) => {
-            const tx = w - 10 - (idx + 1) * 44;
-            const tColor = tg === 'MVP' ? 'var(--tag-blue)' : (tg === 'SP1' ? 'var(--tag-green)' : 'var(--tag-orange)');
-            cardSvg += `<rect x="${tx}" y="-8" width="40" height="18" rx="3" fill="#fff" stroke="${tColor}" stroke-width="1.5" />`;
-            cardSvg += `<text x="${tx + 20}" y="5" fill="${tColor}" font-size="9" font-weight="700" text-anchor="middle">${tg}</text>`;
-          });
-        }
-
-        // 7. Avatars Rôles (Calque Avatars)
-        if (state.layers.avatars && node.roles) {
-          const roles = Array.isArray(node.roles) ? node.roles : [node.roles];
-          roles.slice(0, 2).forEach((r, idx) => {
-            const ax = w - 16 - idx * 20;
-            const ay = h + 6;
-            const initial = r.slice(0, 2).toUpperCase();
-            cardSvg += `<circle cx="${ax}" cy="${ay}" r="10" fill="#6366f1" stroke="#fff" stroke-width="2" />`;
-            cardSvg += `<text x="${ax}" y="${ay + 3}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${initial}</text>`;
-          });
-        }
-
-        // 8. Badge Calque Couverture
-        if (state.layers.coverage && diag.meta.kind === 'sitemap') {
-          const badgeBg = isUncovered ? '#ef4444' : '#10b981';
-          const txt = isUncovered ? '0 parcours' : `${coverageCount} parcours`;
-          cardSvg += `<rect x="12" y="${h - 18}" width="65" height="14" rx="3" fill="${badgeBg}" />`;
-          cardSvg += `<text x="44" y="${h - 8}" fill="#fff" font-size="8" font-weight="700" text-anchor="middle">${txt}</text>`;
-        }
-
-        cardSvg += `</g>`;
-        return cardSvg;
-      }
-
-      // Rendu des Pastilles Chips (Actions ACT & Attentes ATT, Décision #8)
-      function renderChip(node, x, y, w, h) {
-        const isAtt = node.type === 'ATT';
-        const glyph = isAtt ? '⏳' : '⚡';
-        const stroke = isAtt ? 'var(--dg-att)' : 'var(--primary)';
-        const label = node.label || (isAtt ? 'Attente' : 'Action');
-
-        return `
-          <g class="dg-chip" data-id="${node.id}" data-code="${node.code || node.id}" transform="translate(${x}, ${y})">
-            <rect width="${w}" height="${h}" rx="15" fill="var(--dg-card)" stroke="${stroke}" stroke-width="1.5" stroke-dasharray="${isAtt ? '4 3' : 'none'}" />
-            <text x="16" y="19" font-size="11">${glyph}</text>
-            <text x="${w / 2 + 6}" y="19" fill="var(--text-main)" font-size="10" font-weight="600" text-anchor="middle">${truncate(label, 14)}</text>
-          </g>
-        `;
-      }
-
-      function truncate(str, len) {
-        if (!str) return '';
-        return str.length > len ? str.slice(0, len) + '…' : str;
-      }
-
-      // Repli Vue Mermaid Brute
-      function renderRawMermaid(diag) {
-        dom.renderTarget.innerHTML = `<div class="mermaid">${diag.rawMermaid}</div>`;
-        if (window.mermaid) {
-          mermaid.init(undefined, dom.renderTarget.querySelectorAll('.mermaid'));
-        }
-      }
-
-      // ----------------------------------------------------
-      // 11. Interactions : Survol (Hover Card 200ms) & Inspecteur
-      // ----------------------------------------------------
-      let hoverTimer = null;
-
-      function attachNodeInteractions() {
-        const nodeEls = dom.renderTarget.querySelectorAll('.dg-card, .dg-chip');
-        nodeEls.forEach(el => {
-          const nid = el.getAttribute('data-id');
-          const code = el.getAttribute('data-code');
-          const node = state.activeDiagram.nodes[nid];
-
-          // Clic -> Inspecteur
-          el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            selectNode(nid, code);
-          });
-
-          // Survol -> Carte 200 ms
-          el.addEventListener('mouseenter', (e) => {
-            clearTimeout(hoverTimer);
-            hoverTimer = setTimeout(() => {
-              showHoverCard(node, e.clientX, e.clientY);
-            }, 200);
-          });
-
-          el.addEventListener('mouseleave', () => {
-            clearTimeout(hoverTimer);
-          });
-        });
-      }
-
-      function selectNode(nid, code) {
-        state.selectedNodeCode = code;
-        dom.renderTarget.querySelectorAll('.dg-card').forEach(c => c.classList.remove('selected'));
-        const activeCard = dom.renderTarget.querySelector(`[data-id="${nid}"]`);
-        if (activeCard) activeCard.classList.add('selected');
-
-        // Alimente l'inspecteur
-        const node = state.activeDiagram.nodes[nid] || { id: nid, code };
-        const meta = state.metadata[code] || {};
-        const sheet = state.screenSheets[code];
-
-        let html = `
-          <div class="prop-group">
-            <div class="prop-label">Code Canonique</div>
-            <div class="prop-val"><span class="prop-code">${code}</span></div>
-          </div>
-          <div class="prop-group">
-            <div class="prop-label">Titre & URL</div>
-            <div class="prop-val"><strong>${node.label || code}</strong><br><span style="font-family:monospace;color:var(--dg-url);">${node.url || meta.url || '/'}</span></div>
-          </div>
-          <div class="prop-group">
-            <div class="prop-label">Gabarit & Accès</div>
-            <div class="prop-val">Type : <code>${node.type || 'L'}</code> · Accès : ${node.access === 'protected' ? '🔒 Protégé' : '🌐 Public'}</div>
-          </div>
-        `;
-
-        if (node.roles || meta.roles) {
-          const roles = node.roles || meta.roles;
-          html += `<div class="prop-group"><div class="prop-label">Rôles</div><div class="prop-val">${Array.isArray(roles) ? roles.join(', ') : roles}</div></div>`;
-        }
-
-        if (meta.ctx_in) {
-          html += `<div class="prop-group"><div class="prop-label">Contexte Requis (ctx_in)</div><div class="prop-val"><pre>${JSON.stringify(meta.ctx_in, null, 2)}</pre></div></div>`;
-        }
-        if (meta.ctx_out) {
-          html += `<div class="prop-group"><div class="prop-label">Contexte Produit (ctx_out)</div><div class="prop-val"><pre>${JSON.stringify(meta.ctx_out, null, 2)}</pre></div></div>`;
-        }
-        if (meta.tracking) {
-          html += `<div class="prop-group"><div class="prop-label">Observabilité & Tracking</div><div class="prop-val"><pre>${JSON.stringify(meta.tracking, null, 2)}</pre></div></div>`;
-        }
-
-        // Actions Croisées
-        html += `<div class="prop-group" style="margin-top:20px;border-top:1px solid var(--border-color);padding-top:14px;">
-          <div class="prop-label">Navigation Croisée</div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">
-            <button class="btn-tool" onclick="window.iaViewer.resolveSeeInArbo('${code}')">🔍 Voir dans l'arborescence</button>
-            <button class="btn-tool" onclick="window.iaViewer.resolveSeeInUserflows('${code}')">🗺️ Voir dans les parcours</button>
-            ${sheet ? `<button class="btn-tool primary" onclick="window.iaViewer.openSheet('${code}')">📄 Ouvrir la fiche écran</button>` : ''}
-          </div>
-        </div>`;
-
-        dom.inspectorContent.innerHTML = html;
-        dom.inspector.classList.remove('collapsed');
-      }
-
-      function showHoverCard(node, clientX, clientY) {
-        const code = node.code || node.id;
-        const meta = state.metadata[code] || {};
-        const sheet = state.screenSheets[code];
-
-        dom.hoverCard.innerHTML = `
-          <div class="hover-header">
-            <span class="hover-code">${code}</span>
-            <span class="hover-badge">${node.type || 'ECR'}</span>
-          </div>
-          <div class="hover-title">${node.label || code}</div>
-          <div class="hover-url">${node.url || meta.url || '/'}</div>
-          <div class="hover-meta">
-            ${node.access === 'protected' ? '🔒 Protégée' : '🌐 Publique'} · Rôles : ${(node.roles || ['ALL'])}
-          </div>
-          <div class="hover-actions">
-            <button class="hover-action-btn" onclick="window.iaViewer.resolveSeeInArbo('${code}')">Voir dans l'arbo</button>
-            <button class="hover-action-btn" onclick="window.iaViewer.resolveSeeInUserflows('${code}')">Voir dans parcours</button>
-            ${sheet ? `<button class="hover-action-btn" onclick="window.iaViewer.openSheet('${code}')">Fiche écran</button>` : ''}
-            <button class="hover-action-btn" onclick="navigator.clipboard.writeText('${code}')">Copier code</button>
-          </div>
-        `;
-
-        dom.hoverCard.style.left = `${Math.min(clientX + 15, window.innerWidth - 310)}px`;
-        dom.hoverCard.style.top = `${Math.min(clientY + 15, window.innerHeight - 200)}px`;
-        dom.hoverCard.style.display = 'block';
-      }
-
-      dom.canvasViewport.addEventListener('mousemove', (e) => {
-        if (!e.target.closest('.dg-card') && !e.target.closest('#hover-card') && !e.target.closest('.dg-chip')) {
-          dom.hoverCard.style.display = 'none';
-        }
-      });
-
-      // Zoom Centré et Animation vers un Nœud (§7.3)
-      function zoomToNode(nid) {
-        const el = dom.renderTarget.querySelector(`[data-id="${nid}"]`);
-        if (!el) return;
-        const bbox = el.getBBox();
-        const matrix = el.getCTM();
-        const vpW = dom.canvasViewport.clientWidth;
-        const vpH = dom.canvasViewport.clientHeight;
-
-        state.scale = 1.15;
-        state.panX = vpW / 2 - (bbox.x + bbox.width / 2) * state.scale;
-        state.panY = vpH / 2 - (bbox.y + bbox.height / 2) * state.scale;
-        updateTransform();
-      }
-
-      function pulseNode(nid) {
-        const el = dom.renderTarget.querySelector(`[data-id="${nid}"]`);
-        if (el) {
-          el.classList.add('pulse');
-          setTimeout(() => el.classList.remove('pulse'), 1300);
-        }
-      }
-
-      // ----------------------------------------------------
-      // 12. Moteur de Pan & Zoom Vectoriel (Spec §7)
-      // ----------------------------------------------------
-      function updateTransform() {
-        dom.svgWrapper.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.scale})`;
-      }
-
-      dom.canvasViewport.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const rect = dom.canvasViewport.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        const zoomFactor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
-        const newScale = Math.min(Math.max(state.scale * zoomFactor, 0.15), 4.0);
-
-        state.panX = mouseX - (mouseX - state.panX) * (newScale / state.scale);
-        state.panY = mouseY - (mouseY - state.panY) * (newScale / state.scale);
-        state.scale = newScale;
-        updateTransform();
-      });
-
-      dom.canvasViewport.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.floating-controls') || e.target.closest('#legend-panel')) return;
-        state.isPanning = true;
-        state.startX = e.clientX - state.panX;
-        state.startY = e.clientY - state.panY;
-        dom.canvasViewport.classList.add('panning');
-      });
-
-      window.addEventListener('mousemove', (e) => {
-        if (!state.isPanning) return;
-        state.panX = e.clientX - state.startX;
-        state.panY = e.clientY - state.startY;
-        updateTransform();
-      });
-
-      window.addEventListener('mouseup', () => {
-        state.isPanning = false;
-        dom.canvasViewport.classList.remove('panning');
-      });
-
-      // Boutons Flottants Zoom
-      document.getElementById('btn-zoom-in').addEventListener('click', () => {
-        state.scale = Math.min(state.scale * 1.2, 4.0);
-        updateTransform();
-      });
-      document.getElementById('btn-zoom-out').addEventListener('click', () => {
-        state.scale = Math.max(state.scale / 1.2, 0.15);
-        updateTransform();
-      });
-      document.getElementById('btn-zoom-reset').addEventListener('click', () => {
-        state.scale = 1.0;
-        state.panX = 60;
-        state.panY = 60;
-        updateTransform();
-      });
-      document.getElementById('btn-zoom-fit').addEventListener('click', () => {
-        const svgEl = dom.renderTarget.querySelector('svg');
-        if (!svgEl) return;
-        const vpW = dom.canvasViewport.clientWidth;
-        const vpH = dom.canvasViewport.clientHeight;
-        const sW = parseFloat(svgEl.getAttribute('width')) || 1200;
-        const sH = parseFloat(svgEl.getAttribute('height')) || 800;
-
-        state.scale = Math.min((vpW - 100) / sW, (vpH - 100) / sH, 1.5);
-        state.panX = (vpW - sW * state.scale) / 2;
-        state.panY = (vpH - sH * state.scale) / 2;
-        updateTransform();
-      });
-
-      // ----------------------------------------------------
-      // 13. Découverte de Fichiers & Données de Démonstration
-      // ----------------------------------------------------
-      async function autoFetchLocal() {
-        try {
-          const resp = await fetch('./metadata.json');
-          if (resp.ok) {
-            state.metadata = await resp.json();
-          }
-        } catch (e) {
-          console.log("Auto-fetch metadata.json non disponible en local direct.");
-        }
-      }
-
-      // Gestion sélection de dossier (Chromium FSA API & input fallback)
-      document.getElementById('btn-open-folder').addEventListener('click', async () => {
-        if (window.showDirectoryPicker) {
-          try {
-            const dirHandle = await window.showDirectoryPicker();
-            await loadFromDirectoryHandle(dirHandle);
-          } catch (err) {
-            if (err.name !== 'AbortError') dom.fallbackInput.click();
-          }
-        } else {
-          dom.fallbackInput.click();
-        }
-      });
-
-      dom.fallbackInput.addEventListener('change', async (e) => {
-        const files = Array.from(e.target.files);
-        if (files.length > 0) await loadFromFileList(files);
-      });
-
-      async function loadFromDirectoryHandle(dirHandle) {
-        state.diagrams = [];
-        for await (const entry of dirHandle.values()) {
-          if (entry.kind === 'file' && entry.name.endsWith('.mmd')) {
-            const file = await entry.getFile();
-            const text = await file.text();
-            state.diagrams.push(parseMermaidFile(text, entry.name));
-          } else if (entry.kind === 'file' && entry.name === 'metadata.json') {
-            const file = await entry.getFile();
-            state.metadata = JSON.parse(await file.text());
-          } else if (entry.kind === 'directory' && entry.name === 'screen-sheets') {
-            for await (const sheetEntry of entry.values()) {
-              if (sheetEntry.kind === 'file' && sheetEntry.name.endsWith('.md')) {
-                const sFile = await sheetEntry.getFile();
-                const code = sheetEntry.name.replace(/^screen-/, '').replace(/\.md$/, '');
-                state.screenSheets[code] = await sFile.text();
-              }
-            }
-          }
-        }
-        onDataLoaded();
-      }
-
-      async function loadFromFileList(files) {
-        state.diagrams = [];
-        for (let file of files) {
-          if (file.name.endsWith('.mmd')) {
-            const text = await file.text();
-            state.diagrams.push(parseMermaidFile(text, file.name));
-          } else if (file.name === 'metadata.json') {
-            state.metadata = JSON.parse(await file.text());
-          } else if (file.name.endsWith('.md') && file.webkitRelativePath.includes('screen-sheets')) {
-            const code = file.name.replace(/^screen-/, '').replace(/\.md$/, '');
-            state.screenSheets[code] = await file.text();
-          }
-        }
-        onDataLoaded();
-      }
-
-      function onDataLoaded() {
-        buildGlobalIndex();
-        updateSidebar();
-        updateRoleOptions();
-        if (state.diagrams.length > 0) {
-          switchDiagram(state.diagrams[0]);
-        }
-      }
-
-      function switchDiagram(diag) {
-        state.activeDiagram = diag;
-        renderCurrentDiagram();
-
-        // Met à jour la classe active dans la barre latérale
-        dom.diagramList.querySelectorAll('.diagram-item').forEach(el => {
-          el.classList.toggle('active', el.getAttribute('data-id') === diag.meta.id);
-        });
-      }
-
-      function updateSidebar() {
-        dom.diagramList.innerHTML = '';
-        const filtered = state.diagrams.filter(d => {
-          if (state.activeCategory === 'sitemap' && d.meta.kind !== 'sitemap') return false;
-          if (state.activeCategory === 'userflow' && d.meta.kind !== 'userflow') return false;
-          if (state.searchQuery) {
-            const q = state.searchQuery.toLowerCase();
-            const matchTitle = (d.meta.title || d.filename).toLowerCase().includes(q);
-            const matchNode = Object.values(d.nodes).some(n => (n.code || n.id).toLowerCase().includes(q) || (n.label || '').toLowerCase().includes(q));
-            return matchTitle || matchNode;
-          }
-          return true;
-        });
-
-        filtered.forEach(diag => {
-          const item = document.createElement('div');
-          item.className = `diagram-item ${state.activeDiagram === diag ? 'active' : ''}`;
-          item.setAttribute('data-id', diag.meta.id);
-          item.innerHTML = `
-            <div class="item-header">
-              <span class="item-title">${diag.meta.title || diag.filename}</span>
-              <span class="item-badge ${diag.meta.kind === 'sitemap' ? 'badge-sitemap' : 'badge-userflow'}">${diag.meta.kind}</span>
-            </div>
-            <div class="item-desc">${Object.keys(diag.nodes).length} nœuds · ${diag.meta.view || 'standard'}</div>
-          `;
-          item.addEventListener('click', () => switchDiagram(diag));
-          dom.diagramList.appendChild(item);
-        });
-      }
-
-      function updateRoleOptions() {
-        const rolesSet = new Set(['ALL']);
-        state.diagrams.forEach(diag => {
-          Object.values(diag.nodes).forEach(n => {
-            if (n.roles) {
-              const rs = Array.isArray(n.roles) ? n.roles : [n.roles];
-              rs.forEach(r => rolesSet.add(r));
-            }
-          });
-        });
-
-        dom.roleFilter.innerHTML = '';
-        rolesSet.forEach(r => {
-          const opt = document.createElement('option');
-          opt.value = r;
-          opt.textContent = r === 'ALL' ? 'Tous les rôles' : r;
-          dom.roleFilter.appendChild(opt);
-        });
-      }
-
-      // Gestion des Filtres
-      document.querySelectorAll('.filter-pills .pill').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.filter-pills .pill').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          state.activeCategory = btn.getAttribute('data-filter');
-          updateSidebar();
-        });
-      });
-
-      dom.roleFilter.addEventListener('change', () => {
-        state.selectedRole = dom.roleFilter.value;
-        if (state.activeDiagram) renderCurrentDiagram();
-      });
-
-      dom.searchInput.addEventListener('input', (e) => {
-        state.searchQuery = e.target.value.trim();
-        updateSidebar();
-      });
-
-      // Gestion des Calques
-      document.getElementById('btn-layers').addEventListener('click', (e) => {
-        e.stopPropagation();
-        dom.layersDropdown.classList.toggle('open');
-      });
-      window.addEventListener('click', () => dom.layersDropdown.classList.remove('open'));
-
-      const layerBindings = [
-        ['layer-levels', 'levels'],
-        ['layer-renvois', 'renvois'],
-        ['layer-numbers', 'numbers'],
-        ['layer-avatars', 'avatars'],
-        ['layer-tags', 'tags'],
-        ['layer-coverage', 'coverage'],
-        ['layer-mermaid', 'mermaid']
-      ];
-      layerBindings.forEach(([elId, prop]) => {
-        const checkbox = document.getElementById(elId);
-        checkbox.addEventListener('change', (e) => {
-          state.layers[prop] = e.target.checked;
-          if (state.activeDiagram) renderCurrentDiagram();
-        });
-      });
-
-      // Bouton Retour au Parcours
-      dom.backBtn.addEventListener('click', () => {
-        if (state.previousFlowRef) {
-          switchDiagram(state.previousFlowRef.diagram);
-          state.scale = state.previousFlowRef.scale;
-          state.panX = state.previousFlowRef.panX;
-          state.panY = state.previousFlowRef.panY;
-          updateTransform();
-          dom.backBtn.style.display = 'none';
-          state.previousFlowRef = null;
-        }
-      });
-
-      // Légende
-      document.getElementById('btn-legend').addEventListener('click', () => {
-        dom.legendPanel.classList.toggle('active');
-      });
-
-      function updateLegend(diag) {
-        let html = '';
-        html += `<div class="legend-row"><div class="legend-color" style="border:2px solid var(--dg-home);"></div><span>Homepage (3px bleu)</span></div>`;
-        html += `<div class="legend-row"><div class="legend-color" style="background:var(--dg-fill-state);"></div><span>État / Variante (Bleu-gris)</span></div>`;
-        html += `<div class="legend-row"><div class="legend-color" style="background:var(--dg-fill-accent);"></div><span>Accentuation (Lavande)</span></div>`;
-        html += `<div class="legend-row"><div class="legend-color" style="border:1.5px solid var(--dg-call);"></div><span>Sous-Parcours (CALL violet)</span></div>`;
-        html += `<div class="legend-row"><div class="legend-color" style="border:1.5px solid var(--dg-ext);"></div><span>Événement Externe (EXT orange)</span></div>`;
-        html += `<div class="legend-row"><div class="legend-color" style="border:1.5px dashed var(--dg-att);"></div><span>Attente (ATT pastille ⏳)</span></div>`;
-        dom.legendContent.innerHTML = html;
-      }
-
-      // Diagnostics Modal
-      document.getElementById('btn-diagnostics').addEventListener('click', () => {
-        if (state.diagnostics.length === 0) {
-          dom.diagModalContent.innerHTML = `<p style="color:#10b981;font-weight:600;">✓ Aucun problème structurel détecté.</p>`;
-        } else {
-          dom.diagModalContent.innerHTML = state.diagnostics.map(d => `
-            <div style="padding:8px;border-left:3px solid ${d.level === 'error' ? '#ef4444' : '#f59e0b'};background:var(--bg-app);margin-bottom:8px;">
-              <strong>${d.level.toUpperCase()}</strong> : ${d.msg}
-            </div>
-          `).join('');
-        }
-        dom.diagModal.classList.add('active');
-      });
-      document.getElementById('btn-close-diag-modal').addEventListener('click', () => dom.diagModal.classList.remove('active'));
-
-      // Modale Fiche Écran
-      function openSheet(code) {
-        const content = state.screenSheets[code] || `# Fiche Écran : ${code}\n\nAucun contenu disponible.`;
-        dom.sheetModalTitle.textContent = `Fiche Écran : ${code}`;
-        dom.sheetModalContent.innerHTML = `<pre>${content}</pre>`;
-        dom.sheetModal.classList.add('active');
-      }
-      document.getElementById('btn-close-modal').addEventListener('click', () => dom.sheetModal.classList.remove('active'));
-
-      // Exports (§8)
-      document.getElementById('btn-export-svg').addEventListener('click', () => {
-        const svg = dom.renderTarget.querySelector('svg');
-        if (!svg) return;
-        const serializer = new XMLSerializer();
-        const svgStr = serializer.serializeToString(svg);
-        const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${state.activeDiagram ? state.activeDiagram.meta.id : 'diagram'}.svg`;
-        a.click();
-      });
-
-      document.getElementById('btn-export-png').addEventListener('click', () => exportPng(1));
-      document.getElementById('btn-export-hd').addEventListener('click', () => exportPng(2.5));
-      document.getElementById('btn-print').addEventListener('click', () => window.print());
-
-      function exportPng(scaleMultiplier) {
-        const svg = dom.renderTarget.querySelector('svg');
-        if (!svg) return;
-        const serializer = new XMLSerializer();
-        const svgStr = serializer.serializeToString(svg);
-        const img = new Image();
-        const svgW = parseFloat(svg.getAttribute('width')) || 1200;
-        const svgH = parseFloat(svg.getAttribute('height')) || 800;
-
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = svgW * scaleMultiplier;
-          canvas.height = svgH * scaleMultiplier;
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = document.body.dataset.theme === 'dark' ? '#090d16' : '#ffffff';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const a = document.createElement('a');
-          a.download = `${state.activeDiagram ? state.activeDiagram.meta.id : 'diagram'}${scaleMultiplier > 1 ? '-hd' : ''}.png`;
-          a.href = canvas.toDataURL('image/png');
-          a.click();
-        };
-        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)));
-      }
-
-      // Panneaux Escamotables
-      document.getElementById('btn-toggle-sidebar').addEventListener('click', () => dom.sidebar.classList.toggle('collapsed'));
-      document.getElementById('btn-toggle-inspector').addEventListener('click', () => dom.inspector.classList.toggle('collapsed'));
-      document.getElementById('btn-close-inspector').addEventListener('click', () => dom.inspector.classList.add('collapsed'));
-
-      // Exposition globale pour les boutons d'action en ligne
-      window.iaViewer = {
-        resolveSeeInArbo,
-        resolveSeeInUserflows,
-        openSheet
-      };
-
-      // ----------------------------------------------------
-      // 14. Initialisation Automatique & Données Démo
-      // ----------------------------------------------------
-      autoFetchLocal();
-
-      // Données de Démonstration intégrées par défaut (Spec §2.4.5 & §1.1)
-      const demoDiagrams = [
-        `%%@file id=sitemap-overview project=SALLES kind=sitemap view=general title="Arborescence Générale"
-%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,ADMIN url=/ order=1
-%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms order=2
-%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms/[id] order=3
+    `,this.el.style.left=`${Math.min(s+15,window.innerWidth-320)}px`,this.el.style.top=`${Math.min(t+15,window.innerHeight-200)}px`,this.el.style.display="block",this.el.querySelector('[data-action="arbo"]').onclick=()=>this.callbacks.onSeeInArbo(c),this.el.querySelector('[data-action="flows"]').onclick=()=>this.callbacks.onSeeInFlows(c);const l=this.el.querySelector('[data-action="sheet"]');l&&(l.onclick=()=>this.callbacks.onOpenSheet(c)),this.el.querySelector('[data-action="copy"]').onclick=r=>{navigator.clipboard.writeText(c),r.target.closest("button").innerText="Copié !",setTimeout(()=>this.hide(),600)}}hide(){clearTimeout(this.timer),this.el.style.display="none"}}function oe(o,e){const s=document.getElementById("btn-export-dropdown"),t=document.getElementById("export-dropdown-content");s&&t&&(s.addEventListener("click",a=>{a.stopPropagation(),t.parentElement.classList.toggle("open")}),window.addEventListener("click",()=>{t.parentElement.classList.remove("open")})),document.getElementById("export-svg")?.addEventListener("click",()=>{ne(o,e())}),document.getElementById("export-png")?.addEventListener("click",()=>{q(o,e(),1)}),document.getElementById("export-hd")?.addEventListener("click",()=>{q(o,e(),2.5)}),document.getElementById("export-print")?.addEventListener("click",()=>{window.print()})}function ne(o,e){const s=o.svgWrapper.querySelector("svg");if(!s)return;let a=new XMLSerializer().serializeToString(s);a.includes('xmlns="http://www.w3.org/2000/svg"')||(a=a.replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" '));const i=new Blob([a],{type:"image/svg+xml;charset=utf-8"}),n=URL.createObjectURL(i),c=document.createElement("a");c.href=n,c.download=`${e?e.meta.id:"diagram"}.svg`,c.click(),URL.revokeObjectURL(n)}function q(o,e,s=1){const t=o.svgWrapper.querySelector("svg");if(!t)return;const i=new XMLSerializer().serializeToString(t),n=parseFloat(t.getAttribute("width"))||1200,c=parseFloat(t.getAttribute("height"))||800,l=new Image;l.onload=()=>{const r=document.createElement("canvas");r.width=n*s,r.height=c*s;const h=r.getContext("2d"),g=document.body.dataset.theme==="dark";h.fillStyle=g?"#090d16":"#ffffff",h.fillRect(0,0,r.width,r.height),h.drawImage(l,0,0,r.width,r.height);const b=document.createElement("a");b.download=`${e?e.meta.id:"diagram"}${s>1?"-hd":""}.png`,b.href=r.toDataURL("image/png"),b.click()},l.src="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(i)))}const re=[{filename:"sitemap-overview.mmd",text:`%%@file id=sitemap-overview project=SPACEHUB kind=sitemap view=general title="Arborescence Générale"
+%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/ order=1
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/spaces order=2
+%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/spaces/[id] order=3
 %%@node F001 code=F001 type=F subtype=stepper access=protected roles=CLIENT,ADMIN url=/booking/[id] order=4
-%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,ADMIN url=/dashboard order=5
-%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,ADMIN url=/404 order=6
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,HOST,ADMIN url=/dashboard order=5
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/404 order=6
 %%@edge HOME>L001 kind=navigation
 %%@edge HOME>D001 kind=navigation
 %%@edge HOME>E404 kind=navigation
 %%@edge L001>C001 kind=navigation
 %%@edge C001>F001 kind=navigation
 flowchart TD
-  HOME(["HOME · Accueil & Vitrine"])
-  L001["L001 · Catalogue des Salles"]
-  C001(["C001 · Fiche Détail Salle"])
-  F001{"F001 · Tunnel de Réservation"}
-  D001["D001 · Tableau de Bord"]
-  E404["E404 · Page Introuvable"]
+  HOME(["Accueil SpaceHub"])
+  L001["Catalogue des Espaces"]
+  C001(["Fiche Détail Espace"])
+  F001{"Tunnel de Réservation"}
+  D001["Tableau de Bord"]
+  E404["Page 404"]
+
   HOME --> L001
   HOME --> D001
   HOME --> E404
   L001 --> C001
-  C001 --> F001`,
-
-        `%%@file id=sitemap-detailed project=SALLES kind=sitemap view=detailed title="Arborescence Détaillée"
+  C001 --> F001`},{filename:"sitemap-detailed.mmd",text:`%%@file id=sitemap-detailed project=SPACEHUB kind=sitemap view=detailed title="Arborescence Détaillée"
 %%@tag MVP color=blue style=fill label="MVP"
 %%@tag SP1 color=green style=outline label="Sprint 1"
 %%@tag SP2 color=orange style=outline label="Sprint 2"
-%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,ADMIN url=/ order=1 tags=MVP icon=entry
-%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms order=2 tags=MVP,SP1 icon=device
+%%@tag VIP color=red style=outline label="VIP"
+%%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/ order=1 tags=MVP icon=entry
+%%@node L001 code=L001 type=L subtype=datagrid access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/spaces order=2 tags=MVP,SP1 icon=device
 %%@node L001_dlg_filtres code=L001!filtres type=DLG order=1
-%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,ADMIN url=/rooms/[id] dynamic=yes order=3 tags=MVP
+%%@node C001 code=C001 type=C subtype=fiche access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/spaces/[id] dynamic=yes order=3 tags=MVP
 %%@node C001_anc_avis code=C001#avis type=ANC order=1
 %%@node F001 code=F001 type=F subtype=stepper access=protected roles=CLIENT,ADMIN url=/booking/[id] order=4 tags=MVP,SP2 who=CLIENT
 %%@node F001_recap code=F001:RECAP type=F subtype=recap access=protected roles=CLIENT,ADMIN url=/booking/[id]/recap order=5
-%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=ADMIN url=/rooms/new tone=accent order=6 tags=SP2 who=ADMIN
-%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,ADMIN url=/dashboard order=7 tags=SP1 who=CLIENT,ADMIN
-%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,ADMIN url=/404 order=8
+%%@node F002 code=F002 type=F subtype=formulaire access=protected roles=HOST,ADMIN url=/spaces/new tone=accent order=6 tags=SP2 who=HOST
+%%@node D001 code=D001 type=D subtype=dashboard access=protected roles=CLIENT,HOST,ADMIN url=/dashboard order=7 tags=SP1 who=CLIENT,HOST,ADMIN
+%%@node E404 code=E404 type=E subtype=erreur-404 access=public roles=ANONYMOUS,CLIENT,HOST,ADMIN url=/404 order=8
 %%@node M001 code=M001 type=MOD scope=ALL order=1
 %%@node M002 code=M002 type=MOD scope=AUTH order=2
 %%@edge HOME>L001 kind=navigation
@@ -2263,25 +190,26 @@ flowchart TD
 %%@edge HOME>E404 kind=navigation
 %%@edge L001>C001 kind=navigation
 %%@edge L001>L001_dlg_filtres kind=attach ref=FEAT-FILTRES
-%%@edge L001>F002 kind=action ref=FEAT-AJOUTER-SALLE
+%%@edge L001>F002 kind=action ref=FEAT-CREER-ESPACE
 %%@edge C001>F001 kind=navigation
 %%@edge C001>C001_anc_avis kind=attach
 %%@edge F001>F001_recap kind=navigation
 %%@edge L001>M001 kind=invoke
 %%@edge F001>M002 kind=invoke
 flowchart TD
-  HOME(["HOME · Accueil & Vitrine"])
-  L001["L001 · Catalogue des Salles"]
-  L001_dlg_filtres["!filtres · Filtres Avancés"]
-  C001(["C001 · Fiche Détail Salle"])
-  C001_anc_avis["#avis · Avis Clients"]
-  F001{"F001 · Tunnel de Réservation"}
-  F001_recap{"F001:RECAP · Récapitulatif"}
-  F002{"F002 · Créer une Nouvelle Salle"}
-  D001["D001 · Tableau de Bord"]
-  E404["E404 · Page Introuvable"]
-  M001>"M001 · Centre d'Aide & FAQ"]
-  M002>"M002 · Panier & Sélection"]
+  HOME(["Accueil SpaceHub"])
+  L001["Catalogue des Espaces"]
+  L001_dlg_filtres["Filtres Avancés"]
+  C001(["Fiche Détail Espace"])
+  C001_anc_avis["Avis Clients"]
+  F001{"Tunnel de Réservation"}
+  F001_recap{"Récapitulatif Commande"}
+  F002{"Créer un Nouvel Espace"}
+  D001["Tableau de Bord"]
+  E404["Page Introuvable"]
+  M001>"Centre d'Aide & FAQ"]
+  M002>"Panier & Sélection"]
+
   HOME --> L001
   HOME --> D001
   HOME --> E404
@@ -2292,13 +220,39 @@ flowchart TD
   C001 -.-> C001_anc_avis
   F001 --> F001_recap
   L001 -.-> M001
-  F001 -.-> M002`,
+  F001 -.-> M002`},{filename:"UC-RESERVATION-overview.mmd",text:`%%@file id=UC-RESERVATION-overview project=SPACEHUB kind=userflow view=uc uc=UC-RESERVATION obj=OBJ-RES-01 title="Cas d'Usage : Réservation Espace" roles=CLIENT,HOST
+%%@node HOME code=HOME type=ECR order=1
+%%@node L001 code=L001 type=ECR order=2
+%%@node C001 code=C001 type=ECR order=3
+%%@node F001 code=F001 type=ECR order=4
+%%@node F001_recap code=F001:RECAP type=ECR order=5
+%%@node CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=6
+%%@node D001 code=D001 type=ECR order=7
+%%@node EXT_SUPPORT code=EXT-SUPPORT type=EXT order=8
+%%@edge HOME>L001 kind=nominal
+%%@edge L001>C001 kind=nominal
+%%@edge C001>F001 kind=nominal
+%%@edge F001>F001_recap kind=nominal
+%%@edge F001_recap>CALL_PAY kind=nominal
+%%@edge CALL_PAY>D001 kind=nominal
+%%@edge F001>EXT_SUPPORT kind=variant
+%%@edge EXT_SUPPORT>F001_recap kind=rejoin
+flowchart LR
+  HOME(["Accueil"])
+  L001["Catalogue"]
+  C001(["Fiche Espace"])
+  F001{"Tunnel Réservation"}
+  F001_recap{"Récapitulatif"}
+  CALL_PAY[["Paiement Sécurisé"]]
+  D001["Confirmation Dashboard"]
+  EXT_SUPPORT[/"Rappel Conseiller ⏸"/]
 
-        `%%@file id=PF-RESERVATION-NOM-collapsed project=SALLES kind=userflow view=collapsed uc=UC-RESERVATION statut=nominal roles=CLIENT title="Parcours Nominal Réservation" atterrissage=D001
+  HOME --> L001 --> C001 --> F001 --> F001_recap --> CALL_PAY --> D001
+  F001 -.-> EXT_SUPPORT -.-> F001_recap`},{filename:"PF-RESERVATION-NOM-collapsed.mmd",text:`%%@file id=PF-RESERVATION-NOM-collapsed project=SPACEHUB kind=userflow view=collapsed uc=UC-RESERVATION statut=nominal roles=CLIENT title="Parcours Nominal Réservation" atterrissage=D001
 %%@node ND_HOME code=HOME type=ECR order=1
 %%@node ND_ACT1 ref=FEAT-RECHERCHER type=ACT order=2
 %%@node ND_L001 code=L001 type=ECR order=3
-%%@node ND_ACT2 ref=FEAT-CHOISIR-SALLE type=ACT order=4
+%%@node ND_ACT2 ref=FEAT-CHOISIR type=ACT order=4
 %%@node ND_C001 code=C001 type=ECR order=5
 %%@node ND_ACT3 ref=FEAT-CONFIG-OPTIONS type=ACT order=6
 %%@node ND_F001 code=F001 type=ECR order=7
@@ -2317,22 +271,21 @@ flowchart TD
 %%@edge ND_F001_RECAP>ND_CALL_PAY kind=nominal
 %%@edge ND_CALL_PAY>ND_D001 kind=nominal
 flowchart LR
-  ND_HOME(["ND-001 · Accueil"])
-  ND_ACT1["ND-002 · Recherche par ville"]
-  ND_L001["ND-003 · Catalogue des salles"]
-  ND_ACT2["ND-004 · Sélectionne la salle"]
-  ND_C001(["ND-005 · Fiche détaillée"])
-  ND_ACT3["ND-006 · Choix du créneau"]
-  ND_F001{"ND-007 · Tunnel options"}
-  ND_ATT1{{"ND-008 · Vérification créneau"}}
-  ND_F001_RECAP{"ND-009 · Récapitulatif commande"}
-  ND_CALL_PAY[["PF-PAIEMENT-SEG · Paiement sécurisé"]]
-  ND_D001["ND-011 · Tableau de bord"]
-  ND_HOME --> ND_ACT1 --> ND_L001 --> ND_ACT2 --> ND_C001 --> ND_ACT3 --> ND_F001 --> ND_ATT1 --> ND_F001_RECAP --> ND_CALL_PAY --> ND_D001`,
+  ND_HOME(["Accueil"])
+  ND_ACT1["Recherche par ville"]
+  ND_L001["Catalogue des espaces"]
+  ND_ACT2["Sélectionne l'espace"]
+  ND_C001(["Fiche détaillée"])
+  ND_ACT3["Configuration des créneaux"]
+  ND_F001{"Tunnel options"}
+  ND_ATT1{{"Vérification disponibilité"}}
+  ND_F001_RECAP{"Récapitulatif commande"}
+  ND_CALL_PAY[["Module Paiement Sécurisé"]]
+  ND_D001["Tableau de bord"]
 
-        `%%@file id=PF-RESERVATION-VAR-ASSIST project=SALLES kind=userflow view=collapsed uc=UC-RESERVATION statut=variante roles=CLIENT title="Variante avec Rupture ⏸" diverge=PF-RESERVATION-NOM@7 rejoint=PF-RESERVATION-NOM@9
+  ND_HOME --> ND_ACT1 --> ND_L001 --> ND_ACT2 --> ND_C001 --> ND_ACT3 --> ND_F001 --> ND_ATT1 --> ND_F001_RECAP --> ND_CALL_PAY --> ND_D001`},{filename:"PF-RESERVATION-VAR-ASSIST.mmd",text:`%%@file id=PF-RESERVATION-VAR-ASSIST project=SPACEHUB kind=userflow view=collapsed uc=UC-RESERVATION statut=variante roles=CLIENT title="Variante Devis & Rupture ⏸" diverge=PF-RESERVATION-NOM@7 rejoint=PF-RESERVATION-NOM@9
 %%@node ND_F001 code=F001 type=ECR order=1
-%%@node ND_ACT_HELP ref=FEAT-DEMANDE-AIDE type=ACT order=2
+%%@node ND_ACT_HELP ref=FEAT-DEMANDE-DEVIS type=ACT order=2
 %%@node ND_EXT_SUPPORT code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND_F001_RECAP persist=external delay=24h order=3
 %%@node ND_F001_RECAP code=F001:RECAP type=ECR order=4
 %%@node ND_CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=5
@@ -2341,22 +294,235 @@ flowchart LR
 %%@edge ND_EXT_SUPPORT>ND_F001_RECAP kind=rejoin
 %%@edge ND_F001_RECAP>ND_CALL_PAY kind=nominal
 flowchart LR
-  ND_F001{"ND-001 · Tunnel réservation"}
-  ND_ACT_HELP["ND-002 · Demande de devis sur mesure"]
-  ND_EXT_SUPPORT[/"ND-003 · Échange téléphonique conseiller ⏸"/]
-  ND_F001_RECAP{"ND-004 · Récapitulatif avec devis"}
-  ND_CALL_PAY[["PF-PAIEMENT-SEG · Paiement validé"]]
+  ND_F001{"Tunnel réservation"}
+  ND_ACT_HELP["Demande de devis sur mesure"]
+  ND_EXT_SUPPORT[/"Rappel téléphonique conseiller ⏸"/]
+  ND_F001_RECAP{"Récapitulatif ajusté"}
+  ND_CALL_PAY[["Paiement validé"]]
+
   ND_F001 -.-> ND_ACT_HELP -.-> ND_EXT_SUPPORT -.-> ND_F001_RECAP
-  ND_F001_RECAP --> ND_CALL_PAY`
-      ];
+  ND_F001_RECAP --> ND_CALL_PAY`}],le={HOME:{code:"HOME",title:"Accueil & Vitrine",url:"/",template:"HOME",access:"public",roles:["ANONYMOUS","CLIENT","HOST","ADMIN"],ctx_in:{},ctx_out:{utm_source:"STRING",session_id:"UUID"},tracking:{pageview:"/home",events:["search_submit","explore_spaces"]}},L001:{code:"L001",title:"Catalogue des Espaces",url:"/spaces",template:"L",subtype:"datagrid",access:"public",roles:["ANONYMOUS","CLIENT","HOST","ADMIN"],ctx_in:{city:"STRING",capacity:"INTEGER"},ctx_out:{selected_space_id:"INTEGER"},tracking:{pageview:"/spaces",events:["filter_applied","card_click"]}},"L001!filtres":{code:"L001!filtres",title:"Filtres Avancés",template:"DLG",access:"public",ctx_in:{current_filters:"OBJECT"},ctx_out:{applied_filters:"OBJECT"}},C001:{code:"C001",title:"Fiche Détail Espace",url:"/spaces/[id]",template:"C",subtype:"fiche",access:"public",roles:["ANONYMOUS","CLIENT","HOST","ADMIN"],dynamic:!0,ctx_in:{space_id:"INTEGER"},ctx_out:{slot_id:"STRING",price:"NUMBER"},tracking:{pageview:"/spaces/:id",events:["gallery_swipe","book_click"]}},"C001#avis":{code:"C001#avis",title:"Section Avis Clients",template:"ANC",url:"/spaces/[id]#avis",access:"public"},F001:{code:"F001",title:"Tunnel de Réservation",url:"/booking/[id]",template:"F",subtype:"stepper",access:"protected",roles:["CLIENT","ADMIN"],ctx_in:{space_id:"INTEGER",slot_id:"STRING"},ctx_out:{booking_id:"UUID",total:"NUMBER"}},"F001:RECAP":{code:"F001:RECAP",title:"Récapitulatif Commande",url:"/booking/[id]/recap",template:"F",subtype:"recap",access:"protected",roles:["CLIENT","ADMIN"]},F002:{code:"F002",title:"Créer un Nouvel Espace",url:"/spaces/new",template:"F",subtype:"formulaire",access:"protected",roles:["HOST","ADMIN"],tone:"accent"},D001:{code:"D001",title:"Tableau de Bord",url:"/dashboard",template:"D",subtype:"dashboard",access:"protected",roles:["CLIENT","HOST","ADMIN"],ctx_in:{user_id:"UUID"}},E404:{code:"E404",title:"Page Introuvable",url:"/404",template:"E",subtype:"erreur-404",access:"public"},M001:{code:"M001",title:"Centre d'Aide & FAQ",template:"MOD",scope:"ALL",access:"public"},M002:{code:"M002",title:"Panier & Sélection",template:"MOD",scope:"AUTH",access:"protected"},"EXT-SUPPORT":{code:"EXT-SUPPORT",title:"Rappel Téléphonique Conseiller",template:"EXT",obs:"none",break:{is_break:!0,delay:"24h",resume_node:"F001:RECAP"}}},ce={HOME:"# Fiche d'Écran : HOME (Accueil & Vitrine)\n\n- **Code canonique** : `HOME`\n- **Template** : Homepage (`type=HOME`)\n- **URL** : `/`\n- **Accès** : `public`\n\nPage d'accueil de la plateforme SpaceHub avec moteur de recherche rapide et mise en avant des espaces recommandés.",L001:"# Fiche d'Écran : L001 (Catalogue des Espaces)\n\n- **Code canonique** : `L001`\n- **Template** : Liste / Datagrid (`type=L`)\n- **URL** : `/spaces`\n- **Accès** : `public`\n\nCatalogue paginé des salles et espaces de coworking avec filtres latéraux.",C001:"# Fiche d'Écran : C001 (Fiche Détail Espace)\n\n- **Code canonique** : `C001`\n- **Template** : Consultation (`type=C`)\n- **URL** : `/spaces/[id]`\n- **Page dynamique** : `dynamic=yes`\n\nPrésentation complète des équipements, photos, tarifs et avis certifiés.",F001:"# Fiche d'Écran : F001 (Tunnel de Réservation)\n\n- **Code canonique** : `F001`\n- **Template** : Stepper (`type=F`)\n- **URL** : `/booking/[id]`\n- **Accès** : `protected`\n\nTunnel en plusieurs étapes pour la sélection des options et la confirmation des coordonnées.",D001:"# Fiche d'Écran : D001 (Tableau de Bord)\n\n- **Code canonique** : `D001`\n- **Template** : Dashboard (`type=D`)\n- **URL** : `/dashboard`\n- **Accès** : `protected`\n\nEspace de suivi des réservations et téléchargement des factures."};class de{constructor(){this.state={diagrams:[],activeDiagram:null,metadata:{},screenSheets:{},globalIndex:{},diagnostics:[],activeCategory:"all",selectedRole:"ALL",searchQuery:"",selectedNodeCode:null,previousFlowRef:null,layers:{levels:!0,renvois:!0,numbers:!1,avatars:!1,tags:!0,coverage:!1,mermaid:!1}},this.dom={sidebar:document.getElementById("sidebar"),canvasViewport:document.getElementById("canvas-viewport"),svgWrapper:document.getElementById("svg-canvas-wrapper"),renderTarget:document.getElementById("render-target"),diagramList:document.getElementById("diagram-list"),activeTitle:document.getElementById("active-title"),activeBadge:document.getElementById("active-kind-badge"),hoverCard:document.getElementById("hover-card"),backBtn:document.getElementById("back-to-flow-btn"),inspectorModal:document.getElementById("inspector-modal"),inspectorBody:document.getElementById("inspector-body"),roleFilter:document.getElementById("role-filter"),searchInput:document.getElementById("search-input"),fallbackInput:document.getElementById("fallback-input"),legendPanel:document.getElementById("legend-panel"),legendContent:document.getElementById("legend-content"),diagModal:document.getElementById("diag-modal"),diagModalContent:document.getElementById("modal-diag-content"),diagBadge:document.getElementById("diag-badge"),sheetModal:document.getElementById("sheet-modal"),sheetModalTitle:document.getElementById("modal-sheet-title"),sheetModalContent:document.getElementById("modal-sheet-content")},this.initTheme(),this.panZoom=new se(this.dom.canvasViewport,this.dom.svgWrapper),this.inspector=new ie(this.dom,this.panZoom,{onSeeInArbo:e=>this.resolveSeeInArbo(e),onSeeInFlows:e=>this.resolveSeeInUserflows(e),onOpenSheet:e=>this.openSheet(e)}),this.hoverCard=new ae(this.dom.hoverCard,{onSeeInArbo:e=>this.resolveSeeInArbo(e),onSeeInFlows:e=>this.resolveSeeInUserflows(e),onOpenSheet:e=>this.openSheet(e)}),this.initEventListeners(),oe(this.dom,()=>this.state.activeDiagram),this.initData()}initTheme(){const e=localStorage.getItem("ia_theme");e?document.body.dataset.theme=e:window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches?document.body.dataset.theme="dark":document.body.dataset.theme="light",document.getElementById("btn-theme")?.addEventListener("click",()=>{const t=document.body.dataset.theme==="dark"?"light":"dark";document.body.dataset.theme=t,localStorage.setItem("ia_theme",t),this.state.activeDiagram&&this.render()})}initEventListeners(){document.getElementById("btn-open-folder")?.addEventListener("click",async()=>{if(window.showDirectoryPicker)try{const a=await window.showDirectoryPicker();await this.loadFromDirectoryHandle(a)}catch(a){a.name!=="AbortError"&&this.dom.fallbackInput.click()}else this.dom.fallbackInput.click()}),this.dom.fallbackInput?.addEventListener("change",async a=>{const i=Array.from(a.target.files);i.length>0&&await this.loadFromFileList(i)}),document.getElementById("btn-refresh")?.addEventListener("click",()=>{this.state.activeDiagram&&this.render()}),document.querySelectorAll(".filter-pills .pill").forEach(a=>{a.addEventListener("click",()=>{document.querySelectorAll(".filter-pills .pill").forEach(i=>i.classList.remove("active")),a.classList.add("active"),this.state.activeCategory=a.getAttribute("data-filter"),this.updateSidebar()})}),this.dom.roleFilter?.addEventListener("change",()=>{this.state.selectedRole=this.dom.roleFilter.value,this.state.activeDiagram&&this.render()}),this.dom.searchInput?.addEventListener("input",a=>{this.state.searchQuery=a.target.value.trim(),this.updateSidebar()});const e=document.getElementById("btn-layers-float"),s=document.getElementById("layers-dropdown-float");e&&s&&(e.addEventListener("click",a=>{a.stopPropagation(),s.classList.toggle("open")}),window.addEventListener("click",()=>s.classList.remove("open"))),[["layer-levels","levels"],["layer-renvois","renvois"],["layer-numbers","numbers"],["layer-avatars","avatars"],["layer-tags","tags"],["layer-coverage","coverage"],["layer-mermaid","mermaid"]].forEach(([a,i])=>{document.getElementById(a)?.addEventListener("change",n=>{this.state.layers[i]=n.target.checked,this.state.activeDiagram&&this.render()})}),document.getElementById("btn-zoom-in")?.addEventListener("click",()=>this.panZoom.zoomIn()),document.getElementById("btn-zoom-out")?.addEventListener("click",()=>this.panZoom.zoomOut()),document.getElementById("btn-zoom-reset")?.addEventListener("click",()=>this.panZoom.reset()),document.getElementById("btn-zoom-fit")?.addEventListener("click",()=>{const a=this.dom.svgWrapper.querySelector("svg");if(a){const i=parseFloat(a.getAttribute("width"))||1200,n=parseFloat(a.getAttribute("height"))||800;this.panZoom.fitToView(i,n)}}),document.getElementById("btn-legend-float")?.addEventListener("click",()=>{this.dom.legendPanel.classList.toggle("active")}),document.getElementById("btn-diag-float")?.addEventListener("click",()=>{this.showDiagnosticsModal()}),document.getElementById("btn-close-diag")?.addEventListener("click",()=>{this.dom.diagModal.classList.remove("active")}),this.dom.backBtn?.addEventListener("click",()=>{this.state.previousFlowRef&&(this.switchDiagram(this.state.previousFlowRef.diagram),this.panZoom.scale=this.state.previousFlowRef.scale,this.panZoom.panX=this.state.previousFlowRef.panX,this.panZoom.panY=this.state.previousFlowRef.panY,this.panZoom.applyTransform(),this.dom.backBtn.style.display="none",this.state.previousFlowRef=null)}),document.getElementById("btn-close-inspector")?.addEventListener("click",()=>{this.inspector.hide()}),document.getElementById("btn-close-sheet")?.addEventListener("click",()=>{this.dom.sheetModal.classList.remove("active")}),document.getElementById("btn-toggle-sidebar")?.addEventListener("click",()=>{this.dom.sidebar.classList.toggle("collapsed")})}async initData(){try{const e=await fetch("./metadata.json");e.ok&&(this.state.metadata=await e.json())}catch{}this.state.diagrams.length===0&&(this.state.metadata={...le},this.state.screenSheets={...ce},re.forEach(e=>{this.state.diagrams.push(z(e.text,e.filename))}),this.onDataReady())}async loadFromDirectoryHandle(e){this.state.diagrams=[],this.state.screenSheets={};for await(const s of e.values())if(s.kind==="file"&&s.name.endsWith(".mmd")){const a=await(await s.getFile()).text();this.state.diagrams.push(z(a,s.name))}else if(s.kind==="file"&&s.name==="metadata.json"){const t=await s.getFile();this.state.metadata=JSON.parse(await t.text())}else if(s.kind==="directory"&&s.name==="screen-sheets"){for await(const t of s.values())if(t.kind==="file"&&t.name.endsWith(".md")){const a=await t.getFile(),i=t.name.replace(/^screen-/,"").replace(/\.md$/,"");this.state.screenSheets[i]=await a.text()}}this.onDataReady()}async loadFromFileList(e){this.state.diagrams=[];for(let s of e)if(s.name.endsWith(".mmd")){const t=await s.text();this.state.diagrams.push(z(t,s.name))}else if(s.name==="metadata.json")this.state.metadata=JSON.parse(await s.text());else if(s.name.endsWith(".md")&&s.webkitRelativePath.includes("screen-sheets")){const t=s.name.replace(/^screen-/,"").replace(/\.md$/,"");this.state.screenSheets[t]=await s.text()}this.onDataReady()}onDataReady(){this.buildGlobalIndex(),this.updateSidebar(),this.updateRoleOptions(),this.state.diagrams.length>0&&this.switchDiagram(this.state.diagrams[0])}buildGlobalIndex(){this.state.globalIndex={},this.state.diagnostics=[],this.state.diagrams.forEach(t=>{Object.values(t.nodes).forEach(a=>{const i=a.code||a.id;this.state.globalIndex[i]||(this.state.globalIndex[i]=[]),this.state.globalIndex[i].push({diagramId:t.meta.id,diagramKind:t.meta.kind,diagramTitle:t.meta.title||t.filename,nodeId:a.id,code:i,label:a.label||i})})});const e=this.state.diagrams.filter(t=>t.meta.kind==="sitemap");this.state.diagrams.filter(t=>t.meta.kind==="userflow").forEach(t=>{Object.values(t.nodes).forEach(a=>{if(a.type==="ECR"){const i=a.code||a.id;e.some(c=>Object.values(c.nodes).some(l=>(l.code||l.id)===i))||this.state.diagnostics.push({level:"warning",msg:`Écran [${i}] dans '${t.meta.title}' absent de l'arborescence.`})}})}),this.dom.diagBadge&&(this.state.diagnostics.length>0?(this.dom.diagBadge.style.display="inline-block",this.dom.diagBadge.textContent=this.state.diagnostics.length):this.dom.diagBadge.style.display="none")}switchDiagram(e){this.state.activeDiagram=e,this.render(),this.dom.diagramList.querySelectorAll(".diagram-item").forEach(s=>{s.classList.toggle("active",s.getAttribute("data-id")===e.meta.id)})}render(){const e=this.state.activeDiagram;if(!e)return;if(this.dom.activeTitle.textContent=e.meta.title||e.filename,this.dom.activeBadge.textContent=(e.meta.kind||"sitemap").toUpperCase(),this.dom.activeBadge.className=`item-badge ${e.meta.kind==="sitemap"?"badge-sitemap":"badge-userflow"}`,this.state.layers.mermaid){this.dom.renderTarget.innerHTML=`<div class="mermaid">${e.rawMermaid}</div>`,window.mermaid&&window.mermaid.init(void 0,this.dom.renderTarget.querySelectorAll(".mermaid"));return}const s=W(e);let t;e.meta.kind==="sitemap"?t=Z(e):t=J(e);const a=Q(e,t,this.state,s);this.dom.renderTarget.innerHTML=a,this.dom.svgWrapper.querySelectorAll(".dg-card").forEach(i=>{const n=i.getAttribute("data-id");i.addEventListener("click",c=>{c.stopPropagation(),this.inspector.show(n,e,this.state,s)})}),this.hoverCard.attach(this.dom.renderTarget,i=>e.nodes[i],i=>this.state.metadata[i]||{},i=>!!this.state.screenSheets[i],i=>s[i]?.relative||"/"),this.updateLegend(e)}resolveSeeInArbo(e){const s=this.state.diagrams.filter(i=>i.meta.kind==="sitemap");if(s.length===0)return alert("Aucune arborescence disponible.");const t=s.find(i=>i.meta.view==="detailed")||s[0];let a=null;for(let[i,n]of Object.entries(t.nodes))if((n.code||i)===e){a=i;break}if(!a&&e.includes(":")){const i=e.split(":")[0];for(let[n,c]of Object.entries(t.nodes))if((c.code||n)===i){a=n;break}}t&&a&&(this.state.previousFlowRef={diagram:this.state.activeDiagram,scale:this.panZoom.scale,panX:this.panZoom.panX,panY:this.panZoom.panY},this.dom.backBtn.style.display="inline-flex",this.switchDiagram(t),setTimeout(()=>{const i=W(t);this.inspector.show(a,t,this.state,i)},100))}resolveSeeInUserflows(e){const s=(this.state.globalIndex[e]||[]).filter(i=>i.diagramKind==="userflow");if(s.length===0)return alert(`Aucun parcours ne traverse l'écran [${e}].`);const t=s[0],a=this.state.diagrams.find(i=>i.meta.id===t.diagramId);a&&(this.switchDiagram(a),setTimeout(()=>{const i=W(a);this.inspector.show(t.nodeId,a,this.state,i)},100))}openSheet(e){const s=this.state.screenSheets[e]||`# Fiche Écran : ${e}
 
-      // Chargement initial des démos
-      demoDiagrams.forEach((src, idx) => {
-        state.diagrams.push(parseMermaidFile(src, `demo-${idx + 1}.mmd`));
-      });
-      onDataLoaded();
+Aucun contenu disponible.`;this.dom.sheetModalTitle.textContent=`Fiche Écran : ${e}`,this.dom.sheetModalContent.innerHTML=`<pre style="background:var(--bg-app);border:1px solid var(--border-color);border-radius:8px;padding:16px;font-family:monospace;font-size:12px;overflow-x:auto;white-space:pre-wrap;">${s}</pre>`,this.dom.sheetModal.classList.add("active")}showDiagnosticsModal(){this.state.diagnostics.length===0?this.dom.diagModalContent.innerHTML='<p style="color:#10b981;font-weight:600;">✓ Aucun problème structurel détecté.</p>':this.dom.diagModalContent.innerHTML=this.state.diagnostics.map(e=>`
+        <div style="padding:10px;border-left:4px solid ${e.level==="error"?"#ef4444":"#f59e0b"};background:var(--bg-app);margin-bottom:8px;border-radius:0 6px 6px 0;">
+          <strong>${e.level.toUpperCase()}</strong> : ${e.msg}
+        </div>
+      `).join(""),this.dom.diagModal.classList.add("active")}updateSidebar(){this.dom.diagramList.innerHTML="",this.state.diagrams.filter(s=>{if(this.state.activeCategory==="sitemap"&&s.meta.kind!=="sitemap"||this.state.activeCategory==="userflow"&&s.meta.kind!=="userflow")return!1;if(this.state.searchQuery){const t=this.state.searchQuery.toLowerCase(),a=(s.meta.title||s.filename).toLowerCase().includes(t),i=Object.values(s.nodes).some(n=>(n.code||n.id).toLowerCase().includes(t)||(n.label||"").toLowerCase().includes(t));return a||i}return!0}).forEach(s=>{const t=document.createElement("div");t.className=`diagram-item ${this.state.activeDiagram===s?"active":""}`,t.setAttribute("data-id",s.meta.id),t.innerHTML=`
+        <div class="item-header">
+          <span class="item-title">${s.meta.title||s.filename}</span>
+          <span class="item-badge ${s.meta.kind==="sitemap"?"badge-sitemap":"badge-userflow"}">${s.meta.kind}</span>
+        </div>
+        <div class="item-desc">${Object.keys(s.nodes).length} nœuds · ${s.meta.view||"standard"}</div>
+      `,t.addEventListener("click",()=>this.switchDiagram(s)),this.dom.diagramList.appendChild(t)})}updateRoleOptions(){const e=new Set(["ALL"]);this.state.diagrams.forEach(s=>{Object.values(s.nodes).forEach(t=>{t.roles&&(Array.isArray(t.roles)?t.roles:[t.roles]).forEach(i=>e.add(i))})}),this.dom.roleFilter.innerHTML="",e.forEach(s=>{const t=document.createElement("option");t.value=s,t.textContent=s==="ALL"?"Tous les rôles":s,this.dom.roleFilter.appendChild(t)})}updateLegend(e){let s=`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;border:2px solid var(--dg-home);border-radius:3px;"></div><span>Homepage (3px bleu)</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;background:var(--dg-fill-state);border-radius:3px;"></div><span>État / Variante</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;background:var(--dg-fill-accent);border-radius:3px;"></div><span>Accentuation (Lavande)</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;border:1.5px solid var(--dg-call);border-radius:3px;"></div><span>Sous-Parcours (CALL violet)</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;border:1.5px solid var(--dg-ext);border-radius:3px;"></div><span>Événement Externe (EXT orange)</span></div>
+      <div style="display:flex;align-items:center;gap:8px;"><div style="width:14px;height:14px;border:1.5px dashed var(--dg-att);border-radius:3px;"></div><span>Attente (ATT pastille)</span></div>
+    `;this.dom.legendContent.innerHTML=s}}document.addEventListener("DOMContentLoaded",()=>{window.iaStudio=new de});</script>
+  <style rel="stylesheet" crossorigin>:root,[data-theme=light]{--bg-app: #f8fafc;--bg-sidebar: #ffffff;--bg-inspector: #ffffff;--bg-canvas: #f5f5f5;--border-color: #e2e8f0;--border-focus: #2563eb;--text-main: #0f172a;--text-muted: #475569;--text-subtle: #94a3b8;--primary: #2563eb;--primary-hover: #1d4ed8;--primary-subtle: rgba(37, 99, 235, .1);--badge-sitemap: #7c3aed;--badge-userflow: #0284c7;--badge-bg: rgba(0, 0, 0, .06);--grid-dot: #cfcfcf;--shadow-sm: 0 1px 3px rgba(0, 0, 0, .08);--shadow-md: 0 4px 12px rgba(0, 0, 0, .12);--shadow-lg: 0 12px 28px rgba(0, 0, 0, .18);--dg-canvas: #f5f5f5;--dg-dot: #cfcfcf;--dg-frame: #ffffff;--dg-frame-border: #e5e5e5;--dg-level-line: #d9d9d9;--dg-card: #ffffff;--dg-card-border: #d4d4d4;--dg-radius: 5px;--dg-card-shadow: 0 1px 3px rgba(0, 0, 0, .18);--dg-card-w: 200px;--dg-card-h: 118px;--dg-home: #3232f5;--dg-fill-state: #dbe6ec;--dg-fill-state-border: #c5d3db;--dg-fill-accent: #ebebfb;--dg-fill-accent-border: #d6d6f2;--dg-stack-1: #f3f3f3;--dg-stack-2: #e8e8e8;--dg-title: #222222;--dg-url: #6b6b6b;--dg-muted: #a8a8a8;--dg-code: #333333;--dg-type: #777777;--dg-edge: #666666;--dg-edge-cross: #a3a3a3;--dg-call: #8b4dff;--dg-ext: #ff9500;--dg-att: #8a8f9b;--tag-blue: #0f5bff;--tag-red: #f4153e;--tag-gray: #8a8f9b;--tag-green: #7bcc0f;--tag-orange: #ff8a14;--bubble-peach: #fdd3b0;--bubble-amber: #fcc36b;--bubble-blue: #a6d3f6;--bubble-lavender: #d2c5f4;--bubble-ink: #2b3a55;--marker-violet: #b5a1ee;--marker-slate: #5d6475;--marker-green: #4a9a2c;--order-circle: #b7a6ea;--dg-gap-x: 48px;--dg-gap-y: 72px;--dg-flow-gap: 88px;--dg-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif}[data-theme=dark]{--bg-app: #0f172a;--bg-sidebar: #1e293b;--bg-inspector: #1e293b;--bg-canvas: #090d16;--border-color: #334155;--border-focus: #3b82f6;--text-main: #f8fafc;--text-muted: #94a3b8;--text-subtle: #64748b;--primary: #3b82f6;--primary-hover: #2563eb;--primary-subtle: rgba(59, 130, 246, .15);--badge-sitemap: #8b5cf6;--badge-userflow: #0ea5e9;--badge-bg: rgba(255, 255, 255, .08);--grid-dot: #1e293b;--shadow-sm: 0 1px 3px rgba(0, 0, 0, .4);--shadow-md: 0 4px 14px rgba(0, 0, 0, .5);--shadow-lg: 0 14px 32px rgba(0, 0, 0, .65);--dg-canvas: #090d16;--dg-dot: #1e293b;--dg-frame: #111827;--dg-frame-border: #1f2a3d;--dg-level-line: #1e293b;--dg-card: #1e293b;--dg-card-border: #334155;--dg-card-shadow: 0 1px 3px rgba(0, 0, 0, .5);--dg-home: #818cf8;--dg-fill-state: #1e3a4a;--dg-fill-state-border: #2b5568;--dg-fill-accent: #2a2a52;--dg-fill-accent-border: #3b3b72;--dg-stack-1: #182235;--dg-stack-2: #131c2c;--dg-title: #f1f5f9;--dg-url: #94a3b8;--dg-muted: #64748b;--dg-code: #cbd5e1;--dg-type: #94a3b8;--dg-edge: #94a3b8;--dg-edge-cross: #64748b}*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--dg-font);background:var(--bg-app);color:var(--text-main);display:flex;height:100vh;overflow:hidden;font-size:13px;-webkit-font-smoothing:antialiased}#sidebar{width:320px;min-width:320px;background:var(--bg-sidebar);border-right:1px solid var(--border-color);display:flex;flex-direction:column;z-index:20;transition:margin-left .25s ease}#sidebar.collapsed{margin-left:-320px}.sidebar-header{padding:14px 16px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between}.brand-title{font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px}.brand-badge{font-size:10px;background:var(--primary);color:#fff;padding:2px 6px;border-radius:4px;letter-spacing:.5px;font-weight:600}.folder-controls{padding:10px 16px;border-bottom:1px solid var(--border-color);display:flex;gap:8px}.search-box{padding:10px 16px;border-bottom:1px solid var(--border-color);position:relative}.search-input{width:100%;background:var(--bg-app);border:1px solid var(--border-color);color:var(--text-main);padding:7px 12px 7px 30px;border-radius:6px;font-size:12px;outline:none;transition:border-color .15s ease}.search-input:focus{border-color:var(--border-focus)}.search-icon{position:absolute;left:24px;top:50%;transform:translateY(-50%);color:var(--text-subtle);font-size:16px;pointer-events:none}.filter-pills{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border-color)}.pill{background:transparent;border:1px solid var(--border-color);color:var(--text-muted);padding:4px 10px;border-radius:12px;font-size:11px;font-weight:500;cursor:pointer;transition:all .15s ease}.pill:hover{background:var(--border-color);color:var(--text-main)}.pill.active{background:var(--primary);border-color:var(--primary);color:#fff}.filter-roles-bar{padding:6px 16px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-muted)}.select-role{background:var(--bg-app);color:var(--text-main);border:1px solid var(--border-color);padding:3px 6px;border-radius:4px;font-size:11px;outline:none;cursor:pointer}.sidebar-list{flex:1;overflow-y:auto;padding:8px 12px}#main-viewport{flex:1;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg-canvas)}.top-toolbar{height:48px;min-height:48px;background:var(--bg-sidebar);border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;padding:0 16px;z-index:10}.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:10px}.active-diagram-title{font-size:13px;font-weight:700}.canvas-viewport{flex:1;position:relative;overflow:hidden;cursor:grab;background-color:var(--dg-canvas)}.canvas-viewport.panning{cursor:grabbing}#svg-canvas-wrapper{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}.canvas-floating-toolbar{position:absolute;top:14px;right:16px;display:flex;align-items:center;gap:6px;background:var(--bg-sidebar);border:1px solid var(--border-color);padding:4px 6px;border-radius:8px;box-shadow:var(--shadow-md);z-index:15}.floating-divider{width:1px;height:20px;background:var(--border-color);margin:0 2px}#back-to-flow-btn{position:absolute;top:16px;left:20px;z-index:30;display:none;background:#7c3aed;color:#fff;border:none;padding:8px 16px;border-radius:20px;font-weight:600;font-size:12px;cursor:pointer;box-shadow:var(--shadow-md);transition:transform .15s ease,background .15s ease;align-items:center;gap:6px}#back-to-flow-btn:hover{transform:scale(1.04);background:#6d28d9}#inspector-modal{position:absolute;top:14px;bottom:14px;right:16px;width:380px;background:var(--bg-inspector);border:1px solid var(--border-color);border-radius:10px;box-shadow:var(--shadow-lg);display:none;flex-direction:column;z-index:25;animation:slideInRight .2s cubic-bezier(.16,1,.3,1)}#inspector-modal.active{display:flex}@keyframes slideInRight{0%{opacity:0;transform:translate(20px)}to{opacity:1;transform:translate(0)}}.inspector-header{padding:14px 18px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;background:var(--bg-app);border-radius:10px 10px 0 0}.inspector-body{padding:18px;overflow-y:auto;flex:1}.modal-overlay{position:fixed;inset:0;background:#00000080;display:none;align-items:center;justify-content:center;z-index:2000;padding:24px;backdrop-filter:blur(2px)}.modal-overlay.active{display:flex}.modal-card{background:var(--bg-sidebar);border:1px solid var(--border-color);border-radius:12px;width:100%;max-width:800px;max-height:85vh;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}.modal-header{padding:16px 20px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;justify-content:space-between;font-weight:700;font-size:14px}.modal-body{padding:24px;overflow-y:auto;line-height:1.6}.material-symbols-outlined{font-family:Material Symbols Outlined;font-weight:400;font-style:normal;font-size:18px;line-height:1;display:inline-block;text-transform:none;letter-spacing:normal;word-wrap:normal;white-space:nowrap;direction:ltr;vertical-align:middle;user-select:none}.icon-sm{font-size:14px}.icon-md{font-size:18px}.icon-lg{font-size:24px}.btn-tool{background:var(--bg-app);border:1px solid var(--border-color);color:var(--text-main);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease;font-weight:500}.btn-tool:hover{background:var(--border-color)}.btn-tool.primary{background:var(--primary);border-color:var(--primary);color:#fff}.btn-tool.primary:hover{background:var(--primary-hover)}.btn-zoom{width:30px;height:30px;background:transparent;border:none;color:var(--text-main);border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s ease}.btn-zoom:hover{background:var(--border-color)}.dropdown{position:relative;display:inline-block}.dropdown-content{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--bg-sidebar);border:1px solid var(--border-color);box-shadow:var(--shadow-lg);border-radius:8px;padding:6px 0;min-width:200px;z-index:100;animation:fadeIn .15s ease}.dropdown.open .dropdown-content{display:block}.dropdown-item{padding:8px 14px;font-size:12px;color:var(--text-main);display:flex;align-items:center;gap:8px;cursor:pointer;transition:background .12s ease;text-decoration:none}.dropdown-item:hover{background:var(--primary-subtle);color:var(--primary)}.layer-option{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:12px;cursor:pointer;user-select:none}.layer-option:hover{background:var(--bg-app)}.diagram-item{padding:10px 12px;border-radius:6px;cursor:pointer;margin-bottom:5px;border:1px solid transparent;background:var(--bg-app);transition:all .15s ease}.diagram-item:hover{border-color:var(--border-color)}.diagram-item.active{border-color:var(--primary);background:var(--primary-subtle)}.item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}.item-title{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;text-transform:uppercase}.badge-sitemap{background:var(--badge-sitemap);color:#fff}.badge-userflow{background:var(--badge-userflow);color:#fff}.item-desc{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}svg.dg-canvas{overflow:visible;font-family:var(--dg-font)}g.dg-card{cursor:pointer;transition:transform .15s ease}g.dg-card:hover rect.card-main{filter:drop-shadow(0 4px 12px rgba(37,99,235,.2))}g.dg-card.selected rect.card-main{stroke:var(--primary)!important;stroke-width:2.5px!important}g.dg-card.act-card rect.card-main{fill:#00000008;stroke:none!important}[data-theme=dark] g.dg-card.act-card rect.card-main{fill:#ffffff0a}g.dg-card.act-card:hover rect.card-main{fill:#2563eb14}g.dg-edge path{stroke:var(--dg-edge);stroke-width:1.5px;fill:none;transition:stroke .15s ease,stroke-width .15s ease}g.dg-edge.cross path{stroke:var(--dg-edge-cross);stroke-dasharray:6 4}g.dg-edge.call path{stroke:var(--dg-call)}g.dg-edge.ext path{stroke:var(--dg-ext)}g.dg-edge:hover path{stroke:var(--primary);stroke-width:2.5px}g.level-lines line{stroke:var(--dg-level-line);stroke-width:1px;stroke-dasharray:4 4}g.level-lines text{fill:var(--dg-muted);font-size:10px;font-weight:500}g.dg-chip{cursor:pointer;transition:transform .15s ease}g.dg-chip:hover{transform:scale(1.05)}g.dg-card.uncovered rect.card-main{stroke:#ef4444!important;stroke-width:2px!important;stroke-dasharray:5 3!important}g.dg-card.dimmed,g.dg-chip.dimmed{opacity:.25}@keyframes cardPulse{0%,to{transform:scale(1)}50%{transform:scale(1.06)}}g.dg-card.pulse{animation:cardPulse 1.2s ease-in-out}#hover-card{position:fixed;display:none;width:300px;background:var(--bg-sidebar);border:1px solid var(--border-color);box-shadow:var(--shadow-lg);border-radius:8px;padding:12px 14px;z-index:1000;pointer-events:auto;font-size:12px;animation:fadeIn .15s ease}@keyframes fadeIn{0%{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}.hover-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;border-bottom:1px solid var(--border-color);padding-bottom:6px}.hover-code{font-weight:700;color:var(--primary)}.hover-badge{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--border-color);color:var(--text-muted)}.hover-title{font-weight:600;margin-bottom:4px}.hover-url{color:var(--dg-url);font-family:monospace;font-size:11px;margin-bottom:8px}.hover-meta{font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.4}.hover-actions{display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border-color);padding-top:8px}.hover-action-btn{background:var(--bg-app);border:1px solid var(--border-color);color:var(--text-main);padding:4px 8px;border-radius:4px;font-size:10px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px}.hover-action-btn:hover{background:var(--primary);border-color:var(--primary);color:#fff}.node-nav-group{margin-top:14px;border-top:1px solid var(--border-color);padding-top:12px}.node-nav-title{font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}.node-nav-list{display:flex;flex-direction:column;gap:4px}.node-nav-btn{background:var(--bg-app);border:1px solid var(--border-color);color:var(--text-main);padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:space-between;text-align:left;transition:all .15s ease;width:100%}.node-nav-btn:hover{background:var(--primary-subtle);border-color:var(--primary);color:var(--primary)}.node-nav-code{font-family:monospace;font-weight:700;font-size:11px}.node-nav-label{font-size:11px;color:var(--text-muted)}@media print{@page{size:landscape;margin:10mm}body{background:#fff!important;color:#000!important;height:auto!important;overflow:visible!important}#sidebar,.top-toolbar,.canvas-floating-toolbar,#hover-card,#back-to-flow-btn,#inspector-modal,.modal-overlay{display:none!important}#main-viewport,.canvas-viewport{background:#fff!important;overflow:visible!important}#svg-canvas-wrapper{position:static!important;transform:none!important}svg.dg-canvas{max-width:100%!important;height:auto!important}}</style>
+</head>
+<body data-theme="light">
 
-    })();
-  </script>
+  <!-- 1. Panneau Latéral Gauche -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-title">
+        <span class="material-symbols-outlined icon-md" style="color:var(--primary);">hub</span>
+        <span>Information Architecture</span>
+        <span class="brand-badge">STUDIO</span>
+      </div>
+      <button class="btn-tool" id="btn-theme" title="Basculer Thème">
+        <span class="material-symbols-outlined icon-sm">dark_mode</span>
+      </button>
+    </div>
+
+    <div class="folder-controls">
+      <button class="btn-tool primary" id="btn-open-folder">
+        <span class="material-symbols-outlined icon-sm">folder_open</span>
+        Dossier
+      </button>
+      <button class="btn-tool" id="btn-refresh" title="Actualiser">
+        <span class="material-symbols-outlined icon-sm">refresh</span>
+      </button>
+      <input type="file" id="fallback-input" webkitdirectory directory multiple style="display:none">
+    </div>
+
+    <div class="search-box">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input type="text" id="search-input" class="search-input" placeholder="Rechercher diagramme ou code...">
+    </div>
+
+    <div class="filter-pills">
+      <button class="pill active" data-filter="all">Tous</button>
+      <button class="pill" data-filter="sitemap">Arbos</button>
+      <button class="pill" data-filter="userflow">Parcours</button>
+    </div>
+
+    <div class="filter-roles-bar">
+      <span>Rôle :</span>
+      <select id="role-filter" class="select-role">
+        <option value="ALL">Tous les rôles</option>
+      </select>
+    </div>
+
+    <div class="sidebar-list" id="diagram-list">
+      <!-- Rempli dynamiquement -->
+    </div>
+  </aside>
+
+  <!-- 2. Zone Principale & Viewport -->
+  <main id="main-viewport">
+    <!-- Barre Supérieure -->
+    <div class="top-toolbar">
+      <div class="toolbar-left">
+        <button class="btn-tool" id="btn-toggle-sidebar" title="Masquer / Afficher panneau latéral">
+          <span class="material-symbols-outlined icon-sm">menu</span>
+        </button>
+        <span class="active-diagram-title" id="active-title">Chargement...</span>
+        <span class="item-badge badge-sitemap" id="active-kind-badge">SITEMAP</span>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Menu Déroulant Export (Point 11) -->
+        <div class="dropdown" id="export-dropdown-wrapper">
+          <button class="btn-tool primary" id="btn-export-dropdown">
+            <span class="material-symbols-outlined icon-sm">download</span>
+            Exporter ▾
+          </button>
+          <div class="dropdown-content" id="export-dropdown-content">
+            <div class="dropdown-item" id="export-svg">
+              <span class="material-symbols-outlined icon-sm">draw</span>
+              SVG vectoriel (.svg)
+            </div>
+            <div class="dropdown-item" id="export-png">
+              <span class="material-symbols-outlined icon-sm">image</span>
+              Image PNG standard (.png)
+            </div>
+            <div class="dropdown-item" id="export-hd">
+              <span class="material-symbols-outlined icon-sm">photo_size_select_actual</span>
+              Image PNG Haute Définition (.png)
+            </div>
+            <div class="dropdown-item" id="export-print" style="border-top:1px solid var(--border-color);">
+              <span class="material-symbols-outlined icon-sm">print</span>
+              Imprimer le diagramme
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Viewport Canvas -->
+    <div class="canvas-viewport" id="canvas-viewport">
+      <!-- Bouton Retour au Parcours -->
+      <button id="back-to-flow-btn">
+        <span class="material-symbols-outlined icon-sm">arrow_back</span>
+        Retour au parcours
+      </button>
+
+      <!-- Barre d'Outils Flottante au-dessus du Canvas (Point 12) -->
+      <div class="canvas-floating-toolbar">
+        <!-- Dropdown Calques -->
+        <div class="dropdown" id="layers-dropdown-float">
+          <button class="btn-tool" id="btn-layers-float">
+            <span class="material-symbols-outlined icon-sm">layers</span>
+            Calques ▾
+          </button>
+          <div class="dropdown-content" style="left:0;right:auto;">
+            <label class="layer-option"><input type="checkbox" id="layer-levels" checked> Niveaux (arbo)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-renvois" checked> Renvois & modules</label>
+            <label class="layer-option"><input type="checkbox" id="layer-numbers"> Numérotation (01)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-avatars"> Avatars rôles</label>
+            <label class="layer-option"><input type="checkbox" id="layer-tags" checked> Tags (SP1...)</label>
+            <label class="layer-option"><input type="checkbox" id="layer-coverage"> Couverture parcours</label>
+            <label class="layer-option"><input type="checkbox" id="layer-mermaid"> Vue Mermaid brute</label>
+          </div>
+        </div>
+
+        <button class="btn-tool" id="btn-legend-float">
+          <span class="material-symbols-outlined icon-sm">palette</span>
+          Légende
+        </button>
+
+        <button class="btn-tool" id="btn-diag-float">
+          <span class="material-symbols-outlined icon-sm">warning</span>
+          Diagnostics
+          <span id="diag-badge">0</span>
+        </button>
+
+        <div class="floating-divider"></div>
+
+        <button class="btn-zoom" id="btn-zoom-in" title="Zoom avant">
+          <span class="material-symbols-outlined icon-sm">zoom_in</span>
+        </button>
+        <button class="btn-zoom" id="btn-zoom-out" title="Zoom arrière">
+          <span class="material-symbols-outlined icon-sm">zoom_out</span>
+        </button>
+        <button class="btn-zoom" id="btn-zoom-fit" title="Ajuster à la vue">
+          <span class="material-symbols-outlined icon-sm">fit_screen</span>
+        </button>
+        <button class="btn-zoom" id="btn-zoom-reset" title="Échelle 100%">1:1</button>
+      </div>
+
+      <!-- Canevas SVG -->
+      <div id="svg-canvas-wrapper">
+        <div id="render-target"></div>
+      </div>
+
+      <!-- Panneau Légende Flottant -->
+      <div id="legend-panel">
+        <div style="font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined icon-sm">palette</span>
+          Légende du Diagramme
+        </div>
+        <div id="legend-content"></div>
+      </div>
+
+      <!-- Inspecteur Modal Interactif (Point 5, 7, 14) -->
+      <div id="inspector-modal">
+        <div class="inspector-header">
+          <div style="font-weight:700;display:flex;align-items:center;gap:6px;">
+            <span class="material-symbols-outlined icon-sm" style="color:var(--primary);">info</span>
+            Propriétés & Navigation
+          </div>
+          <button class="btn-tool" id="btn-close-inspector" style="padding:4px 8px;">✕</button>
+        </div>
+        <div class="inspector-body" id="inspector-body">
+          <!-- Rempli dynamiquement -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Carte de Survol -->
+  <div id="hover-card"></div>
+
+  <!-- Modale Fiche Écran Markdown -->
+  <div class="modal-overlay" id="sheet-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="modal-sheet-title">Fiche Écran</span>
+        <button class="btn-tool" id="btn-close-sheet">✕</button>
+      </div>
+      <div class="modal-body" id="modal-sheet-content"></div>
+    </div>
+  </div>
+
+  <!-- Modale Diagnostics Structurels -->
+  <div class="modal-overlay" id="diag-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span style="display:flex;align-items:center;gap:6px;">
+          <span class="material-symbols-outlined icon-sm" style="color:#f59e0b;">warning</span>
+          Diagnostics Structurels (§11)
+        </span>
+        <button class="btn-tool" id="btn-close-diag">✕</button>
+      </div>
+      <div class="modal-body" id="modal-diag-content"></div>
+    </div>
+  </div>
+
+  <!-- Script d'Entrée Modulaire -->
 </body>
 </html>
