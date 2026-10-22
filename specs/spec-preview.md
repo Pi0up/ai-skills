@@ -471,6 +471,11 @@ Les cartes (plusieurs zones de texte, bulles, tags, piles, liens coudés, lignes
 3. **ACT** : si le nœud est entre deux ECR, il devient une pastille sur le lien (§3.8).
 4. **CALL replié** : une carte violette ; **déplié** : cadre contenant les nœuds du sous-parcours, relié à l'entrée et à la sortie.
 5. **Vue cas d'usage** : un parcours par ligne, titre `PF-xxx — titre`, regroupés en cadres par rôle (§3.8).
+6. **Séparation des données brutes & Modélisation unifiée des variantes** :
+   - Chaque fichier de parcours (`PF-*.mmd`) est unitaire et strictement linéaire (aucun embranchement interne).
+   - Les variantes sont isolées dans leur propre fichier et contextualisent leur point de divergence (`diverge=PF-xxx@N`) et de rejonction (`rejoint=PF-xxx@M`).
+   - Le visualiseur affiche un bandeau contextuel dédié (`#variant-context-bar`) permettant de naviguer en un clic vers le flux nominal parent ou vers la synthèse UC.
+   - La vue globale d'un cas d'usage (`UC-*-overview.mmd`) rassemble l'ensemble des parcours et variations cohérentes dans un graphe unifié complet.
 
 ### 4.5 Texte
 - Retour à la ligne calculé par mesure (`measureText`) à la largeur de carte moins marges ; **3 lignes max**, ellipse ensuite.
@@ -736,18 +741,37 @@ Un clic sur une ligne du panneau centre le nœud concerné.
 
 ## Annexe A — Exemples de `.mmd` avec meta
 
-### A.1 Userflow avec variante et rupture
+### A.1 Parcours brut de variante linéaire séparé (`PF-DOSSIER-VAR-ASSIST.mmd`)
 
 ```mermaid
 %%@file id=PF-DOSSIER-VAR-ASSIST project=DOSSIER kind=userflow view=collapsed uc=UC-DOSSIER obj=OBJ-DOSSIER-01 statut=variante roles=MANAGER
-%%@file diverge=PF-DOSSIER-NOM@1 rejoint=PF-DOSSIER-NOM@4 confiance=RED validation=QA
+%%@file diverge=PF-DOSSIER-NOM@1 rejoint=PF-DOSSIER-NOM@4 confiance=RED validation=QA title="Parcours Variante : Assistance Téléphonique" version="1.1"
+%%@node ND010 code=C010:EDIT type=ECR order=1
+%%@node ND030 ref=FEAT-DEMANDER-AIDE type=ACT order=2
+%%@node ND031 code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND020 persist=external delay=days order=3
+%%@node ND020 code=C010 type=ECR order=4
+%%@edge ND010>ND030 kind=diverge
+%%@edge ND030>ND031 kind=variant
+%%@edge ND031>ND020 kind=rejoin
+flowchart LR
+  ND010(["ND-010 · C010:EDIT (Point de divergence)"])
+  ND030["ND-030 · Demande d'aide"]
+  ND031[/"ND-031 · Échange conseiller ⏸"/]
+  ND020(["ND-020 · C010 (Point de rejonction)"])
+  ND010 -. "diverge @1" .-> ND030 -.-> ND031 -. "rejoint @4" .-> ND020
+```
+
+### A.2 Synthèse globale de cas d'usage modélisant l'ensemble des variations (`UC-DOSSIER-overview.mmd`)
+
+```mermaid
+%%@file id=UC-DOSSIER-overview project=DOSSIER kind=userflow view=uc uc=UC-DOSSIER obj=OBJ-DOSSIER-01 roles=MANAGER title="Cas d'Usage : Soumettre un Dossier (Vue Unifiée)" version="1.1"
 %%@node ND010 code=C010:EDIT type=ECR order=1
 %%@node ND011 ref=FEAT-VALIDER-INFOS type=ACT order=2
 %%@node ND012 ref=PF-DOSSIER-PJ-SEG type=CALL order=3
 %%@node ND020 code=C010 type=ECR order=4
 %%@node ND021 ref=FEAT-SOUMETTRE type=ACT order=5
-%%@node ND030 ref=FEAT-DEMANDER-AIDE type=ACT order=1
-%%@node ND031 type=EXT obs=none break=yes resume=ND020 persist=external delay=days order=2
+%%@node ND030 ref=FEAT-DEMANDER-AIDE type=ACT order=6
+%%@node ND031 code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND020 persist=external delay=days order=7
 %%@edge ND010>ND011 kind=nominal
 %%@edge ND011>ND012 kind=nominal
 %%@edge ND012>ND020 kind=nominal
@@ -767,7 +791,7 @@ flowchart LR
   ND010 -.-> ND030 -.-> ND031 -.-> ND020
 ```
 
-### A.2 Arborescence avec popin, ancre, module et tags
+### A.3 Arborescence avec popin, ancre, module et tags
 
 ```mermaid
 %%@file id=sitemap-detailed project=SALLES kind=sitemap view=detailed

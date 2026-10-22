@@ -66,6 +66,12 @@ class IaStudioApp {
       sheetModal: document.getElementById('sheet-modal'),
       sheetModalTitle: document.getElementById('modal-sheet-title'),
       sheetModalContent: document.getElementById('modal-sheet-content'),
+      variantContextBar: document.getElementById('variant-context-bar'),
+      varParentName: document.getElementById('var-parent-name'),
+      varDivergePill: document.getElementById('var-diverge-pill'),
+      varRejoinPill: document.getElementById('var-rejoin-pill'),
+      btnJumpNominal: document.getElementById('btn-jump-nominal'),
+      btnJumpUc: document.getElementById('btn-jump-uc'),
     };
 
     this.initTheme();
@@ -587,6 +593,42 @@ class IaStudioApp {
       (code) => Boolean(this.state.screenSheets[code]),
       (nid) => urlMap[nid]?.relative || '/'
     );
+
+    // Gestion du Bandeau de Variante contextualisée (données brutes découplées)
+    const isVariant = diag.meta.kind === 'userflow' && (diag.meta.statut === 'variante' || Boolean(diag.meta.diverge));
+    if (isVariant && this.dom.variantContextBar) {
+      this.dom.variantContextBar.style.display = 'flex';
+
+      const divergeRaw = diag.meta.diverge || '';
+      const rejoinRaw = diag.meta.rejoint || '';
+
+      const [parentNomId, divergeStep] = divergeRaw.split('@');
+      const [, rejoinStep] = rejoinRaw.split('@');
+
+      this.dom.varParentName.textContent = parentNomId || 'Parcours Nominal';
+      this.dom.varDivergePill.textContent = divergeStep ? `Divergence @${divergeStep}` : 'Divergence';
+      
+      if (rejoinStep) {
+        this.dom.varRejoinPill.style.display = 'inline-block';
+        this.dom.varRejoinPill.textContent = `Rejonction @${rejoinStep}`;
+      } else {
+        this.dom.varRejoinPill.style.display = 'none';
+      }
+
+      this.dom.btnJumpNominal.onclick = () => {
+        const nominalDiag = this.state.diagrams.find((d) => d.meta.id === parentNomId || (d.meta.uc === diag.meta.uc && d.meta.statut === 'nominal'));
+        if (nominalDiag) this.switchDiagram(nominalDiag);
+        else alert(`Parcours nominal ${parentNomId || ''} introuvable dans le dossier chargé.`);
+      };
+
+      this.dom.btnJumpUc.onclick = () => {
+        const ucDiag = this.state.diagrams.find((d) => (d.meta.uc === diag.meta.uc || d.meta.id.includes(diag.meta.uc || '')) && (d.meta.view === 'uc' || d.filename.includes('overview') || d.filename.includes('vue-ensemble')));
+        if (ucDiag) this.switchDiagram(ucDiag);
+        else alert(`Vue de synthèse du cas d'usage ${diag.meta.uc || ''} introuvable dans le dossier chargé.`);
+      };
+    } else if (this.dom.variantContextBar) {
+      this.dom.variantContextBar.style.display = 'none';
+    }
 
     this.updateLegend(diag);
   }

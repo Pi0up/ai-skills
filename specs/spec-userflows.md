@@ -22,7 +22,7 @@ This deliverable describes the functional coverage of an application as user jou
 |---|---|
 | P1 | A journey exists only if it fulfills a defined use case objective, directly (nominal, variant) or as a factored segment. |
 | P2 | Specify as-designed: the nominal flow and known, desired variants. Not exhaustive. |
-| P3 | Steps in a journey form a strictly linear sequence. Any branching forms a distinct journey (a variant) declaring divergence and rejoin anchors. |
+| P3 | Steps in a journey form a strictly linear sequence. Any branching forms a distinct journey (a variant) authored in its own separate file, declaring divergence and rejoin anchors. Raw journey files remain decoupled and linear, while composite overviews assemble all variations into a unified map. |
 | P4 | Steps represent events (screen, action, wait, external event), not merely page views. |
 | P5 | Specification describes design; tracking measures usage. Drop-offs are measured in funnels, not written in specs. |
 | P6 | Any journey can be invoked as a single step inside another (`CALL`). Only segments (`statut: segment`) lack independent business objectives. |
@@ -119,6 +119,12 @@ rejoint: PF-DOSSIER-NOM@4        # optional: step in nominal flow where variant 
 ```
 
 A variant only defines its distinct steps between `diverge_de` and `rejoint`.
+
+**Architecture & Separation Rules for Variants**:
+1. **Raw data isolation**: Every variant journey is authored in its own separate file (e.g., `PF-xxx-VAR-yyy.mmd` or `PF-xxx-VAR-yyy.md`), strictly decoupled from the nominal flow.
+2. **Strict linearity**: Within its file, a variant journey forms a strictly linear sequence between `diverge_de` and `rejoint` (or terminal node). It must NOT embed nominal steps or internal branches.
+3. **Contextualized origin**: The variant explicitly declares its departure point (`diverge_de: PF-...@N` / `diverge=PF-...@N`) and rejoining target (`rejoint: PF-...@M` / `rejoint=PF-...@M`).
+4. **Unified composite overview**: In the Use Case overview (`UC-xxx-overview.mmd` or visualizer composite view), all consistent variations are assembled into a single unified journey graph, modeling all possible paths while preserving raw file isolation.
 
 #### Fields Specific to Segments
 

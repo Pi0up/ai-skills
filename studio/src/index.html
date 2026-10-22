@@ -128,6 +128,27 @@
         Retour au parcours
       </button>
 
+      <!-- Bandeau Contextuel de Variante (Spec v1.3) -->
+      <div id="variant-context-bar" class="variant-context-banner" style="display: none;">
+        <div class="variant-context-info">
+          <span class="material-symbols-outlined icon-sm" style="color:var(--primary);">alt_route</span>
+          <span>Variante issue de <strong id="var-parent-name">—</strong></span>
+          <span class="variant-anchor-pill" id="var-diverge-pill">Divergence @1</span>
+          <span class="material-symbols-outlined icon-xs" style="color:var(--text-muted);font-size:14px;">arrow_forward</span>
+          <span class="variant-anchor-pill" id="var-rejoin-pill">Rejonction @4</span>
+        </div>
+        <div class="variant-context-actions">
+          <button class="btn-tool-sm" id="btn-jump-nominal">
+            <span class="material-symbols-outlined icon-xs" style="font-size:14px;">timeline</span>
+            Voir le flux nominal
+          </button>
+          <button class="btn-tool-sm" id="btn-jump-uc">
+            <span class="material-symbols-outlined icon-xs" style="font-size:14px;">schema</span>
+            Voir la synthèse du Cas d'Usage
+          </button>
+        </div>
+      </div>
+
       <!-- Barre d'Outils Flottante au-dessus du Canvas (Point 12) -->
       <div class="canvas-floating-toolbar">
         <!-- Dropdown Calques -->

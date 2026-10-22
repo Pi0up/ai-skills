@@ -611,3 +611,72 @@ g.dg-card.pulse {
 .bubble-order { background: var(--order-circle); color: #fff; }
 .bubble-pause { background: #5d6475; color: #fff; }
 
+/* 12. Bandeau Contextuel de Variante (UF Découplés) */
+.variant-context-banner {
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-md);
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 15;
+  animation: slideInDown 0.2s ease;
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.variant-context-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+.variant-anchor-pill {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.variant-context-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid var(--border-color);
+  padding-left: 12px;
+}
+
+.btn-tool-sm {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-tool-sm:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
