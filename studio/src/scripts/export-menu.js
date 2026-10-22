@@ -1,5 +1,6 @@
 /**
- * Menu Déroulant d'Exportation (SVG, PNG, PNG HD, Impression) — Spec v1.2 Point 11
+ * Menu Déroulant d'Exportation (SVG, PNG, PNG HD, Impression) — Spec v1.3 Point 11
+ * Exporte un cadrage net et précis du diagramme sans les barres d'outils ni les contrôles de zoom.
  */
 
 export function setupExportMenu(dom, getCurrentDiagramFn) {
@@ -38,10 +39,38 @@ export function exportSvg(dom, diag) {
   const svgEl = dom.svgWrapper.querySelector('svg');
   if (!svgEl) return;
 
-  const serializer = new XMLSerializer();
-  let svgStr = serializer.serializeToString(svgEl);
+  const minX = parseFloat(svgEl.getAttribute('data-min-x')) || 0;
+  const minY = parseFloat(svgEl.getAttribute('data-min-y')) || 0;
+  const maxX = parseFloat(svgEl.getAttribute('data-max-x')) || 1200;
+  const maxY = parseFloat(svgEl.getAttribute('data-max-y')) || 800;
 
-  // Injection explicite du namespace si absent
+  const margin = 40;
+  const expX = minX - margin;
+  const expY = minY - margin;
+  const expW = (maxX - minX) + margin * 2;
+  const expH = (maxY - minY) + margin * 2;
+
+  const clone = svgEl.cloneNode(true);
+  clone.setAttribute('width', expW);
+  clone.setAttribute('height', expH);
+  clone.setAttribute('viewBox', `${expX} ${expY} ${expW} ${expH}`);
+
+  const bg = clone.querySelector('#canvas-bg');
+  if (bg) {
+    bg.setAttribute('x', expX);
+    bg.setAttribute('y', expY);
+    bg.setAttribute('width', expW);
+    bg.setAttribute('height', expH);
+  }
+
+  const content = clone.querySelector('#viewport-content');
+  if (content) {
+    content.removeAttribute('transform');
+  }
+
+  const serializer = new XMLSerializer();
+  let svgStr = serializer.serializeToString(clone);
+
   if (!svgStr.includes('xmlns="http://www.w3.org/2000/svg"')) {
     svgStr = svgStr.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
   }
@@ -59,16 +88,46 @@ export function exportRaster(dom, diag, scaleFactor = 1.0) {
   const svgEl = dom.svgWrapper.querySelector('svg');
   if (!svgEl) return;
 
+  const minX = parseFloat(svgEl.getAttribute('data-min-x')) || 0;
+  const minY = parseFloat(svgEl.getAttribute('data-min-y')) || 0;
+  const maxX = parseFloat(svgEl.getAttribute('data-max-x')) || 1200;
+  const maxY = parseFloat(svgEl.getAttribute('data-max-y')) || 800;
+
+  const margin = 40;
+  const expX = minX - margin;
+  const expY = minY - margin;
+  const expW = (maxX - minX) + margin * 2;
+  const expH = (maxY - minY) + margin * 2;
+
+  const clone = svgEl.cloneNode(true);
+  clone.setAttribute('width', expW);
+  clone.setAttribute('height', expH);
+  clone.setAttribute('viewBox', `${expX} ${expY} ${expW} ${expH}`);
+
+  const bg = clone.querySelector('#canvas-bg');
+  if (bg) {
+    bg.setAttribute('x', expX);
+    bg.setAttribute('y', expY);
+    bg.setAttribute('width', expW);
+    bg.setAttribute('height', expH);
+  }
+
+  const content = clone.querySelector('#viewport-content');
+  if (content) {
+    content.removeAttribute('transform');
+  }
+
   const serializer = new XMLSerializer();
-  const svgStr = serializer.serializeToString(svgEl);
-  const w = parseFloat(svgEl.getAttribute('width')) || 1200;
-  const h = parseFloat(svgEl.getAttribute('height')) || 800;
+  let svgStr = serializer.serializeToString(clone);
+  if (!svgStr.includes('xmlns="http://www.w3.org/2000/svg"')) {
+    svgStr = svgStr.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+  }
 
   const img = new Image();
   img.onload = () => {
     const canvas = document.createElement('canvas');
-    canvas.width = w * scaleFactor;
-    canvas.height = h * scaleFactor;
+    canvas.width = expW * scaleFactor;
+    canvas.height = expH * scaleFactor;
     const ctx = canvas.getContext('2d');
 
     const isDark = document.body.dataset.theme === 'dark';

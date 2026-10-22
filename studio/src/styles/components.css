@@ -471,3 +471,143 @@ g.dg-card.pulse {
   border-radius: 4px;
   font-size: 12px;
 }
+
+/* 11. Styles Visuels du Panneau Légende */
+.legend-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.legend-items-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.legend-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+.legend-label {
+  line-height: 1.3;
+}
+
+.legend-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Échantillons de cartes */
+.legend-swatch {
+  width: 24px;
+  height: 18px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.legend-swatch.card-home {
+  border: 2px solid var(--dg-home);
+  background: var(--dg-card);
+}
+
+.legend-swatch.card-standard {
+  border: 1px solid var(--dg-card-border);
+  background: var(--dg-card);
+}
+
+.legend-swatch.card-state {
+  border: 1px solid var(--dg-fill-state-border);
+  background: var(--dg-fill-state);
+}
+
+.legend-swatch.card-accent {
+  border: 1px solid var(--dg-fill-accent-border);
+  background: var(--dg-fill-accent);
+}
+
+.legend-swatch.card-call {
+  border: 1.5px solid var(--dg-call);
+  background: var(--dg-card);
+}
+
+.legend-swatch.card-ext {
+  border: 1.5px solid var(--dg-ext);
+  background: var(--dg-card);
+}
+
+.legend-swatch.card-act {
+  border: none;
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.legend-swatch.card-att {
+  border: 1px dashed var(--dg-att);
+  background: rgba(138, 143, 155, 0.1);
+}
+
+.legend-swatch.card-dynamic {
+  border: 1px solid var(--dg-card-border);
+  background: var(--dg-stack-1);
+  box-shadow: 2px 2px 0 var(--dg-stack-2);
+}
+
+/* Échantillons de liaisons et lignes */
+.legend-line-swatch {
+  width: 32px;
+  height: 0;
+  flex-shrink: 0;
+}
+
+.legend-line-swatch.line-nominal {
+  border-bottom: 2px solid var(--dg-edge);
+}
+
+.legend-line-swatch.line-variant {
+  border-bottom: 2px dashed var(--dg-edge-cross);
+}
+
+.legend-line-swatch.line-call {
+  border-bottom: 2px solid var(--dg-call);
+}
+
+.legend-line-swatch.line-ext {
+  border-bottom: 2px solid var(--dg-ext);
+}
+
+/* Bulles et pastilles */
+.legend-bubble {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bubble-lock { background: #475569; }
+.bubble-device { background: var(--bubble-peach); }
+.bubble-a11y { background: var(--bubble-amber); }
+.bubble-entry { background: var(--bubble-blue); }
+.bubble-order { background: var(--order-circle); color: #fff; }
+.bubble-pause { background: #5d6475; color: #fff; }
+

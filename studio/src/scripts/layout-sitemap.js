@@ -163,17 +163,35 @@ export function layoutSitemap(ast, options = {}) {
   // Calcul des dimensions totales du canevas
   let maxX = 1200;
   let maxY = 800;
+  let minX = Infinity;
+  let minY = Infinity;
+  let actualMaxX = -Infinity;
+  let actualMaxY = -Infinity;
 
   Object.values(positions).forEach((p) => {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    actualMaxX = Math.max(actualMaxX, p.x + p.w);
+    actualMaxY = Math.max(actualMaxY, p.y + p.h);
     if (p.x + p.w + 100 > maxX) maxX = p.x + p.w + 100;
     if (p.y + p.h + 100 > maxY) maxY = p.y + p.h + 100;
   });
+
+  if (minX === Infinity) { minX = 0; minY = 0; actualMaxX = 1200; actualMaxY = 800; }
 
   return {
     positions,
     maxLevel,
     width: maxX,
     height: maxY,
+    bounds: {
+      minX,
+      minY,
+      maxX: actualMaxX,
+      maxY: actualMaxY,
+      width: actualMaxX - minX,
+      height: actualMaxY - minY,
+    },
     moduleCount: moduleIds.length,
     bottomModulesY,
   };

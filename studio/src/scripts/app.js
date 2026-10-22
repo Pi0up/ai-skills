@@ -111,23 +111,8 @@ class IaStudioApp {
 
   initEventListeners() {
     // Sélection de dossier (File System Access ou Fallback)
-    const triggerFolderPicker = async () => {
-      if (window.showDirectoryPicker) {
-        try {
-          const dirHandle = await window.showDirectoryPicker();
-          this.activeDirHandle = dirHandle;
-          this.cachedFileList = null;
-          await this.loadFromDirectoryHandle(dirHandle);
-        } catch (err) {
-          if (err.name !== 'AbortError') this.dom.fallbackInput?.click();
-        }
-      } else {
-        this.dom.fallbackInput?.click();
-      }
-    };
-
-    document.getElementById('btn-open-folder')?.addEventListener('click', triggerFolderPicker);
-    this.dom.btnWelcomeOpen?.addEventListener('click', triggerFolderPicker);
+    document.getElementById('btn-open-folder')?.addEventListener('click', () => this.triggerFolderPicker());
+    this.dom.btnWelcomeOpen?.addEventListener('click', () => this.triggerFolderPicker());
 
     this.dom.fallbackInput?.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
@@ -144,10 +129,8 @@ class IaStudioApp {
         await this.loadFromDirectoryHandle(this.activeDirHandle);
       } else if (this.cachedFileList) {
         await this.loadFromFileList(this.cachedFileList);
-      } else if (window.location.protocol.startsWith('http')) {
+      } else {
         await this.initData();
-      } else if (this.state.activeDiagram) {
-        this.render();
       }
     });
 
@@ -241,17 +224,24 @@ class IaStudioApp {
     document.getElementById('btn-zoom-out')?.addEventListener('click', () => this.panZoom.zoomOut());
     document.getElementById('btn-zoom-reset')?.addEventListener('click', () => this.panZoom.reset());
     document.getElementById('btn-zoom-fit')?.addEventListener('click', () => {
-      const svg = this.dom.svgWrapper.querySelector('svg');
-      if (svg) {
-        const w = parseFloat(svg.getAttribute('width')) || 1200;
-        const h = parseFloat(svg.getAttribute('height')) || 800;
-        this.panZoom.fitToView(w, h);
+      if (this.currentLayout?.bounds) {
+        this.panZoom.fitToBounds(this.currentLayout.bounds);
+      } else {
+        const svg = this.dom.svgWrapper.querySelector('svg');
+        if (svg) {
+          const w = parseFloat(svg.getAttribute('data-width')) || 1200;
+          const h = parseFloat(svg.getAttribute('data-height')) || 800;
+          this.panZoom.fitToView(w, h);
+        }
       }
     });
 
     // Bouton Légende Flottant
     document.getElementById('btn-legend-float')?.addEventListener('click', () => {
       this.dom.legendPanel.classList.toggle('active');
+    });
+    document.getElementById('btn-close-legend')?.addEventListener('click', () => {
+      this.dom.legendPanel.classList.remove('active');
     });
 
     // Bouton Diagnostics Flottant
@@ -291,22 +281,46 @@ class IaStudioApp {
     });
   }
 
+  async triggerFolderPicker() {
+    if (window.showDirectoryPicker) {
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        this.activeDirHandle = dirHandle;
+        this.cachedFileList = null;
+        await this.loadFromDirectoryHandle(dirHandle);
+        return true;
+      } catch (err) {
+        if (err.name === 'AbortError') return false;
+        try {
+          this.dom.fallbackInput?.click();
+        } catch (e) {}
+      }
+    } else {
+      try {
+        this.dom.fallbackInput?.click();
+      } catch (e) {}
+    }
+    return false;
+  }
+
   async initData() {
     this.state.diagrams = [];
     this.state.screenSheets = {};
     this.state.metadata = {};
 
-    // 1. Découverte et chargement dynamique si servi sous serveur web local (http: ou https:)
-    if (window.location.protocol.startsWith('http')) {
-      try {
-        const metaResp = await fetch('./metadata.json');
-        if (metaResp.ok) {
-          this.state.metadata = await metaResp.json();
-        }
-      } catch (e) {
-        // Ignorer
+    let metadataLoaded = false;
+    try {
+      const metaResp = await fetch('./metadata.json');
+      if (metaResp.ok) {
+        this.state.metadata = await metaResp.json();
+        metadataLoaded = true;
       }
+    } catch (e) {
+      metadataLoaded = false;
+    }
 
+    if (metadataLoaded) {
+      // 1. Découverte et chargement dynamique si servi sous serveur web local (http: ou https:)
       try {
         const dirResp = await fetch('./');
         if (dirResp.ok) {
@@ -337,9 +351,36 @@ class IaStudioApp {
         // Ignorer
       }
 
-      // Tente également de charger les fiches d'écran référencées
+      // 2. Découverte par sondage des diagrammes standards si le serveur ne renvoie pas d'index HTML
+      if (this.state.diagrams.length === 0) {
+        const candidates = [
+          'sitemap-overview.mmd',
+          'sitemap-detailed.mmd',
+          'sitemap-by-role.mmd',
+          'sitemap-by-role-admin.mmd',
+          'UC-RESERVATION-overview.mmd',
+          'PF-RESERVATION-NOM-collapsed.mmd',
+          'PF-RESERVATION-VAR-ASSIST.mmd',
+          'PF-PAIEMENT-EXPANDED.mmd',
+          ...(Array.isArray(this.state.metadata?._diagrams) ? this.state.metadata._diagrams : []),
+        ];
+        for (const fname of candidates) {
+          try {
+            const fResp = await fetch(`./${fname}`);
+            if (fResp.ok) {
+              const text = await fResp.text();
+              if (text.includes('flowchart') || text.includes('graph')) {
+                this.state.diagrams.push(parseMermaidFile(text, fname));
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
+      // 3. Tente également de charger les fiches d'écran référencées
       if (this.state.metadata) {
         for (const code of Object.keys(this.state.metadata)) {
+          if (code.startsWith('_')) continue;
           const safeCode = code.replace(/[:@!#]/g, '_');
           try {
             const sResp = await fetch(`./screen-sheets/screen-${safeCode}.md`);
@@ -349,13 +390,17 @@ class IaStudioApp {
           } catch (e) {}
         }
       }
+
+      if (this.state.diagrams.length > 0) {
+        this.onDataReady();
+        return;
+      }
     }
 
-    if (this.state.diagrams.length > 0) {
-      this.onDataReady();
-    } else {
-      this.showEmptyState();
-    }
+    // Si metadata.json n'a pas pu être chargé (ou si aucun diagramme n'a pu être chargé) :
+    // Affiche la dialog pour ouvrir le dossier
+    this.showEmptyState();
+    await this.triggerFolderPicker();
   }
 
   showEmptyState() {
@@ -516,8 +561,14 @@ class IaStudioApp {
       layout = layoutUserflow(diag);
     }
 
+    this.currentLayout = layout;
     const svgString = renderSvgCanvas(diag, layout, this.state, urlMap);
     this.dom.renderTarget.innerHTML = svgString;
+
+    // Centrage et ajustement automatique du diagramme au chargement
+    if (layout.bounds) {
+      this.panZoom.fitToBounds(layout.bounds);
+    }
 
     // Attache les événements de clic pour l'inspecteur modal
     this.dom.svgWrapper.querySelectorAll('.dg-card').forEach((cardEl) => {
@@ -672,13 +723,126 @@ class IaStudioApp {
   }
 
   updateLegend(diag) {
+    const isSitemap = diag ? diag.meta.kind === 'sitemap' : true;
+
     let html = `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;border:2px solid var(--dg-home);border-radius:3px;"></div><span>Homepage (3px bleu)</span></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;background:var(--dg-fill-state);border-radius:3px;"></div><span>État / Variante</span></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;background:var(--dg-fill-accent);border-radius:3px;"></div><span>Accentuation (Lavande)</span></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;border:1.5px solid var(--dg-call);border-radius:3px;"></div><span>Sous-Parcours (CALL violet)</span></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:14px;height:14px;border:1.5px solid var(--dg-ext);border-radius:3px;"></div><span>Événement Externe (EXT orange)</span></div>
-      <div style="display:flex;align-items:center;gap:8px;"><div style="width:14px;height:14px;border:1.5px dashed var(--dg-att);border-radius:3px;"></div><span>Attente (ATT pastille)</span></div>
+      <div class="legend-section">
+        <div class="legend-section-title">Composants & Cartes</div>
+        <div class="legend-items-grid">
+          <div class="legend-item">
+            <div class="legend-swatch card-home"></div>
+            <div class="legend-label"><strong>Homepage</strong> (bordure 3px bleue)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-standard"></div>
+            <div class="legend-label"><strong>Page standard</strong> (cadre blanc 1px)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-state"></div>
+            <div class="legend-label"><strong>État / Variante</strong> (fond bleu-gris)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-accent"></div>
+            <div class="legend-label"><strong>Accentuation</strong> (fond lavande)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-call"></div>
+            <div class="legend-label"><strong>Sous-parcours (CALL)</strong> (cadre violet)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-ext"></div>
+            <div class="legend-label"><strong>Événement externe (EXT)</strong> (cadre orange)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-act">
+              <span class="material-symbols-outlined" style="font-size:14px;color:var(--primary);">ads_click</span>
+            </div>
+            <div class="legend-label"><strong>Action (ACT)</strong> (interaction utilisateur)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-att">
+              <span class="material-symbols-outlined" style="font-size:14px;color:var(--dg-att);">schedule</span>
+            </div>
+            <div class="legend-label"><strong>Attente (ATT)</strong> (événement asynchrone)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-swatch card-dynamic"></div>
+            <div class="legend-label"><strong>Page dynamique</strong> (pile superposée)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend-section">
+        <div class="legend-section-title">Liaisons & Lignes</div>
+        <div class="legend-items-list">
+          <div class="legend-item">
+            <div class="legend-line-swatch line-nominal"></div>
+            <div class="legend-label">
+              <strong>Trait continu sombre</strong><br>
+              <span class="legend-desc">${isSitemap ? 'Hiérarchie parent ➔ enfant direct' : 'Flux nominal / transition séquentielle principale'}</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line-swatch line-variant"></div>
+            <div class="legend-label">
+              <strong>Trait pointillé gris</strong><br>
+              <span class="legend-desc">${isSitemap ? 'Renvois fonctionnels, modales (!), ancres (#), modules (M)' : 'Variante, dérivation (diverge) ou rejonction'}</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line-swatch line-call"></div>
+            <div class="legend-label">
+              <strong>Trait violet</strong><br>
+              <span class="legend-desc">Liaison issue d'un sous-parcours réutilisable (CALL)</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line-swatch line-ext"></div>
+            <div class="legend-label">
+              <strong>Trait orange</strong><br>
+              <span class="legend-desc">Liaison issue d'un événement externe ou asynchrone (EXT)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend-section">
+        <div class="legend-section-title">Bulles & Statuts</div>
+        <div class="legend-items-grid">
+          <div class="legend-item">
+            <div class="legend-bubble bubble-lock">
+              <span class="material-symbols-outlined" style="font-size:12px;color:#fff;">lock</span>
+            </div>
+            <div class="legend-label">Page protégée (authentification requise)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-bubble bubble-device">
+              <span class="material-symbols-outlined" style="font-size:12px;color:#2b3a55;">smartphone</span>
+            </div>
+            <div class="legend-label">Spécifique mobile / device</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-bubble bubble-a11y">
+              <span class="material-symbols-outlined" style="font-size:12px;color:#2b3a55;">accessibility_new</span>
+            </div>
+            <div class="legend-label">Accessibilité (a11y)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-bubble bubble-entry">
+              <span class="material-symbols-outlined" style="font-size:12px;color:#2b3a55;">login</span>
+            </div>
+            <div class="legend-label">Point d'entrée principal</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-bubble bubble-order">01</div>
+            <div class="legend-label">Numéro d'ordre (arborescence)</div>
+          </div>
+          <div class="legend-item">
+            <div class="legend-bubble bubble-pause">⏸</div>
+            <div class="legend-label">Rupture déclarée de flux</div>
+          </div>
+        </div>
+      </div>
     `;
     this.dom.legendContent.innerHTML = html;
   }

@@ -141,6 +141,21 @@ atterrissage: C010               # guaranteed landing screen (ECR reference)
 
 ## 4. Breaks and Session Memory
 
+### 3.4 Graph Edges, Transitions, and Line Styles
+
+Journeys and journey graph overviews are represented using standard Mermaid transitions (`flowchart LR`) paired with semantic directives (`%%@edge`). Line styles carry strict functional meanings:
+
+| Line Style | Visual Token | Transition Nature | Usage in Journey Graph | Mermaid Syntax |
+|---|---|---|---|---|
+| **Solid dark line** | `--dg-edge` (1.5px, solid, filled arrowhead) | Nominal transition | Direct sequential transition between nominal steps (Screen ➔ Action ➔ Screen) | `-->` |
+| **Dashed gray line** | `--dg-edge-cross` (1.5px, dashed `6 4`, open arrowhead) | Variant branch | Divergence from nominal path (`diverge`), variant-internal step (`variant`), or return to nominal path (`rejoin`) | `-.->` |
+| **Solid purple line** | `--dg-call` (`#8b4dff`, 1.5px, purple arrow) | Sub-journey call | Outgoing transition exiting a reusable segment or sub-journey (`CALL`) | Origin is `CALL` |
+| **Solid orange line** | `--dg-ext` (`#ff9500`, 1.5px, orange arrow) | External resumption | Outgoing transition exiting an asynchronous external event (`EXT`) | Origin is `EXT` |
+
+- **Y-Axis Alignment Rule**: In visual projections, all nominal steps of a journey and all steps of a standalone linear variant flow MUST be aligned on the exact same horizontal baseline (row 0, identical `Y` coordinate). Branching variants occupy dedicated parallel lanes below without shifting the nominal path downward.
+
+## 4. Breaks and Session Memory
+
 A break `⏸` models the possibility of an intentional or forced user interruption.
 - **Mandatory on `ATT` and `EXT` nodes** (Rule R-30).
 - Fields:

@@ -1,7 +1,7 @@
 /**
- * Moteur de Rendu SVG Vectoriel Natif (Spec v1.2)
- * Élimine la pixellisation via un motif SVG pur, gère les icônes Material Symbols,
- * les cartes ACT sans bordure, le titre sur deux lignes sans ID dupliqué, et les tracés visibles.
+ * Moteur de Rendu SVG Vectoriel Natif (Spec v1.3)
+ * Élimine la pixellisation via un rendu vectoriel SVG pur, canevas infini,
+ * icônes Material Symbols, cartes ACT sans bordure, titre sur deux lignes, et tracés visibles.
  */
 
 export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
@@ -11,13 +11,15 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
   const cardW = 200;
   const cardH = 118;
 
-  let svg = `<svg class="dg-canvas" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
+  const b = layout.bounds || { minX: 0, minY: 0, maxX: width, maxY: height };
+
+  let svg = `<svg class="dg-canvas" id="main-svg" width="100%" height="100%" data-width="${width}" data-height="${height}" data-min-x="${b.minX}" data-min-y="${b.minY}" data-max-x="${b.maxX}" data-max-y="${b.maxY}" xmlns="http://www.w3.org/2000/svg">`;
 
   // 1. Définition des Motifs Vectoriels (Pas de pixellisation) et Marqueurs
   svg += `<defs>
-    <!-- Grille de points vectorielle pure (Spec v1.2 Point 13) -->
-    <pattern id="canvas-dots" width="20" height="20" patternUnits="userSpaceOnUse">
-      <circle cx="10" cy="10" r="1.2" fill="var(--dg-dot)" />
+    <!-- Grille de points vectorielle pure (Spec §3.2 & v1.3) -->
+    <pattern id="canvas-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="1.2" fill="var(--dg-dot)" />
     </pattern>
 
     <!-- Marqueurs de Flèche -->
@@ -32,8 +34,11 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
     </marker>
   </defs>`;
 
-  // Fond Vectoriel Pur
-  svg += `<rect width="${width}" height="${height}" fill="url(#canvas-dots)" />`;
+  // Fond Vectoriel Infini couvrant 100% du viewport
+  svg += `<rect id="canvas-bg" width="100%" height="100%" fill="url(#canvas-dots)" />`;
+
+  // Conteneur Vectoriel soumis aux transformations Pan & Zoom (sans perte de netteté)
+  svg += `<g id="viewport-content" transform="translate(0, 0) scale(1)">`;
 
   // 2. Lignes de Niveau (Arborescence)
   if (isSitemap && state.layers.levels) {
@@ -56,7 +61,7 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
     </g>`;
   }
 
-  // 4. Tracé des Liens (Edges) — Garanti Visible avec <path> (Point 8)
+  // 4. Tracé des Liens (Edges) — Garanti Visible avec <path>
   svg += `<g class="dg-edges">`;
   ast.edges.forEach((e) => {
     const p1 = layout.positions[e.src];
@@ -123,6 +128,7 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
   });
   svg += `</g>`;
 
+  svg += `</g>`; // Fin #viewport-content
   svg += `</svg>`;
   return svg;
 }
@@ -146,7 +152,7 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   const x = pos.x;
   const y = pos.y;
 
-  // Calcul d'URL Relative (Point 7)
+  // Calcul d'URL Relative
   const relativeUrl = urlMap[node.id]?.relative || node.url || '/';
   const urlMode = isHome ? 'Absolu' : 'Relatif';
 
@@ -208,7 +214,7 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   // Rectangle Principal
   svg += `<rect class="card-main" width="${w}" height="${h}" rx="5" fill="${fillBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
 
-  // Icône d'Action ACT (Point 9 : Icône Material Symbol dédiée)
+  // Icône d'Action ACT
   if (isAct) {
     svg += `<text x="14" y="26" class="material-symbols-outlined" fill="var(--primary)" font-size="20">ads_click</text>`;
     svg += `<text x="38" y="22" fill="var(--primary)" font-size="10" font-weight="700">ACTION</text>`;
@@ -216,12 +222,12 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
     svg += `<text x="14" y="26" class="material-symbols-outlined" fill="var(--dg-att)" font-size="20">schedule</text>`;
     svg += `<text x="38" y="22" fill="var(--dg-att)" font-size="10" font-weight="700">ATTENTE</text>`;
   } else {
-    // 1. URL Relative (Point 7)
+    // 1. URL Relative
     svg += `<text x="12" y="20" fill="var(--dg-url)" font-size="10" font-family="monospace">${truncate(relativeUrl, 18)}</text>`;
     svg += `<text x="12" y="31" fill="var(--dg-muted)" font-size="8">${urlMode}</text>`;
   }
 
-  // 2. Titre sur 2 Lignes sans ID Répété (Point 6)
+  // 2. Titre sur 2 Lignes sans ID Répété
   const cleanTitle = node.label || code;
   const [line1, line2] = splitTitleTwoLines(cleanTitle, 18);
 
@@ -242,7 +248,7 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   svg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${code}</text>`;
   svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${subtype}</text>`;
 
-  // 5. Bulles d'Icônes Material Symbols (Coin Haut-Gauche débordant, Point 2)
+  // 5. Bulles d'Icônes Material Symbols (Coin Haut-Gauche débordant)
   if (!isAct && !isAtt) {
     const bubbles = [];
     if (node.icon) {

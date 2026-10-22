@@ -55,6 +55,10 @@ Adds:
 ### 3.3 Role-Based View
 Filtered projection showing only pages, variants, modules, and features accessible to a specific role.
 
+### 3.4 Hierarchical and Cross-Reference Links (Mermaid Notation)
+- **Direct Hierarchical Link (`-->`)**: Solid line (`--dg-edge`). Connects parent page directly to its children in the tree (`kind=navigation`).
+- **Attached Element / Functional Cross-Reference (`-.->`)**: Dashed line (`--dg-edge-cross`, `stroke-dasharray: 6 4`). Connects a page to an attached popin/modal (`attach` with `!`), internal anchor (`attach` with `#`), transverse module (`invoke` with `M###`), or functional cross-reference (`renvois.md`).
+
 ## 4. URL Construction
 
 ### 4.1 Principle

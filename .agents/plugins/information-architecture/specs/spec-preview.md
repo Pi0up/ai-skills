@@ -1,12 +1,12 @@
 # Spécification fonctionnelle et technique du Visualiseur Unifié (`preview.html`)
 
 > **Rôle du document** : Spécification d'accompagnement — Outil de visualisation unifié  
-> **Document parent** : [Information Architecture — Global Documentation](./documentation-architecture-information.md)  
+> **Document parent** : [Information Architecture — Global Documentation](../../specs/documentation-architecture-information.md)  
 > **Documents frères associés** :
-> - [Information Architecture — Part 1: Arborescence Specification](./spec-arborescence.md)
-> - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](./spec-userflows.md)  
-> **Version** : 1.1 — Octobre 2026  
-> **Statut** : À valider (révision de la v1.0)  
+> - [Information Architecture — Part 1: Arborescence Specification](../../specs/spec-arborescence.md)
+> - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](../../specs/spec-userflows.md)  
+> **Version** : 1.3 — Octobre 2026  
+> **Statut** : Validé (révision v1.3 : panneau légende, bouton export neutre, canevas infini net, centrage automatique, alignement Y des userflows, sémantique des liaisons)  
 
 ---
 
@@ -16,20 +16,34 @@
 
 ---
 
-## 0. Synthèse des changements v1.0 → v1.1
+## 0. Synthèse des évolutions v1.2 → v1.3
 
-| # | Sujet | v1.0 | v1.1 |
+| # | Sujet | v1.2 | v1.3 |
 | :--- | :--- | :--- | :--- |
-| 1 | Rendu | Mermaid.js génère le SVG, puis post-traitement DOM | **Moteur de rendu propre** (SVG) piloté par le design system ; Mermaid.js réduit à un mode « vue brute » de secours (§4) |
-| 2 | Pureté du `.mmd` | « Aucune donnée de style » | Aucun **style** ; la **meta sémantique** (type, état, variante, accès…) est autorisée en commentaires `%%@` (§2.4) |
-| 3 | Meta de fichier | Frontmatter YAML | Lignes `%%@file` ; frontmatter toléré en lecture |
-| 4 | Réconciliation nœud ↔ métadonnées | `startsWith` sur le texte rendu | **Correspondance exacte** sur `code` (§6.3) |
-| 5 | Habillage | Palette générique par thème | **Design system** extrait des captures de référence (§3) |
-| 6 | Interactions | Clic → inspecteur | Clic + **survol** + **navigation croisée** « voir dans l'arbo » (§6) |
-| 7 | Thème par défaut | Sombre | **Clair** (les captures de référence sont claires) ; sombre dérivé (§9) |
-| 8 | Contenus | Non précisé | Principe **structure seule** : le visualiseur ne juge pas les contenus (§1.2) |
-| 9 | Contrôles | — | **Diagnostics structurels** non bloquants (§11) |
-| 10 | Typographie du document | Caractères corrompus (`?"`) | Corrigés |
+| 1 | **Panneau Légende** | Éléments non stylisés en flux DOM brut, visuel cassé | **Panneau modal flottant structuré** avec header, bouton de fermeture, et 3 sections thématiques soignées (*Composants*, *Liaisons & Lignes*, *Bulles & Statuts*). |
+| 2 | **Bouton Exporter** | Bouton `primary` (bleu vif) dominant la barre d'outils | **Bouton d'outil neutre standard** (`btn-tool`) : l'export est une action secondaire, la fonction principale restant l'exploration. |
+| 3 | **Netteté & Rastérisation** | Texture bitmap compositée GPU avec `will-change: transform` provoquant un flou persistant | **Transformation vectorielle directe** sur `<g id="viewport-content">` natif SVG : zéro flou, zéro pixellisation, netteté vectorielle 100% à tous les niveaux de zoom (`0.15x` à `4.0x`). |
+| 4 | **Canevas & Centrage** | Boîte finie avec fond pointillé délimité et diagramme décentré | **Canevas vectoriel infini** couvrant 100% du viewport (`patternTransform` synchronisé) et **centrage automatique mathématique** (`fitToBounds`) au chargement et au changement de diagramme. |
+| 5 | **Alignement Y des Userflows** | Marches d'escalier / zigzags verticaux causés par `variant`/`diverge` | **Alignement horizontal strict sur l'axe Y** : les étapes du flux nominal et des parcours linéaires partagent une coordonnée `Y` strictement identique, avec couloirs dédiés pour les variantes. |
+| 6 | **Sémantique des Liaisons** | Lignes aux styles différents sans documentation dans la légende | **Spécification normative complète et swatches de légende** pour les 4 familles de liaisons (nominal/hiérarchie, variante/renvoi, CALL violet, EXT orange). |
+
+---
+
+## 0.bis Rappel des évolutions v1.1 → v1.2
+
+| # | Sujet | v1.1 | v1.2 |
+| :--- | :--- | :--- | :--- |
+| 1 | **Architecture source** | Fichier HTML unique monolithique | **Sous-projet modulaire `studio/`** avec `package.json`, Vite singlefile, JS et CSS découpés dans `src/`, distribution unique dans `dist/preview.html`. |
+| 2 | **Bibliothèque d'icônes** | Emojis et glyphes approximatifs | **Google Material Symbols (Material Icons)** via CDN officiel Google Fonts. |
+| 3 | **Layout Arborescence** | Calcul séquentiel (frères pouvant se superposer) | **Algorithme récursif de bounding box** : réservation de l'espace de sous-arbre garantissant que les frères (`D001`, `E404`) sont placés **côte à côte** à droite de `L001`. |
+| 4 | **Titres de cartes** | Répétition de l'ID (`ND-001 · Accueil`) | **Titre épuré sur 2 lignes max** sans répétition de l'ID (déjà en bas à droite). |
+| 5 | **Gestion des URLs** | URL unique affichée | **URL relative** sur la carte et **URL absolue canonique** calculée par concaténation ascendante dans l'inspecteur. |
+| 6 | **Liens de Userflow** | Traits invisibles (seule la tête de flèche visible) | **Tracés vectoriels `<path>` avec `stroke` garanti** et flèches orientées. |
+| 7 | **Étapes ACT (Actions)** | Chips étroites provoquant des sauts au survol | **Carte page standard sans bordure** avec icône Material Symbol dédiée (`ads_click`). |
+| 8 | **Inspecteur de nœud** | Volet latéral statique | **Panneau modal interactif** avec recentrage automatique du canevas et navigation cliquable continue **Parent direct ↔ Enfants directs**. |
+| 9 | **Rendu du canevas** | `radial-gradient` CSS créant un moiré pixelisé | **Motif vectoriel SVG natif `<pattern>`** 100% net à tous les niveaux de zoom (`0.15x` à `4.0x`). |
+| 10 | **Contrôles & Export** | Boutons éparpillés dans la barre d'outils | **Barre d'outils flottante au-dessus du canvas** (Calques, Légende, Diags, Zoom) + **Menu déroulant d'export unifié** (*SVG*, *PNG*, *PNG HD*, *Print*). |
+| 11 | **Validation & Tests** | Tests manuels uniquement | **Suite de tests automatisés (Vitest)** pour le parseur, la hiérarchie d'URLs, le layout et le rendu SVG. |
 
 ---
 
@@ -55,6 +69,7 @@ Le fichier `preview.html` constitue le **visualiseur unifié autonome** de l'ens
 | **P5** | Les fichiers `.mmd` sont **générés à partir de templates prédéfinis** : le visualiseur est en **lecture seule** et n'édite jamais les fichiers. |
 | **P6** | Une **dégradation gracieuse** est garantie : sans meta, le visualiseur déduit ce qu'il peut du libellé et des formes, et affiche quand même le diagramme (§2.4.5). |
 | **P7** | Les **écrans** d'un userflow utilisent **strictement le même composant visuel** que les pages d'une arborescence (§3.3). |
+| **P8** | Le visualiseur est un **moteur neutre à chargement dynamique** : aucun contenu `.mmd` ou donnée métier n'est inliné ou incorporé en dur dans son bundle. Tous les diagrammes, métadonnées et fiches écrans sont chargés dynamiquement à la volée (via HTTP `fetch`, File System Access API ou drag & drop). L'outillage peut ainsi régénérer ou modifier les `.mmd` sans jamais avoir à reconstruire `preview.html`. |
 
 ---
 
@@ -366,17 +381,19 @@ Exemple des captures : `SP1` vert contour, `SP2` orange contour, `SP3` rouge con
 | ● personne | cercle ardoise | Un rôle associé |
 | ● groupe | cercle ardoise | Plusieurs rôles associés |
 
-### 3.6 Liaisons
+### 3.6 Liaisons & Styles de Lignes
 
-| Lien | Tracé | Style |
-| :--- | :--- | :--- |
-| `navigation` (hiérarchie, arbo) | Coude orthogonal, de bas-centre du parent à haut-centre de l'enfant, bus horizontal à mi-distance, coins arrondis (rayon 8) | `--dg-edge`, plein, flèche pleine |
-| `action`, `invoke`, `attach` (arbo) | Orthogonal arrondi, ancrage latéral | `--dg-edge-cross`, pointillé `6 4`, flèche ouverte |
-| `nominal` (parcours) | Droit, horizontal | `--dg-edge`, plein, flèche pleine |
-| `variant`, `diverge`, `rejoin` | Droit ou coudé | `--dg-edge-cross`, pointillé, flèche ouverte ; étiquette `diverge @N` / `rejoint @N` |
-| Étiquette | Pastille blanche sur le tracé | Texte 10 px |
+Les liaisons entre entités sont formalisées selon 4 styles canoniques portant une sémantique métier précise et rigoureuse :
 
-Un lien qui part d'un **CALL** prend la couleur violette ; un lien qui part d'un **EXT** prend l'orange (comme dans les captures).
+| Lien / Style | Rendu visuel | Sémantique en Arborescence (`kind=sitemap`) | Sémantique en Userflows (`kind=userflow`) | Notation Mermaid |
+| :--- | :--- | :--- | :--- | :--- |
+| **Trait continu sombre** | Trait plein `--dg-edge` (1,5 px), flèche pleine | **Lien hiérarchique direct** : relation structurelle parent ➔ enfant dans l'arbre | **Flux nominal / Chemin principal** : enchaînement séquentiel nominal standard entre écrans ou actions | `-->` |
+| **Trait pointillé gris** | Trait pointillé `--dg-edge-cross` (1,5 px, tirets `6 4`), flèche ouverte | **Renvoi fonctionnel ou élément rattaché** : ouverture de popin (`!`), ancre interne (`#`), invocation de module (`M###`) | **Chemin alternatif / Variante** : divergence (`diverge`), étape d'une variante (`variant`) ou rejonction (`rejoin`) | `-.->` |
+| **Trait violet** | Trait plein `--dg-call` (`#8b4dff`, 1,5 px), flèche violette | N/A (réservé aux parcours) | **Liaison issue d'un sous-parcours (CALL)** : sortie ou enchaînement consécutif à un sous-parcours réutilisable | Déduit si la source est `CALL` |
+| **Trait orange** | Trait plein `--dg-ext` (`#ff9500`, 1,5 px), flèche orange | N/A (réservé aux parcours) | **Liaison issue d'un événement externe (EXT)** : reprise après échange hors application (email, conseiller, webhook) | Déduit si la source est `EXT` |
+
+- **Étiquette de lien** : Pastille blanche centrée sur le tracé, texte 10 px (ex. `diverge @1`, `rejoint @4`, `FEAT-xxx`).
+- **Survol de lien** : Le tracé passe à `--primary` (2,5 px) et affiche les détails dans la carte de survol (§6.1).
 
 ### 3.7 Éléments propres aux arborescences
 - **Lignes de niveau** : une bande horizontale fine par profondeur, sur toute la largeur du canvas (option « Niveaux », activée par défaut).
@@ -398,7 +415,10 @@ Un lien qui part d'un **CALL** prend la couleur violette ; un lien qui part d'un
 **Cadres (frames)** : en vue d'ensemble d'un cas d'usage, les parcours sont regroupés par **rôle** dans des cadres blancs (rayon 8 px, bordure `--dg-frame-border`) munis d'une étiquette grise en haut-gauche (`flows / <rôle>`), sur le fond pointillé. Chaque parcours est une **ligne** précédée d'un titre `PF-xxx — titre` (9 px, `--dg-url`).
 
 ### 3.9 Légende automatique
-Un panneau repliable liste, pour le diagramme affiché : les types présents (avec miniature de carte), les tags déclarés (`%%@tag`), les icônes, les marqueurs et les types de liens utilisés. Elle est générée, jamais saisie.
+Un panneau modal flottant repliable liste de façon dynamique et exhaustive, pour le diagramme affiché, l'ensemble des conventions graphiques :
+1. **Composants & Cartes** : Homepage (bordure 3 px bleue), Page standard, État / Variante (fond bleu-gris), Accentuation (fond lavande), CALL violet, EXT orange, Action ACT (pastille d'interaction), Attente ATT (pastille asynchrone), Page dynamique (pile décalée).
+2. **Liaisons & Lignes** : Trait continu sombre (hiérarchie ou nominal), Trait pointillé gris (variante ou renvoi), Trait violet (CALL), Trait orange (EXT).
+3. **Bulles d'Icônes & Statuts** : Cadenas ardoise (`access=protected`), Smartphone pêche (`device`), Personne ambre (`a11y`), Cible bleue (`entry`), Numéro d'ordre violet (`order`), Symbole pause ardoise (`⏸`).
 
 ---
 
@@ -440,8 +460,11 @@ Les cartes (plusieurs zones de texte, bulles, tags, piles, liens coudés, lignes
 9. **Vue par rôle** : si une meta `%%@file role=` est présente, le diagramme est affiché tel quel (déjà filtré). Un **filtre de rôle** est aussi proposé sur n'importe quelle vue (§5.1).
 
 ### 4.4 Mise en page — userflows (`kind=userflow`)
-1. Direction **gauche → droite** ; rang = plus long chemin depuis l'entrée ; pas horizontal = largeur de carte + `--dg-flow-gap`.
-2. **Ligne 0** : parcours nominal. Chaque **variante** occupe la ligne suivante, alignée sur le nœud de divergence ; le lien `rejoin` revient en coude vers le nœud de jonction.
+1. **Direction gauche → droite** ; rang horizontal = plus long chemin depuis l'entrée (`ranks`) ; pas horizontal = largeur de carte + `--dg-flow-gap`.
+2. **Alignement horizontal strict sur l'axe Y** :
+   - **Ligne 0 (`row = 0`)** : le **flux nominal** conserve une altitude `posY = startY` strictement identique pour toutes ses étapes.
+   - **Parcours linéaires** : pour tout parcours séquentiel sans embranchement (y compris les variantes isolées modélisées en fichiers distincts `PF-*-VAR-*.mmd`), toutes les étapes sont rigoureusement alignées sur la ligne 0 sans aucun décalage vertical (pas d'effet d'escalier ni de zigzag).
+   - **Couloirs de variantes** : en vue d'ensemble ou en présence d'embranchements, chaque branche variante occupe un couloir distinct en dessous (`row = 1, 2...`). Le tracé `diverge` descend vers la variante, et le tracé `rejoin` remonte vers l'étape nominale cible sans jamais décaler le flux nominal vers le bas.
 3. **ACT** : si le nœud est entre deux ECR, il devient une pastille sur le lien (§3.8).
 4. **CALL replié** : une carte violette ; **déplié** : cadre contenant les nœuds du sous-parcours, relié à l'entrée et à la sortie.
 5. **Vue cas d'usage** : un parcours par ligne, titre `PF-xxx — titre`, regroupés en cadres par rôle (§3.8).
