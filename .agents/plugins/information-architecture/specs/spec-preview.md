@@ -26,6 +26,7 @@
 | 4 | **Canevas & Centrage** | Boîte finie avec fond pointillé délimité et diagramme décentré | **Canevas vectoriel infini** couvrant 100% du viewport (`patternTransform` synchronisé) et **centrage automatique mathématique** (`fitToBounds`) au chargement et au changement de diagramme. |
 | 5 | **Alignement Y des Userflows** | Marches d'escalier / zigzags verticaux causés par `variant`/`diverge` | **Alignement horizontal strict sur l'axe Y** : les étapes du flux nominal et des parcours linéaires partagent une coordonnée `Y` strictement identique, avec couloirs dédiés pour les variantes. |
 | 6 | **Sémantique des Liaisons** | Lignes aux styles différents sans documentation dans la légende | **Spécification normative complète et swatches de légende** pour les 4 familles de liaisons (nominal/hiérarchie, variante/renvoi, CALL violet, EXT orange). |
+| 7 | **Chargement initial & repli dossier** | Découverte HTTP conditionnelle stricte ; pas de tentative d'ouverture sous `file://` | **Tentative systématique d'ouverture de `metadata.json`** à côté de `preview.html`. En cas d'échec ou d'absence de diagrammes, déclenchement et affichage automatique de la dialog d'ouverture de dossier (`showDirectoryPicker()` / dialogue de fichier). |
 
 ---
 
@@ -101,21 +102,23 @@ generated/
 
 ```mermaid
 flowchart TD
-    Start["Ouverture de preview.html"] --> CheckProtocol{"Protocole HTTP(S) ?"}
-    CheckProtocol -- Oui --> AutoFetch["Auto-fetch de ./metadata.json"]
-    CheckProtocol -- Non --> AwaitUser["Attente action utilisateur"]
-    AutoFetch --> AwaitUser
-    AwaitUser --> Action{"Sélection dossier"}
-    Action -- "Chromium" --> FSA["File System Access API (showDirectoryPicker)"]
+    Start["Ouverture de preview.html"] --> TryFetch["Tentative d'ouverture de ./metadata.json"]
+    TryFetch -- Succès --> LoadData["Chargement metadata.json + découverte diagrammes et fiches"]
+    TryFetch -- Échec --> TriggerPicker["Affichage & déclenchement dialog pour ouvrir le dossier"]
+    TriggerPicker --> Action{"Sélection dossier"}
+    Action -- "Chromium (FSA)" --> FSA["File System Access API (showDirectoryPicker)"]
     Action -- "Firefox, Safari" --> FileInput["Input Directory (webkitdirectory)"]
     FSA --> ScanHandle["Scan récursif du DirectoryHandle"]
     FileInput --> ScanList["Scan du FileList mémoire"]
     ScanHandle --> ParseAll["Parsing Mermaid + meta %%@ + index screen-sheets"]
-    ScanList --> ParseAll
+    FileInput --> ParseAll
     ParseAll --> Resolve["Résolution des références croisées (code -> nœuds)"]
     Resolve --> RenderUI["Affichage du 1er diagramme + liste latérale"]
+    LoadData --> RenderUI
 ```
 
+- **Ouverture initiale de `metadata.json`** : au chargement, `preview.html` tente d'ouvrir `metadata.json` situé à côté de lui (`fetch('./metadata.json')`). En cas de succès, il découvre les diagrammes `.mmd` (via index de répertoire local ou sondage des fichiers standards) et pré-charge les fiches écrans Markdown.
+- **Repli automatique sur la sélection de dossier** : si `metadata.json` ne peut être ouvert (restrictions de sécurité `file://`, fichier absent, erreur réseau) ou si aucun diagramme n'est trouvé, l'état d'ouverture s'affiche et la boîte de dialogue de sélection de dossier (`showDirectoryPicker()` avec repli input file) est immédiatement déclenchée.
 - **Mode A — File System Access API** (Chromium / Edge / Opera) : `showDirectoryPicker()`, handle conservé (`activeDirectoryHandle`) pour rafraîchir sans rouvrir la boîte de dialogue.
 - **Mode B — Fallback FileList** (Firefox / Safari) : `<input type="file" webkitdirectory directory multiple>` ; classement via `webkitRelativePath`.
 - **Mode C — Auto-fetch HTTP local** : sous serveur HTTP, `fetch('./metadata.json')` pré-charge les métadonnées.
