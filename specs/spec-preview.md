@@ -5,8 +5,8 @@
 > **Documents frères associés** :
 > - [Information Architecture — Part 1: Arborescence Specification](../../specs/spec-arborescence.md)
 > - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](../../specs/spec-userflows.md)  
-> **Version** : 1.3 — Octobre 2026  
-> **Statut** : Validé (révision v1.3 : panneau légende, bouton export neutre, canevas infini net, centrage automatique, alignement Y des userflows, sémantique des liaisons)  
+> **Version** : 1.4 — Octobre 2026  
+> **Statut** : Validé (révision v1.4 : distinction UC dossier / Parcours PF empilés verticalement avec nominaux en haut, centrage direct sur coordonnées réelles du nœud sans animation de rebond SVG, épuration des mentions redondantes avec la meta)  
 
 ---
 
@@ -16,7 +16,18 @@
 
 ---
 
-## 0. Synthèse des évolutions v1.2 → v1.3
+## 0. Synthèse des évolutions v1.3 → v1.4
+
+| # | Sujet | v1.3 | v1.4 |
+| :--- | :--- | :--- | :--- |
+| 1 | **Distinction Cas d'Usage (UC) vs Parcours (PF)** | Un UC était traité comme un diagramme `.mmd` ordinaire (`UC-xxx-overview.mmd`) au même niveau que les parcours | **Modèle Dossier UC ➔ Parcours empilés** : Un Cas d'Usage (`UC-xxx`) est un conteneur logique (dossier repliable dans `#sidebar`) regroupant tous les parcours (`PF-*.mmd` portant `uc=UC-xxx`) qui l'exécutent. Cliquer sur le dossier UC ouvre un canevas composite affichant tous les parcours de l'UC **empilés verticalement les uns au-dessus des autres**, avec les **parcours nominaux (`statut=nominal`) en haut**, suivis des variantes (`statut=variante`) et des segments (`statut=segment`). |
+| 2 | **Centrage sur un nœud & suppression du rebond** | L'animation `.pulse` (`transform: scale`) écrasait l'attribut SVG `transform="translate(x,y)"` (faisant sauter le nœud en `(0,0)`), et `getBBox()` renvoyait `(0,0)` au lieu des coordonnées du canevas | **Centrage mathématique exact sans rebond** : Suppression de toute animation CSS `transform` / `pulse` sur les `<g class="dg-card">`. `centerOnNode` lit directement les coordonnées canevas (`data-x`, `data-y`, `data-w`, `data-h`) et compense la largeur de l'inspecteur latéral ouvert pour centrer le nœud dans la zone visible. |
+| 3 | **Non-redondance des titres avec la meta** | Les titres contenaient des mentions redondantes (`"Cas d'Usage : ..."`, `"Segment : ..."`, `"Variante"`, `"(Hub)"`, `"(Popin)"`) | **Titres métier purs** : Aucune mention de type ou de statut (`"Cas d'Usage"`, `"Segment"`, `"Variante"`, `"Nominal"`, `"Vue Repliée"`, `"(Hub)"`, `"(Popin)"`, `"(Modale)"`, `"(Ancre)"`) dans les libellés et titres ; ces informations sont portées exclusivement par la meta (`kind`, `view`, `statut`, `type`, `subtype`). |
+| 4 | **Optimisations mémoire & rendu** | Écouteurs d'événements individuels recréés à chaque rendu et fuite de `window.addEventListener('mousemove')` | **Délégation d'événements unique** sur le conteneur SVG (survol et clic), chargement parallèle (`Promise.all`) des fichiers et enrichissement O(1) des cartes `ECR` depuis l'arborescence. |
+
+---
+
+## 0.bis Synthèse des évolutions v1.2 → v1.3
 
 | # | Sujet | v1.2 | v1.3 |
 | :--- | :--- | :--- | :--- |
@@ -474,20 +485,20 @@ Les cartes (plusieurs zones de texte, bulles, tags, piles, liens coudés, lignes
 8. **Renvois** (`action`) : routage orthogonal le long des gouttières, pointillés clairs ; option « Renvois » pour les masquer.
 9. **Vue par rôle** : si une meta `%%@file role=` est présente, le diagramme est affiché tel quel (déjà filtré). Un **filtre de rôle** est aussi proposé sur n'importe quelle vue (§5.1).
 
-### 4.4 Mise en page — userflows (`kind=userflow`)
+### 4.4 Mise en page — userflows (`kind=userflow`) et Cas d'Usage (`UC-xxx`)
 1. **Direction gauche → droite** ; rang horizontal = plus long chemin depuis l'entrée (`ranks`) ; pas horizontal = largeur de carte + `--dg-flow-gap`.
 2. **Alignement horizontal strict sur l'axe Y** :
-   - **Ligne 0 (`row = 0`)** : le **flux nominal** conserve une altitude `posY = startY` strictement identique pour toutes ses étapes.
-   - **Parcours linéaires** : pour tout parcours séquentiel sans embranchement (y compris les variantes isolées modélisées en fichiers distincts `PF-*-VAR-*.mmd`), toutes les étapes sont rigoureusement alignées sur la ligne 0 sans aucun décalage vertical (pas d'effet d'escalier ni de zigzag).
-   - **Couloirs de variantes** : en vue d'ensemble ou en présence d'embranchements, chaque branche variante occupe un couloir distinct en dessous (`row = 1, 2...`). Le tracé `diverge` descend vers la variante, et le tracé `rejoin` remonte vers l'étape nominale cible sans jamais décaler le flux nominal vers le bas.
-3. **ACT** : si le nœud est entre deux ECR, il devient une pastille sur le lien (§3.8).
-4. **CALL replié** : une carte violette ; **déplié** : cadre contenant les nœuds du sous-parcours, relié à l'entrée et à la sortie.
-5. **Vue cas d'usage** : un parcours par ligne, titre `PF-xxx — titre`, regroupés en cadres par rôle (§3.8).
-6. **Séparation des données brutes & Modélisation unifiée des variantes** :
-   - Chaque fichier de parcours (`PF-*.mmd`) est unitaire et strictement linéaire (aucun embranchement interne).
-   - Les variantes sont isolées dans leur propre fichier et contextualisent leur point de divergence (`diverge=PF-xxx@N`) et de rejonction (`rejoint=PF-xxx@M`).
-   - Le visualiseur affiche un bandeau contextuel dédié (`#variant-context-bar`) permettant de naviguer en un clic vers le flux nominal parent ou vers la synthèse UC.
-   - La vue globale d'un cas d'usage (`UC-*-overview.mmd`) rassemble l'ensemble des parcours et variations cohérentes dans un graphe unifié complet.
+   - **Ligne 0 (`row = 0`)** : chaque parcours (`PF-*.mmd`) est unitaire et strictement linéaire ; toutes ses étapes partagent une coordonnée `Y` strictement identique sans aucun décalage vertical (pas d'effet d'escalier ni de zigzag).
+3. **ACT & ATT** : masquables via le menu des calques avec contraction topologique de graphe (§3.9).
+4. **CALL** : carte à bordure violette pointant vers un sous-parcours ou segment (`PF-*-SEG`), ouvrable en un clic depuis l'inspecteur ou le survol.
+5. **Distinction Cas d'Usage (`UC-xxx`) et Parcours (`PF-xxx`)** :
+   - Un **Cas d'Usage (`UC-xxx`)** n'est pas un parcours : c'est un **dossier logique** qui regroupe l'ensemble des parcours (`PF-*.mmd` déclarant `uc=UC-xxx`) permettant d'exécuter l'UC et d'en respecter les objectifs.
+   - Les métadonnées de l'UC (`title`, `objectifs`, `roles`) sont déclarées dans la clé `use_cases` de `metadata.json` ou via `uc_title` dans `%%@file`.
+   - **Ouverture d'un Cas d'Usage (`layoutUseCase`)** : cliquer sur le dossier d'un UC dans le panneau latéral ouvre un canevas composite affichant **tous les parcours de cet UC empilés verticalement les uns au-dessus des autres** dans des cadres dédiés (`journeyTracks`), triés selon l'ordre normatif :
+     1. **Parcours nominaux (`statut=nominal`) en haut** ;
+     2. **Parcours variantes (`statut=variante`) au milieu** (avec indication de `diverge` / `rejoint`) ;
+     3. **Segments réutilisables (`statut=segment`) et vues détaillées en bas**.
+   - Cliquer sur un parcours individuel à l'intérieur du dossier UC dans le panneau latéral (ou sur le bouton « Isoler » dans l'inspecteur) affiche uniquement ce parcours seul sur le canevas.
 
 ### 4.5 Texte
 - Retour à la ligne calculé par mesure (`measureText`) à la largeur de carte moins marges ; **3 lignes max**, ellipse ensuite.
@@ -523,7 +534,9 @@ Modèle à trois panneaux réactifs, repris de la v1.0.
 - Recherche en temps réel sur `id`, `title`, `description`, et sur les **codes et libellés de nœuds** (résultat → ouvre le diagramme et centre le nœud).
 - Pills : `Tous`, `Arbos` (badge `--badge-sitemap`), `Parcours` (badge `--badge-userflow`).
 - **Filtres de diagramme** : type, tag, **rôle** (les nœuds hors rôle sont atténués à 25 %, jamais masqués), état/variante.
-- Liste des diagrammes (titre, badge, description) ; l'élément actif porte `.active`.
+- **Organisation de la liste latérale** :
+  - **Arborescences (`kind=sitemap`)** : éléments de premier niveau listés directement.
+  - **Cas d'Usage (`UC-xxx`)** : présentés sous forme de **dossiers repliables/dépliables** (`.uc-folder`). Un clic sur l'en-tête du dossier UC ouvre sur le canevas l'ensemble des parcours de cet UC empilés verticalement (nominaux en haut). Le chevron permet de replier/déplier la liste des parcours enfants (`.uc-journey-item`) pour ouvrir un parcours spécifique isolément.
 
 ### 5.2 Zone centrale (`#main-viewport`)
 - **Barre d'outils** : bascule du panneau latéral ; titre et badge ; **menu Calques** ; **Légende** ; exports (`PNG HD`, `PNG`, `SVG`, `Print`) ; bascule de l'inspecteur.
@@ -580,7 +593,7 @@ La carte de survol se termine par une barre d'actions (les actions non pertinent
    - retrait de `@ROLE` → `C001@ADMIN` devient `C001` ;
    - pour `L003!suppression` ou `C001#ancre` : l'élément rattaché, sinon la page de base `L003` / `C001`.
 3. **Pour un ACT** : le nœud rattaché à la fonctionnalité `ref=FEAT-xxx` (lien `action` ou élément portant la `ref`) ; à défaut, l'écran qui le précède dans le parcours.
-4. **Retour visuel** : le diagramme s'ouvre, le nœud est centré, sélectionné et pulsé 1,2 s. Un message indique tout repli (« Variante absente de l'arbo : page de base affichée »).
+4. **Retour visuel** : le diagramme s'ouvre, le nœud est centré dans la zone visible du canevas et marqué `.selected` (sans animation de rebond ou `transform` sur le `<g>` SVG qui perturberait ses coordonnées). Un message indique tout repli (« Variante absente de l'arbo : page de base affichée »).
 5. **Aucune correspondance** : message « Code introuvable dans les arbos chargées » (jamais d'erreur bloquante).
 6. **Retour** : un bouton « ← Retour au parcours » restaure le diagramme, le zoom et la sélection d'origine.
 
@@ -613,8 +626,11 @@ $$scale_{fit} = \min\left(\frac{W_{vp} - 100}{W_{svg}},\, \frac{H_{vp} - 100}{H_
 $$panX = \frac{W_{vp} - W_{svg}\times scale}{2}, \qquad panY = \frac{H_{vp} - H_{svg}\times scale}{2}$$
 $W_{svg}, H_{svg}$ sont les dimensions du SVG **produit par le moteur de rendu** (§4).
 
-### 7.3 Zoom sur un nœud (nouveau)
-Utilisé par la navigation croisée, la recherche et les liens profonds : centre le nœud avec `scale = clamp(1.0, scale_courant, 1.5)` et anime la transition (≤ 250 ms ; instantané si `prefers-reduced-motion`).
+### 7.3 Centrage sur un nœud (`centerOnNode`)
+Utilisé au clic sur un nœud, par la navigation croisée, la recherche et les liens profonds :
+- Lit directement les coordonnées réelles du nœud sur le canevas (`data-x`, `data-y`, `data-w`, `data-h` posés sur `<g class="dg-card">`), évitant l'écueil de `getBBox()` qui ne retourne que le repère local `(0, 0)` d'un `<g transform="translate(x, y)">`.
+- Calcule la largeur utile du viewport en soustrayant la largeur de l'inspecteur latéral (`#inspector-modal`) lorsqu'il est ouvert, afin que le nœud soit centré dans l'espace libre visible.
+- Interpolation fluide de `panX`, `panY` et `scale` (`animateTo` ≤ 220 ms) sans aucune animation de rebond (`pulse` ou CSS `transform`) sur le nœud lui-même.
 
 ---
 
