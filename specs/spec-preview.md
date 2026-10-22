@@ -371,6 +371,7 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 | Rupture déclarée | Marqueur « pause » (⏸) | `break=yes` |
 | Popin / ancre | Carte standard ; URL `!nom` ou `#nom` ; type « Popin » / « Ancre » | `type=DLG` / `ANC` |
 | Module transverse | Bordure pointillée + puce de portée (`ALL`, `AUTH`, `@ROLE`) | `type=MOD` |
+| Service externe | Bordure orange `--dg-ext` (2 px) ; type « Externe » ; URL externe (`ext://...` ou `https://...`) | `type=EXT` ou code `EXT-*` |
 
 Les cas sont **cumulables** (ex. dynamique + variante + protégée). Précédence du fond : `tone` explicite > variante dérivée > blanc.
 
@@ -636,11 +637,11 @@ Utilisé au clic sur un nœud, par la navigation croisée, la recherche et les l
 
 ## 8. Moteur d'Export et Impression
 
-Le SVG exporté est celui du moteur de rendu (§4). Les textes sont dessinés en `<text>` (pas de `foreignObject`) avec la pile de polices de repli, ce qui garantit une rastérisation PNG fidèle.
+Le SVG exporté est celui du moteur de rendu (§4). Les textes sont dessinés en `<text>` (pas de `foreignObject`) avec la pile typographique système (`Inter`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, monospace). L'ensemble des icônes du canevas sont rendues sous forme de **tracés vectoriels SVG natifs (`<path>`)**, éliminant tout recours à des ligatures textuelles ou au chargement externe de polices web au moment de l'export.
 
-- **SVG** : clone du `<svg>`, namespaces garantis, `XMLSerializer`, Blob `image/svg+xml;charset=utf-8`, fichier `{activeDiagramId}.svg`. Les variables CSS sont **résolues en valeurs** à l'export (le fichier doit s'ouvrir hors visualiseur).
-- **PNG 1x** : canvas aux dimensions réelles du SVG hors zoom ; fond opaque du thème actif (`#ffffff` clair, `#0f172a` sombre) ; `{activeDiagramId}.png`.
-- **PNG HD** : multiplicateur ×2,5 ; `{activeDiagramId}-hd.png`.
+- **SVG** : clone du `<svg>`, namespaces garantis, `XMLSerializer`, Blob `image/svg+xml;charset=utf-8`, fichier `{activeDiagramId}.svg`. Les variables CSS sont **résolues en valeurs** à l'export et une balise `<defs><style>` autonome est embarquée avec la pile typographique et les classes du design system pour garantir un affichage parfait hors navigateur (Illustrator, Inkscape, Figma, etc.).
+- **PNG 1x & HD** : snapshot exact du canevas réalisé après vérification de la disponibilité des polices (`document.fonts.ready`) ; fond opaque du thème actif (`#ffffff` clair, `#090d16` sombre) ; dimensions réelles du SVG hors zoom (`{activeDiagramId}.png` à 1.0x et `{activeDiagramId}-hd.png` à 2.5x).
+- **Fidélité Snapshot** : typographies, graisses, alignements, tracés et icônes sont strictement identiques au canevas interactif.
 - **Contenu exporté** : l'état courant des calques (niveaux, tags, avatars…) est respecté ; la carte de survol et la sélection ne sont **pas** exportées.
 - **Impression** (`@media print`) : masque `#sidebar`, `#inspector`, `.top-toolbar`, `.floating-controls`, `#empty-state` ; fond blanc ; `transform: none !important` sur le wrapper ; la légende est imprimée si elle est ouverte.
 

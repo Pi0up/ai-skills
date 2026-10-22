@@ -525,6 +525,16 @@ class MermaidGenerator:
                     lines.append(f'        {mcode}["{mcode} !{mod.invocation} [Portée: {mod.portee}]"]')
             lines.append("    end")
 
+        # Services externes
+        if arbo.services_externes:
+            lines.append("")
+            lines.append("    subgraph ServicesExternes[\"SERVICES EXTERNES (HORS ARBRE)\"]")
+            lines.append("        direction TB")
+            for ecode, ext in arbo.services_externes.items():
+                clean_id = re.sub(r"[^A-Za-z0-9_]", "_", ecode)
+                lines.append(f'        {clean_id}[/"{ecode} · {ext.label or ext.url}"/]:::extNode')
+            lines.append("    end")
+
         if mode == "rich":
             lines.extend([
                 "",
@@ -538,6 +548,7 @@ class MermaidGenerator:
                 "    classDef hubNode fill:#fff3e0,stroke:#f57c00,stroke-width:1.5px,stroke-dasharray: 4 2;",
                 "    classDef protectedNode fill:#fbe9e7,stroke:#d84315,stroke-width:1.5px;",
                 "    classDef moduleNode fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,stroke-dasharray: 3 3;",
+                "    classDef extNode fill:#fff8f0,stroke:#ff9500,stroke-width:2px;",
                 "    classDef techNode fill:#eceff1,stroke:#607d8b,stroke-width:1px;",
                 "",
                 "    class HOME homeNode;",
@@ -662,6 +673,23 @@ class MermaidGenerator:
                 else:
                     lines.append(f'        {mcode}["{mcode} !{mod.invocation}"]')
             lines.append("    end")
+
+        # 4.bis Services externes
+        if arbo.services_externes:
+            lines.append("")
+            lines.append("    %% 4.bis Services Externes (Hors Arbre)")
+            lines.append("    subgraph ServicesExternes[\"SERVICES EXTERNES (HORS ARBRE)\"]")
+            lines.append("        direction TB")
+            for ecode, ext in arbo.services_externes.items():
+                clean_id = re.sub(r"[^A-Za-z0-9_]", "_", ecode)
+                lines.append(f'        {clean_id}[/"{ecode} · {ext.label or ext.url}"/]:::extNode')
+            lines.append("    end")
+            for ecode, ext in arbo.services_externes.items():
+                clean_id = re.sub(r"[^A-Za-z0-9_]", "_", ecode)
+                for feat in ext.fonctionnalites:
+                    for pcode, page in arbo.pages.items():
+                        if feat in page.fonctionnalites:
+                            lines.append(f'    {pcode} -. "{feat}" .-> {clean_id}')
 
         # 5. Renvois
         if arbo.renvois:

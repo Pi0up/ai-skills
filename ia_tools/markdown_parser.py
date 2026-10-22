@@ -21,6 +21,7 @@ from .models import (
     Renvoi,
     Role,
     Rupture,
+    ServiceExterne,
     UserflowsModel,
     Variante,
 )
@@ -254,6 +255,35 @@ class ArborescenceParser:
                     fonctionnalites=feats,
                 )
                 model.composants[comp.ref] = comp
+
+        # 5.bis services_externes.md
+        ext_file = dir_path / "services_externes.md"
+        if ext_file.exists():
+            for row in parse_markdown_table(ext_file.read_text(encoding="utf-8")):
+                code = row.get("code") or row.get("Code")
+                if not code:
+                    continue
+                url = row.get("url") or row.get("Url") or row.get("URL") or ""
+                access_raw = row.get("access") or row.get("Access") or ""
+                access = [a.strip() for a in access_raw.split(",") if a.strip()]
+                label = row.get("label", "") or row.get("Label", "")
+                fournisseur = row.get("fournisseur") or row.get("Fournisseur") or row.get("provider") or row.get("Provider") or ""
+                feats_raw = (
+                    row.get("fonctionnalites")
+                    or row.get("Fonctionnalites")
+                    or row.get("features")
+                    or row.get("Features")
+                    or ""
+                )
+                feats = [f.strip() for f in feats_raw.split(",") if f.strip()]
+                model.services_externes[code] = ServiceExterne(
+                    code=code,
+                    url=url,
+                    access=access,
+                    label=label,
+                    fournisseur=fournisseur,
+                    fonctionnalites=feats,
+                )
 
         # 6. renvois.md
         renvois_file = dir_path / "renvois.md"

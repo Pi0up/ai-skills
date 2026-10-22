@@ -95,6 +95,14 @@ A module is a reusable functional block that renders within a page context witho
 - They declare **who** can invoke them (roles) and **where** they can open (scope).
 - Transversal modules use fixed scopes (`ALL`, `PUBLIC`, `AUTH`, `@ROLE`); scoped modules list explicit pages (`PAGE:C001,L002`).
 
+### 2.8.bis External Service Pages (EXT)
+
+An external service page is an autonomous third-party or out-of-application page, portal, or service (e.g., bank 3D-Secure challenge, payment provider, partner booking system, government identity provider, external video/audit service) traversed during user journeys:
+- Like modules, external service pages reside outside the strict internal tree hierarchy (`SERVICES EXTERNES (HORS ARBRE)`).
+- They carry a unique code prefixed with `EXT-` (e.g., `EXT-3DSECURE`, `EXT-CONSEIL`, `EXT-APPROVAL`), template type `EXT`, and declare an external URL or URI scheme (`ext://...`, `https://...`).
+- In arborescence diagrams, they are projected in a dedicated external band and linked from calling pages via functional dashed arrows (`-.->` with `kind=action` or `kind=ext`).
+- Documenting external service pages ensures complete end-to-end traceability between user journeys (Part 2) and the sitemap (Part 1).
+
 ### 2.9 Representation Rules
 
 - **Reference Tables** are the sole source of truth; Mermaid diagrams are generated visual projections.
@@ -148,10 +156,10 @@ Every journey carries a unique ID. Actionable nodes define URLs or custom analyt
 | Element | [Part 1: Arborescence](./spec-arborescence.md) | [Part 2: Userflows](./spec-userflows.md) |
 |---|---|---|
 | **Structure** | Strict hierarchical tree | User journey graph |
-| **Base Unit** | Page and template code (`HOME`, `L`, `C`...) | Node (event `ECR`, `ACT`, `ATT`, `EXT`) |
-| **Identifier** | Canonical reference: `template+ID[@ROLE][:VARIANT]`, `M001`, `C001!quick-view` | Journey (`PF-xxx`), node (`ND-xxx`), use case (`UC-xxx`) |
+| **Base Unit** | Page, module, and external service (`HOME`, `L`, `C`, `M`, `EXT`...) | Node (event `ECR`, `ACT`, `ATT`, `EXT`) |
+| **Identifier** | Canonical reference: `template+ID[@ROLE][:VARIANT]`, `M001`, `C001!quick-view`, `EXT-xxx` | Journey (`PF-xxx`), node (`ND-xxx`), use case (`UC-xxx`) |
 | **Variant / State** | Page variant (layout or permissions) | Object state and context pairs (`dossier=BROUILLON`) |
-| **Source of Truth** | Reference tables (`pages`, `variantes`, `modules`, `composants_page`, `renvois`, `roles`) | Synchronized registry, Markdown use case files |
+| **Source of Truth** | Reference tables (`pages`, `variantes`, `modules`, `services_externes`, `composants_page`, `renvois`, `roles`) | Synchronized registry, Markdown use case files |
 | **URL Scope** | Canonical route and in-page anchor definitions | Observability signal associated with the node |
 | **Linkage** | Attachment of capabilities to screens; cross-references table | Execution sequence of capabilities in journeys |
 
@@ -170,6 +178,7 @@ Every journey carries a unique ID. Actionable nodes define URLs or custom analyt
 - **Object State**: Lifecycle condition of a business entity expressed in closed context (`status=DRAFT`).
 - **Hub**: Template `H` page; routing intermediary leading to its first child.
 - **Module**: Reusable functional block living outside the page tree.
+- **External Service Page**: Third-party or out-of-application service (`EXT`) living outside the tree.
 - **Page Component**: In-page modal (`!`), prompt, or anchor (`#`).
 - **Use Case**: User objective addressed by one or more journeys.
 - **Journey**: Linear path through screens and events fulfilling a use case objective.

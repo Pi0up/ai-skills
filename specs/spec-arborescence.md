@@ -91,10 +91,11 @@ A journey can navigate directly to an entity detail view from a secondary list o
 
 ```
 page-code    = "HOME" | template ID
-template     = "H" | "L" | "F" | "C" | "D" | "E"
+template     = "H" | "L" | "F" | "C" | "D" | "E" | "EXT"
 page-ref     = page-code [ "@" CODE ] [ ":" CODE ]
 module-ref   = "M" ID
 comp-ref     = page-code ( "!" key | "#" key )
+ext-ref      = "EXT-" key
 ID           = 3*DIGIT                      ; 3 or more digits
 CODE         = UPPER *( UPPER | DIGIT | "_" ) ; role or variant code
 key          = lower *( lower | DIGIT ) *( "-" 1*( lower | DIGIT ) )
@@ -106,6 +107,7 @@ Regular expressions:
 page-ref   : ^(?:[a-z0-9]+(?:-[a-z0-9]+)*-)?(HOME|[HLFCDE][0-9]{3,})(@[A-Z][A-Z0-9_]*)?(:[A-Z][A-Z0-9_]*)?$
 module-ref : ^(?:[a-z0-9]+(?:-[a-z0-9]+)*-)?M[0-9]{3,}$
 comp-ref   : ^(HOME|[HLFCDE][0-9]{3,})[!#][a-z0-9]+(?:-[a-z0-9]+)*$
+ext-ref    : ^EXT-[a-z0-9]+(?:-[a-z0-9]+)*$
 ```
 
 Examples:
@@ -117,6 +119,7 @@ Examples:
 - `M001`: Module 001
 - `C001!quick-view`: Modal `quick-view` attached to `C001`
 - `C001#reviews`: Internal anchor `reviews` of `C001`
+- `EXT-3DSECURE`: External bank 3D-Secure challenge page
 
 ### 5.2 Templates
 
@@ -130,6 +133,7 @@ Examples:
 | `D` | Dashboard | Overview panel |
 | `E` | Technical Page | 403, 404, maintenance |
 | `M` | Module | Out-of-tree reusable block |
+| `EXT` | External Service Page | Out-of-tree third-party page / service (payment gateway, 3D-Secure, advisory, identity provider) |
 
 ### 5.3 Variants
 
@@ -182,7 +186,17 @@ In-page modals (`!`) and anchors (`#`) specific to a single page:
 - `label`: colloquial description
 - `fonctionnalites`: capabilities hosted
 
-### 6.5 `renvois` Table
+### 6.5 `services_externes` Table
+
+External third-party pages, portals, or validation services interacted with during user journeys:
+- `code`: unique code matching grammar `ext-ref` (e.g. `EXT-3DSECURE`, `EXT-CONSEIL`)
+- `label`: colloquial description
+- `url`: target external URL or URI scheme (`ext://...`, `https://...`)
+- `fournisseur` / `provider`: entity or organization operating the external service
+- `access`: authorized user roles
+- `fonctionnalites`: associated capabilities (e.g. `FEAT-SAISIE-CB`, `FEAT-DEMANDE-LABEL`)
+
+### 6.6 `renvois` Table
 
 Functional cross-references between screens:
 - `source`: source reference
@@ -190,12 +204,12 @@ Functional cross-references between screens:
 - `cible`: target screen or component
 - `type`: `page`, `module`, or `composant`
 
-### 6.6 `roles` Table
+### 6.7 `roles` Table
 
 - `code`: uppercase role code (includes mandatory `ANONYMOUS`)
 - `label`: colloquial description
 
-### 6.7 Feature Identifiers
+### 6.8 Feature Identifiers
 
 ```
 FEAT-ref = "FEAT-" CODE-KEBAB   ; e.g., FEAT-SUBMIT, FEAT-VALIDATE-INFO
@@ -213,6 +227,13 @@ Modules are reusable functional blocks rendered within a host page without being
   - `AUTH`: pages without `ANONYMOUS` in access
   - `@ROLE`: pages where this role is permitted
   - `PAGE:code1,code2`: explicitly enumerated host pages
+
+## 7.bis External Service Pages (EXT)
+
+External service pages represent out-of-application screens or third-party validation systems (e.g., bank 3D-Secure challenge, payment gateway, external video/audit session, identity provider) required to fulfill a use case.
+- **Out of Tree**: Like modules, external service pages have no parent in the internal tree hierarchy.
+- **Visual Representation**: In sitemap diagrams (`sitemap-detailed.mmd`), they are displayed in a dedicated horizontal band `SERVICES EXTERNES (HORS ARBRE)` with an orange border (`--dg-ext`), distinct from transversal modules.
+- **Linkage**: Inward transitions from application pages to external services are represented by functional dashed arrows (`-.->` with `kind=action` or `kind=ext`).
 
 ## 8. Integrity Checks
 

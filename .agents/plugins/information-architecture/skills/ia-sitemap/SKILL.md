@@ -63,6 +63,11 @@ Provide fields for each page:
 - Set scope: `ALL`, `PUBLIC`, `AUTH`, `@ROLE`, or `PAGE:code1,code2...`.
 - In-page popins (`!`) and anchors (`#`) are cataloged in `composants_page.md`.
 
+### 4.bis Declare `services_externes.md`
+- External third-party pages or validation services (`EXT-xxx`, template `EXT`) live outside the internal tree.
+- Specify: `code` (`EXT-xxx`), `label`, `url` (`ext://...` or `https://...`), `fournisseur` / `provider`, `access` roles, and associated `fonctionnalites`.
+- In Mermaid diagrams (`sitemap-detailed.mmd`), external service pages are grouped in a dedicated band `subgraph ServicesExternes["SERVICES EXTERNES (HORS ARBRE)"]` and linked from caller screens via `-.->` (dashed arrow, `kind=action` or `kind=ext`).
+
 ### 5. Declare `renvois.md` (Virtual Navigation Children)
 - Cross-cutting links to a mutualized page from secondary views are declared here (`source -. FEAT .-> target:VAR`).
 - This models navigation flexibility without corrupting tree hierarchy.
