@@ -1,4 +1,4 @@
-%%@file id=PF-DOSSIER-VAR-ASSIST project=DOSSIER kind=userflow view=collapsed uc=UC-DOSSIER obj=OBJ-DOSSIER-01 statut=variante roles=MANAGER title="Parcours Variante : Assistance Téléphonique" version="1.1" diverge=PF-DOSSIER-NOM@1 rejoint=PF-DOSSIER-NOM@4
+%%@file id=PF-DOSSIER-VAR-ASSIST project=DOSSIER kind=userflow view=collapsed uc=UC-DOSSIER uc_title="Constitution et soumission de dossier" obj=OBJ-DOSSIER-01 statut=variante roles=MANAGER title="Assistance Téléphonique" version="1.2" diverge=PF-DOSSIER-NOM@1 rejoint=PF-DOSSIER-NOM@4
 %%@node ND010 code=C010:EDIT type=ECR order=1
 %%@node ND030 ref=FEAT-DEMANDER-AIDE type=ACT order=2
 %%@node ND031 code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND020 persist=external delay=24h order=3
@@ -14,9 +14,9 @@ flowchart LR
     %% Contexte d'entrée : Pièces manquantes + assistance demandée
     %% Inclut un événement externe hors application avec rupture déclarée (⏸)
     %% --------------------------------------------------------------------------
-    ND010(["ND-010 · C010:EDIT (Point de divergence)"])
+    ND010(["ND-010 · C010:EDIT — Saisie du dossier"])
     ND030["ND-030 · Demande d'aide conseiller"]
     ND031[/"ND-031 · Échange téléphonique conseiller ⏸"/]
-    ND020(["ND-020 · C010 (Point de rejonction)"])
+    ND020(["ND-020 · C010 — Récapitulatif"])
 
     ND010 -. "diverge @1" .-> ND030 -.-> ND031 -. "rejoint @4" .-> ND020

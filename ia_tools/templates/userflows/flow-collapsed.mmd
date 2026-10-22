@@ -1,4 +1,4 @@
-%%@file id=PF-DOSSIER-NOM project=DOSSIER kind=userflow view=collapsed uc=UC-DOSSIER obj=OBJ-DOSSIER-01 statut=nominal roles=MANAGER title="Parcours Nominal : Soumettre un Dossier" version="1.1" atterrissage=C010
+%%@file id=PF-DOSSIER-NOM project=DOSSIER kind=userflow view=collapsed uc=UC-DOSSIER uc_title="Constitution et soumission de dossier" obj=OBJ-DOSSIER-01 statut=nominal roles=MANAGER title="Soumettre un Dossier" version="1.2" atterrissage=C010
 %%@node ND010 code=C010:EDIT type=ECR order=1
 %%@node ND011 ref=FEAT-VALIDER-INFOS type=ACT order=2
 %%@node PJ code=PF-DOSSIER-PJ-SEG type=CALL order=3
@@ -18,10 +18,10 @@ flowchart LR
     %% Séquence linéaire du parcours nominal (Fichier Brut Séparé)
     %% P3 : Séquence strictement linéaire sans embranchement interne
     %% --------------------------------------------------------------------------
-    ND010(["ND-010 · C010:EDIT (Écran saisie)"])
+    ND010(["ND-010 · C010:EDIT — Saisie du dossier"])
     ND011["ND-011 · Valider les informations"]
-    PJ[["PJ · Sous-Parcours Pièces Justificatives"]]
-    ND020(["ND-020 · C010 (Récapitulatif)"])
+    PJ[["PF-DOSSIER-PJ-SEG · Pièces Justificatives"]]
+    ND020(["ND-020 · C010 — Récapitulatif"])
     ND021["ND-021 · Soumettre le dossier"]
     ND022{{"ND-022 · Contrôle asynchrone ⏸"}}
     ND030(["ND-030 · Confirmation dossier"])

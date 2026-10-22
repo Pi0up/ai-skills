@@ -10,15 +10,44 @@
     "sitemap-detailed.mmd",
     "sitemap-by-role-admin.mmd",
     "sitemap-by-role-host.mmd",
-    "UC-RESERVATION-overview.mmd",
     "PF-RESERVATION-NOM-collapsed.mmd",
     "PF-RESERVATION-VAR-HOST-APPROVAL.mmd",
     "PF-PAIEMENT-EXPANDED.mmd",
     "PF-PAIEMENT-SEG.mmd",
-    "UC-DEPOT-overview.mmd",
     "PF-DEPOT-NOM-collapsed.mmd",
     "PF-DEPOT-VAR-ASSIST.mmd"
   ],
+  "use_cases": {
+    "UC-RESERVATION": {
+      "id": "UC-RESERVATION",
+      "title": "Réservation d'un séjour",
+      "objectifs": [
+        "OBJ-RES-01"
+      ],
+      "roles": [
+        "VOYAGEUR",
+        "HOTE",
+        "ADMIN"
+      ],
+      "confiance": "YELLOW",
+      "validation": "QA+UAT",
+      "funnel": true
+    },
+    "UC-DEPOT-ANNONCE": {
+      "id": "UC-DEPOT-ANNONCE",
+      "title": "Publication et modération d'annonce",
+      "objectifs": [
+        "OBJ-DEPOT-01"
+      ],
+      "roles": [
+        "HOTE",
+        "ADMIN"
+      ],
+      "confiance": "YELLOW",
+      "validation": "QA+UAT",
+      "funnel": true
+    }
+  },
   "HOME": {
     "code": "HOME",
     "title": "Accueil & Sélections Éco-Responsables",
@@ -48,7 +77,7 @@
   },
   "H001": {
     "code": "H001",
-    "title": "Espace Voyageur (Hub)",
+    "title": "Espace Voyageur",
     "url": "/account",
     "template": "H",
     "subtype": "hub",
@@ -96,7 +125,7 @@
   },
   "L002!annulation": {
     "code": "L002!annulation",
-    "title": "Confirmation d'Annulation (Dialogue)",
+    "title": "Confirmation d'Annulation",
     "template": "DLG",
     "subtype": "dialogue",
     "access": "protected",
@@ -176,7 +205,7 @@
   },
   "L001!filtres": {
     "code": "L001!filtres",
-    "title": "Filtres Avancés & Éco-labels (Popin)",
+    "title": "Filtres Avancés & Éco-labels",
     "template": "DLG",
     "subtype": "popin",
     "access": "public",
@@ -231,7 +260,7 @@
   },
   "C001!galerie": {
     "code": "C001!galerie",
-    "title": "Galerie & Visite Virtuelle (Modale)",
+    "title": "Galerie & Visite Virtuelle",
     "template": "DLG",
     "subtype": "visionneuse",
     "access": "public",
@@ -255,7 +284,7 @@
   },
   "C001#avis": {
     "code": "C001#avis",
-    "title": "Avis Voyageurs & Notes (Ancre)",
+    "title": "Avis Voyageurs & Notes",
     "url": "/stays/[id]#avis",
     "template": "ANC",
     "subtype": "ancre",
@@ -274,7 +303,7 @@
   },
   "C001#eco-impact": {
     "code": "C001#eco-impact",
-    "title": "Bilan Carbone & Éco-Engagements (Ancre)",
+    "title": "Bilan Carbone & Éco-Engagements",
     "url": "/stays/[id]#eco-impact",
     "template": "ANC",
     "subtype": "ancre",
@@ -293,7 +322,7 @@
   },
   "C001@ADMIN": {
     "code": "C001@ADMIN",
-    "title": "Fiche Écolodge (Contrôle Modérateur)",
+    "title": "Contrôle Modérateur",
     "url": "/stays/[id]",
     "template": "C",
     "subtype": "moderation",
@@ -450,7 +479,7 @@
   },
   "H002": {
     "code": "H002",
-    "title": "Espace Hôte Partenaire (Hub)",
+    "title": "Espace Hôte Partenaire",
     "url": "/host",
     "template": "H",
     "subtype": "hub",

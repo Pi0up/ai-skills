@@ -12,7 +12,7 @@ const examplesDir = path.resolve(__dirname, '../examples/preview-showcase');
 const files = {};
 
 // 1. sitemap-overview.mmd
-files['sitemap-overview.mmd'] = `%%@file id=sitemap-overview project=ECO-STAYS kind=sitemap view=general title="Arborescence Générale Éco-Hébergements" version="1.3"
+files['sitemap-overview.mmd'] = `%%@file id=sitemap-overview project=ECO-STAYS kind=sitemap view=general title="Plateforme Éco-Hébergements" version="1.3"
 %%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,VOYAGEUR,HOTE,ADMIN url=/ order=1
 %%@node H001 code=H001 type=H subtype=hub access=protected roles=VOYAGEUR,ADMIN url=/account order=2
 %%@node L002 code=L002 type=L subtype=liste access=protected roles=VOYAGEUR,ADMIN url=/account/bookings order=1
@@ -72,7 +72,7 @@ flowchart TD
 `;
 
 // 2. sitemap-detailed.mmd
-files['sitemap-detailed.mmd'] = `%%@file id=sitemap-detailed project=ECO-STAYS kind=sitemap view=detailed title="Arborescence Détaillée Éco-Hébergements" version="1.3"
+files['sitemap-detailed.mmd'] = `%%@file id=sitemap-detailed project=ECO-STAYS kind=sitemap view=detailed title="Plateforme Éco-Hébergements — Complet" version="1.3"
 %%@tag MVP color=blue style=fill label="MVP"
 %%@tag SP1 color=green style=outline label="Sprint 1"
 %%@tag SP2 color=orange style=outline label="Sprint 2"
@@ -185,7 +185,7 @@ flowchart TD
 `;
 
 // 3. sitemap-by-role-admin.mmd
-files['sitemap-by-role-admin.mmd'] = `%%@file id=sitemap-by-role-admin project=ECO-STAYS kind=sitemap view=role role=ADMIN title="Arborescence Administrateur & Modération" version="1.3"
+files['sitemap-by-role-admin.mmd'] = `%%@file id=sitemap-by-role-admin project=ECO-STAYS kind=sitemap view=role role=ADMIN title="Administration & Modération" version="1.3"
 %%@tag AUDIT color=red style=outline label="Audit & Contrôle"
 %%@tag ECO_LABEL color=green style=fill label="Éco-Label"
 %%@node HOME code=HOME type=HOME access=public roles=ADMIN url=/ order=1
@@ -225,7 +225,7 @@ flowchart TD
 `;
 
 // 4. sitemap-by-role-host.mmd
-files['sitemap-by-role-host.mmd'] = `%%@file id=sitemap-by-role-host project=ECO-STAYS kind=sitemap view=role role=HOTE title="Arborescence Espace Hôte Partenaire" version="1.3"
+files['sitemap-by-role-host.mmd'] = `%%@file id=sitemap-by-role-host project=ECO-STAYS kind=sitemap view=role role=HOTE title="Espace Hôte Partenaire" version="1.3"
 %%@tag SP2 color=orange style=outline label="Sprint 2"
 %%@tag ECO_LABEL color=green style=fill label="Éco-Label"
 %%@node HOME code=HOME type=HOME access=public roles=HOTE url=/ order=1
@@ -258,45 +258,8 @@ flowchart TD
   D001 -.-> M001
 `;
 
-// 5. UC-RESERVATION-overview.mmd
-files['UC-RESERVATION-overview.mmd'] = `%%@file id=UC-RESERVATION-overview project=ECO-STAYS kind=userflow view=uc uc=UC-RESERVATION obj=OBJ-RES-01 title="Cas d'Usage : Réservation d'un Écolodge" version="1.3" roles=VOYAGEUR,HOTE,ADMIN confiance=YELLOW validation=QA+UAT funnel=yes
-%%@node ND_HOME code=HOME type=ECR order=1
-%%@node ND_L001 code=L001 type=ECR order=2
-%%@node ND_C001 code=C001 type=ECR order=3
-%%@node ND_F001 code=F001 type=ECR order=4
-%%@node ND_EXT_APPROVAL code=EXT-APPROVAL type=EXT break=yes delay=24h persist=external resume=ND_F001_RECAP order=5
-%%@node ND_F001_RECAP code=F001:RECAP type=ECR order=6
-%%@node CALL_PAY code=PF-PAIEMENT-SEG type=CALL order=7
-%%@node ND_L002 code=L002 type=ECR order=8
-%%@edge ND_HOME>ND_L001 kind=nominal
-%%@edge ND_L001>ND_C001 kind=nominal
-%%@edge ND_C001>ND_F001 kind=nominal
-%%@edge ND_F001>ND_F001_RECAP kind=nominal
-%%@edge ND_F001>ND_EXT_APPROVAL kind=diverge
-%%@edge ND_EXT_APPROVAL>ND_F001_RECAP kind=rejoin
-%%@edge ND_F001_RECAP>CALL_PAY kind=nominal
-%%@edge CALL_PAY>ND_L002 kind=nominal
-flowchart LR
-  subgraph Role_VOYAGEUR["flows / VOYAGEUR"]
-    ND_HOME(["ND-001 · Accueil"])
-    ND_L001["ND-002 · Catalogue Écolodges"]
-    ND_C001(["ND-003 · Fiche Lodge"])
-    ND_F001{"ND-004 · Tunnel Réservation"}
-    ND_F001_RECAP{"ND-005 · Récapitulatif & CGV"}
-    CALL_PAY[["PF-PAIEMENT-SEG · Module Paiement"]]
-    ND_L002["ND-007 · Confirmation & Mes Réservations"]
-  end
-
-  subgraph Role_HOTE["flows / HOTE"]
-    ND_EXT_APPROVAL[/"ND-008 · Accord Manuel Hôte ⏸ 24h"/]
-  end
-
-  ND_HOME --> ND_L001 --> ND_C001 --> ND_F001 --> ND_F001_RECAP --> CALL_PAY --> ND_L002
-  ND_F001 -.-> ND_EXT_APPROVAL -.-> ND_F001_RECAP
-`;
-
-// 6. PF-RESERVATION-NOM-collapsed.mmd
-files['PF-RESERVATION-NOM-collapsed.mmd'] = `%%@file id=PF-RESERVATION-NOM-collapsed project=ECO-STAYS kind=userflow view=collapsed uc=UC-RESERVATION obj=OBJ-RES-01 statut=nominal roles=VOYAGEUR title="Réservation Nominale Écolodge (Vue Repliée)" version="1.3" atterrissage=L002
+// 5. PF-RESERVATION-NOM-collapsed.mmd
+files['PF-RESERVATION-NOM-collapsed.mmd'] = `%%@file id=PF-RESERVATION-NOM-collapsed project=ECO-STAYS kind=userflow view=collapsed uc=UC-RESERVATION uc_title="Réservation d'un séjour" obj=OBJ-RES-01 statut=nominal roles=VOYAGEUR title="Réservation instantanée d'un écolodge" version="1.3" atterrissage=L002
 %%@node ND_HOME code=HOME type=ECR order=1
 %%@node ND_ACT1 ref=FEAT-RECHERCHER type=ACT order=2
 %%@node ND_L001 code=L001 type=ECR order=3
@@ -334,8 +297,8 @@ flowchart LR
   ND_HOME --> ND_ACT1 --> ND_L001 --> ND_ACT2 --> ND_C001 --> ND_ACT3 --> ND_F001 --> ND_ATT1 --> ND_F001_RECAP --> ND_CALL_PAY --> ND_L002
 `;
 
-// 7. PF-RESERVATION-VAR-HOST-APPROVAL.mmd
-files['PF-RESERVATION-VAR-HOST-APPROVAL.mmd'] = `%%@file id=PF-RESERVATION-VAR-HOST-APPROVAL project=ECO-STAYS kind=userflow view=collapsed uc=UC-RESERVATION obj=OBJ-RES-01 statut=variante roles=VOYAGEUR title="Variante avec Approbation Manuelle Hôte ⏸" version="1.3" diverge=PF-RESERVATION-NOM@7 rejoint=PF-RESERVATION-NOM@9
+// 6. PF-RESERVATION-VAR-HOST-APPROVAL.mmd
+files['PF-RESERVATION-VAR-HOST-APPROVAL.mmd'] = `%%@file id=PF-RESERVATION-VAR-HOST-APPROVAL project=ECO-STAYS kind=userflow view=collapsed uc=UC-RESERVATION uc_title="Réservation d'un séjour" obj=OBJ-RES-01 statut=variante roles=VOYAGEUR title="Demande soumise à approbation de l'hôte" version="1.3" diverge=PF-RESERVATION-NOM@7 rejoint=PF-RESERVATION-NOM@9
 %%@node ND_F001 code=F001 type=ECR order=1
 %%@node ND_ACT_REQUEST ref=FEAT-DEMANDE-ACCORD type=ACT order=2
 %%@node ND_EXT_APPROVAL code=EXT-APPROVAL type=EXT obs=none break=yes delay=24h persist=external resume=ND_F001_RECAP order=3
@@ -356,8 +319,8 @@ flowchart LR
   ND_F001_RECAP --> ND_CALL_PAY
 `;
 
-// 8. PF-PAIEMENT-EXPANDED.mmd
-files['PF-PAIEMENT-EXPANDED.mmd'] = `%%@file id=PF-PAIEMENT-EXPANDED project=ECO-STAYS kind=userflow view=expanded uc=UC-RESERVATION obj=OBJ-RES-01 roles=VOYAGEUR title="Sous-Parcours Paiement Sécurisé (Déplié)" version="1.3"
+// 7. PF-PAIEMENT-EXPANDED.mmd
+files['PF-PAIEMENT-EXPANDED.mmd'] = `%%@file id=PF-PAIEMENT-EXPANDED project=ECO-STAYS kind=userflow view=expanded uc=UC-RESERVATION uc_title="Réservation d'un séjour" obj=OBJ-RES-01 roles=VOYAGEUR title="Règlement 3D-Secure avec contrôle bancaire" version="1.3"
 %%@node ND_P01 code=F001:PAY type=ECR order=1
 %%@node ND_P02 ref=FEAT-SAISIE-CB type=ACT order=2
 %%@node ND_P03 code=EXT-3DSECURE type=EXT obs=none break=yes delay=5m persist=volatile resume=ND_P04 order=3
@@ -377,8 +340,8 @@ flowchart LR
   ND_P01 --> ND_P02 --> ND_P03 --> ND_P04 --> ND_P05
 `;
 
-// 9. PF-PAIEMENT-SEG.mmd
-files['PF-PAIEMENT-SEG.mmd'] = `%%@file id=PF-PAIEMENT-SEG project=ECO-STAYS kind=userflow view=collapsed uc=UC-RESERVATION statut=segment roles=VOYAGEUR title="Segment Facteur : Paiement Sécurisé" version="1.3" atterrissage=L002
+// 8. PF-PAIEMENT-SEG.mmd
+files['PF-PAIEMENT-SEG.mmd'] = `%%@file id=PF-PAIEMENT-SEG project=ECO-STAYS kind=userflow view=collapsed uc=UC-RESERVATION uc_title="Réservation d'un séjour" statut=segment roles=VOYAGEUR title="Paiement sécurisé par carte" version="1.3" atterrissage=L002
 %%@node ND_S01 code=F001:PAY type=ECR order=1
 %%@node ND_S02 ref=FEAT-SAISIE-CB type=ACT order=2
 %%@node ND_S03 code=L002 type=ECR order=3
@@ -392,43 +355,8 @@ flowchart LR
   ND_S01 --> ND_S02 --> ND_S03
 `;
 
-// 10. UC-DEPOT-overview.mmd
-files['UC-DEPOT-overview.mmd'] = `%%@file id=UC-DEPOT-overview project=ECO-STAYS kind=userflow view=uc uc=UC-DEPOT-ANNONCE obj=OBJ-DEPOT-01 title="Cas d'Usage : Création & Modération d'Annonce" version="1.3" roles=HOTE,ADMIN confiance=YELLOW validation=QA+UAT funnel=yes
-%%@node ND_D001 code=D001 type=ECR order=1
-%%@node ND_F002 code=F002 type=ECR order=2
-%%@node ND_EXT_CONSEIL code=EXT-CONSEIL type=EXT break=yes delay=48h persist=external resume=ND_C001_PREV order=3
-%%@node ND_C001_PREV code=C001:PREVIEW type=ECR order=4
-%%@node ND_L003 code=L003 type=ECR order=5
-%%@node ND_D002 code=D002 type=ECR order=6
-%%@node ND_C001_AUDIT code=C001@ADMIN:EDIT type=ECR order=7
-%%@edge ND_D001>ND_F002 kind=nominal
-%%@edge ND_F002>ND_C001_PREV kind=nominal
-%%@edge ND_F002>ND_EXT_CONSEIL kind=diverge
-%%@edge ND_EXT_CONSEIL>ND_C001_PREV kind=rejoin
-%%@edge ND_C001_PREV>ND_L003 kind=nominal
-%%@edge ND_L003>ND_D002 kind=nominal
-%%@edge ND_D002>ND_C001_AUDIT kind=nominal
-flowchart LR
-  subgraph Role_HOTE["flows / HOTE"]
-    ND_D001["ND-001 · Tableau de bord hôte"]
-    ND_F002{"ND-002 · Formulaire de création"}
-    ND_EXT_CONSEIL[/"ND-003 · Audit Conseiller Éco-Label ⏸ 48h"/]
-    ND_C001_PREV(["ND-004 · Aperçu avant publication"])
-    ND_L003["ND-005 · Annonces publiées"]
-  end
-
-  subgraph Role_ADMIN["flows / ADMIN"]
-    ND_D002["ND-006 · Supervision modération"]
-    ND_C001_AUDIT(["ND-007 · Audit conformité écolodge"])
-  end
-
-  ND_D001 --> ND_F002 --> ND_C001_PREV --> ND_L003
-  ND_F002 -.-> ND_EXT_CONSEIL -.-> ND_C001_PREV
-  ND_L003 --> ND_D002 --> ND_C001_AUDIT
-`;
-
-// 11. PF-DEPOT-NOM-collapsed.mmd
-files['PF-DEPOT-NOM-collapsed.mmd'] = `%%@file id=PF-DEPOT-NOM-collapsed project=ECO-STAYS kind=userflow view=collapsed uc=UC-DEPOT-ANNONCE obj=OBJ-DEPOT-01 statut=nominal roles=HOTE title="Création Nominale d'Annonce Écolodge (Vue Repliée)" version="1.3" atterrissage=L003
+// 9. PF-DEPOT-NOM-collapsed.mmd
+files['PF-DEPOT-NOM-collapsed.mmd'] = `%%@file id=PF-DEPOT-NOM-collapsed project=ECO-STAYS kind=userflow view=collapsed uc=UC-DEPOT-ANNONCE uc_title="Publication et modération d'annonce" obj=OBJ-DEPOT-01 statut=nominal roles=HOTE title="Publication directe d'une annonce" version="1.3" atterrissage=L003
 %%@node ND_D001 code=D001 type=ECR order=1
 %%@node ND_ACT_NEW ref=FEAT-NOUVELLE-ANNONCE type=ACT order=2
 %%@node ND_F002 code=F002 type=ECR order=3
@@ -457,8 +385,8 @@ flowchart LR
   ND_D001 --> ND_ACT_NEW --> ND_F002 --> ND_ACT_UPLOAD --> ND_ATT_CADASTRE --> ND_C001_PREV --> ND_ACT_PUBLISH --> ND_L003
 `;
 
-// 12. PF-DEPOT-VAR-ASSIST.mmd
-files['PF-DEPOT-VAR-ASSIST.mmd'] = `%%@file id=PF-DEPOT-VAR-ASSIST project=ECO-STAYS kind=userflow view=collapsed uc=UC-DEPOT-ANNONCE obj=OBJ-DEPOT-01 statut=variante roles=HOTE title="Variante avec Accompagnement Éco-Label ⏸" version="1.3" diverge=PF-DEPOT-NOM@3 rejoint=PF-DEPOT-NOM@6
+// 10. PF-DEPOT-VAR-ASSIST.mmd
+files['PF-DEPOT-VAR-ASSIST.mmd'] = `%%@file id=PF-DEPOT-VAR-ASSIST project=ECO-STAYS kind=userflow view=collapsed uc=UC-DEPOT-ANNONCE uc_title="Publication et modération d'annonce" obj=OBJ-DEPOT-01 statut=variante roles=HOTE title="Accompagnement Éco-Label" version="1.3" diverge=PF-DEPOT-NOM@3 rejoint=PF-DEPOT-NOM@6
 %%@node ND_F002 code=F002 type=ECR order=1
 %%@node ND_ACT_AIDE ref=FEAT-DEMANDE-LABEL type=ACT order=2
 %%@node ND_EXT_CONSEIL code=EXT-CONSEIL type=EXT obs=none break=yes delay=48h persist=external resume=ND_C001_PREV order=3
@@ -482,7 +410,7 @@ flowchart LR
   ND_C001_PREV --> ND_ACT_PUBLISH --> ND_L003
 `;
 
-// 13. metadata.json
+// 11. metadata.json
 files['metadata.json'] = JSON.stringify({
   "_meta": {
     "format": "ia-metadata",
@@ -495,15 +423,33 @@ files['metadata.json'] = JSON.stringify({
     "sitemap-detailed.mmd",
     "sitemap-by-role-admin.mmd",
     "sitemap-by-role-host.mmd",
-    "UC-RESERVATION-overview.mmd",
     "PF-RESERVATION-NOM-collapsed.mmd",
     "PF-RESERVATION-VAR-HOST-APPROVAL.mmd",
     "PF-PAIEMENT-EXPANDED.mmd",
     "PF-PAIEMENT-SEG.mmd",
-    "UC-DEPOT-overview.mmd",
     "PF-DEPOT-NOM-collapsed.mmd",
     "PF-DEPOT-VAR-ASSIST.mmd"
   ],
+  "use_cases": {
+    "UC-RESERVATION": {
+      "id": "UC-RESERVATION",
+      "title": "Réservation d'un séjour",
+      "objectifs": ["OBJ-RES-01"],
+      "roles": ["VOYAGEUR", "HOTE", "ADMIN"],
+      "confiance": "YELLOW",
+      "validation": "QA+UAT",
+      "funnel": true
+    },
+    "UC-DEPOT-ANNONCE": {
+      "id": "UC-DEPOT-ANNONCE",
+      "title": "Publication et modération d'annonce",
+      "objectifs": ["OBJ-DEPOT-01"],
+      "roles": ["HOTE", "ADMIN"],
+      "confiance": "YELLOW",
+      "validation": "QA+UAT",
+      "funnel": true
+    }
+  },
   "HOME": {
     "code": "HOME",
     "title": "Accueil & Sélections Éco-Responsables",
@@ -521,7 +467,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "H001": {
     "code": "H001",
-    "title": "Espace Voyageur (Hub)",
+    "title": "Espace Voyageur",
     "url": "/account",
     "template": "H",
     "subtype": "hub",
@@ -550,7 +496,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "L002!annulation": {
     "code": "L002!annulation",
-    "title": "Confirmation d'Annulation (Dialogue)",
+    "title": "Confirmation d'Annulation",
     "template": "DLG",
     "subtype": "dialogue",
     "access": "protected",
@@ -594,7 +540,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "L001!filtres": {
     "code": "L001!filtres",
-    "title": "Filtres Avancés & Éco-labels (Popin)",
+    "title": "Filtres Avancés & Éco-labels",
     "template": "DLG",
     "subtype": "popin",
     "access": "public",
@@ -624,7 +570,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "C001!galerie": {
     "code": "C001!galerie",
-    "title": "Galerie & Visite Virtuelle (Modale)",
+    "title": "Galerie & Visite Virtuelle",
     "template": "DLG",
     "subtype": "visionneuse",
     "access": "public",
@@ -637,7 +583,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "C001#avis": {
     "code": "C001#avis",
-    "title": "Avis Voyageurs & Notes (Ancre)",
+    "title": "Avis Voyageurs & Notes",
     "url": "/stays/[id]#avis",
     "template": "ANC",
     "subtype": "ancre",
@@ -649,7 +595,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "C001#eco-impact": {
     "code": "C001#eco-impact",
-    "title": "Bilan Carbone & Éco-Engagements (Ancre)",
+    "title": "Bilan Carbone & Éco-Engagements",
     "url": "/stays/[id]#eco-impact",
     "template": "ANC",
     "subtype": "ancre",
@@ -661,7 +607,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "C001@ADMIN": {
     "code": "C001@ADMIN",
-    "title": "Fiche Écolodge (Contrôle Modérateur)",
+    "title": "Contrôle Modérateur",
     "url": "/stays/[id]",
     "template": "C",
     "subtype": "moderation",
@@ -755,7 +701,7 @@ files['metadata.json'] = JSON.stringify({
   },
   "H002": {
     "code": "H002",
-    "title": "Espace Hôte Partenaire (Hub)",
+    "title": "Espace Hôte Partenaire",
     "url": "/host",
     "template": "H",
     "subtype": "hub",
@@ -1385,6 +1331,13 @@ for (const target of targetDirs) {
   if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
   const sheetDir = path.join(target, 'screen-sheets');
   if (!fs.existsSync(sheetDir)) fs.mkdirSync(sheetDir, { recursive: true });
+
+  // Supprimer les anciens fichiers .mmd obsolètes (ex. UC-*-overview.mmd)
+  for (const existing of fs.readdirSync(target)) {
+    if (existing.endsWith('.mmd') && !Object.prototype.hasOwnProperty.call(files, existing)) {
+      fs.unlinkSync(path.join(target, existing));
+    }
+  }
 
   for (const [filename, content] of Object.entries(files)) {
     const destPath = path.join(target, filename);
