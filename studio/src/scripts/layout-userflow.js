@@ -3,6 +3,120 @@
  * Garantit un alignement strict sur l'axe Y pour les étapes du flux nominal et les parcours linéaires.
  */
 
+/**
+ * Filtre les nœuds ACT et/ou ATT d'un Userflow et contracte le graphe.
+ * Reconnecte de manière transitive les nœuds amont et aval pour éviter les ruptures visuelles.
+ * @param {Object} ast - L'AST du diagramme userflow
+ * @param {Object} layers - Les options de calques ({ actions: boolean, attentes: boolean })
+ * @returns {Object} - Nouvel AST contracté
+ */
+export function filterUserflowAst(ast, layers = {}) {
+  if (!ast || ast.meta.kind !== 'userflow') return ast;
+
+  const showActions = layers.actions !== false;
+  const showAttentes = layers.attentes !== false;
+
+  // Si les deux types sont visibles, aucun filtrage nécessaire
+  if (showActions && showAttentes) {
+    return ast;
+  }
+
+  // 1. Identifier les nœuds à masquer
+  const hiddenIds = new Set();
+  Object.entries(ast.nodes).forEach(([id, node]) => {
+    const isAct = node.type === 'ACT';
+    const isAtt = node.type === 'ATT';
+    if ((isAct && !showActions) || (isAtt && !showAttentes)) {
+      hiddenIds.add(id);
+    }
+  });
+
+  if (hiddenIds.size === 0) return ast;
+
+  // 2. Construire la liste des nœuds conservés
+  const remainingNodes = {};
+  Object.entries(ast.nodes).forEach(([id, node]) => {
+    if (!hiddenIds.has(id)) {
+      remainingNodes[id] = node;
+    }
+  });
+
+  // 3. Reconnexion transitive (Contraction topologique)
+  const outgoing = {};
+  ast.edges.forEach((e) => {
+    if (!outgoing[e.src]) outgoing[e.src] = [];
+    outgoing[e.src].push(e);
+  });
+
+  function findReachableVisible(currId, inheritedKind, visited = new Set()) {
+    if (visited.has(currId)) return [];
+    visited.add(currId);
+
+    const reachable = [];
+    const out = outgoing[currId] || [];
+
+    out.forEach((edge) => {
+      const nextId = edge.dst;
+      const combinedKind =
+        edge.kind === 'diverge'
+          ? 'diverge'
+          : inheritedKind === 'diverge'
+          ? 'diverge'
+          : edge.kind === 'variant' || inheritedKind === 'variant'
+          ? 'variant'
+          : edge.kind === 'rejoin' || inheritedKind === 'rejoin'
+          ? 'rejoin'
+          : 'nominal';
+
+      if (!hiddenIds.has(nextId)) {
+        if (remainingNodes[nextId]) {
+          reachable.push({ dst: nextId, kind: combinedKind });
+        }
+      } else {
+        reachable.push(...findReachableVisible(nextId, combinedKind, new Set(visited)));
+      }
+    });
+
+    return reachable;
+  }
+
+  const remainingEdges = [];
+  const edgeKeySet = new Set();
+
+  Object.keys(remainingNodes).forEach((srcId) => {
+    const out = outgoing[srcId] || [];
+    out.forEach((edge) => {
+      if (!hiddenIds.has(edge.dst)) {
+        const key = `${srcId}>${edge.dst}`;
+        if (!edgeKeySet.has(key)) {
+          edgeKeySet.add(key);
+          remainingEdges.push(edge);
+        }
+      } else {
+        const targets = findReachableVisible(edge.dst, edge.kind);
+        targets.forEach((tgt) => {
+          const key = `${srcId}>${tgt.dst}`;
+          if (!edgeKeySet.has(key) && tgt.dst !== srcId) {
+            edgeKeySet.add(key);
+            remainingEdges.push({
+              src: srcId,
+              dst: tgt.dst,
+              kind: tgt.kind || 'nominal',
+              label: '',
+            });
+          }
+        });
+      }
+    });
+  });
+
+  return {
+    ...ast,
+    nodes: remainingNodes,
+    edges: remainingEdges,
+  };
+}
+
 export function layoutUserflow(ast, options = {}) {
   const cardW = options.cardW || 200;
   const cardH = options.cardH || 118;

@@ -91,13 +91,18 @@ export function cleanNodeTitle(rawLabel, code, id) {
   }
 
   // Supprime également les préfixes génériques "ND-xxx · " ou "NDxxx · "
-  cleaned = cleaned.replace(/^ND-?\d+\s*([·\\-–—:]+)\s*/i, '');
+  cleaned = cleaned.replace(/^ND-?\d+\s*(?:·|\-–—|:)\s*/i, '');
+
+  // Supprime les préfixes de type d'événement dans le libellé (ex: "ND-042 ATT Contrôle", "ND-011 ACT FEAT-X", "ND-010 ECR C010")
+  cleaned = cleaned.replace(/^ND-?\d+\s+(?:ACT|ATT|ECR|EXT|CALL)\s+/i, '');
+  cleaned = cleaned.replace(/^(?:ACT|ATT|ECR|EXT|CALL)\s*[:·\-–—]?\s+/i, '');
 
   return cleaned.trim();
 }
 
 export function parseMermaidTopology(mText, ast) {
   ast.direction = mText.includes('flowchart LR') || mText.includes('graph LR') ? 'LR' : 'TD';
+  const isUserflow = ast.meta.kind === 'userflow';
 
   // Nœuds déclarés
   const nodeDeclRegex =
@@ -105,14 +110,46 @@ export function parseMermaidTopology(mText, ast) {
   let match;
   while ((match = nodeDeclRegex.exec(mText)) !== null) {
     const id = match[1];
+    const isHexagon = match[4] !== undefined;   // {{...}} => ATT
+    const isDouble = match[5] !== undefined;    // [[...]] => CALL
+    const isParallelogram = match[6] !== undefined; // [/ /] => EXT
+    const isStadium = match[3] !== undefined;   // ([...]) => ECR
+    const isRect = match[8] !== undefined;      // [...] => ACT ou ECR
+
     const rawLabel = match[2] || match[3] || match[4] || match[5] || match[6] || match[7] || match[8] || match[9] || id;
 
     if (!ast.nodes[id]) {
       ast.nodes[id] = { id, code: id };
     }
-    ast.nodes[id].rawLabel = rawLabel;
-    if (!ast.nodes[id].label) {
-      ast.nodes[id].label = cleanNodeTitle(rawLabel, ast.nodes[id].code, id);
+    const node = ast.nodes[id];
+    node.rawLabel = rawLabel;
+
+    // Déduction automatique du type pour les userflows si non déjà fourni par %%@node
+    if (isUserflow && !node.type) {
+      if (isHexagon || /\bATT\b/.test(rawLabel)) {
+        node.type = 'ATT';
+      } else if (isDouble || /\bCALL\b/.test(rawLabel)) {
+        node.type = 'CALL';
+      } else if (isParallelogram || /\bEXT\b/.test(rawLabel)) {
+        node.type = 'EXT';
+      } else if (isStadium || /\bECR\b/.test(rawLabel)) {
+        node.type = 'ECR';
+      } else if (isRect) {
+        if (node.ref?.startsWith('FEAT-') || /\bFEAT-/.test(rawLabel) || /\bACT\b/.test(rawLabel)) {
+          node.type = 'ACT';
+        } else {
+          node.type = 'ACT'; // Par défaut en userflow, un rectangle représente une étape d'action
+        }
+      }
+    }
+
+    // Détection de la rupture ⏸ dans le libellé si non déclarée en directive
+    if (rawLabel.includes('⏸') && !node.break) {
+      node.break = 'yes';
+    }
+
+    if (!node.label) {
+      node.label = cleanNodeTitle(rawLabel, node.code, id);
     }
   }
 

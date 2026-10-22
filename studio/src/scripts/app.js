@@ -871,7 +871,8 @@ class IaStudioApp {
   }
 
   openSheet(code) {
-    const content = this.state.screenSheets[code] || `# Fiche Écran : ${code}\n\nAucun contenu disponible.`;
+    const safeCode = code ? code.replace(/[:@!#]/g, '_') : '';
+    const content = this.state.screenSheets[code] || this.state.screenSheets[safeCode] || `# Fiche Écran : ${code}\n\nAucun contenu disponible.`;
     this.dom.sheetModalTitle.textContent = `Fiche Écran : ${code}`;
     this.dom.sheetModalContent.innerHTML = `<pre style="background:var(--bg-app);border:1px solid var(--border-color);border-radius:8px;padding:16px;font-family:monospace;font-size:12px;overflow-x:auto;white-space:pre-wrap;">${content}</pre>`;
     this.dom.sheetModal.classList.add('active');

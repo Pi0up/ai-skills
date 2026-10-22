@@ -179,10 +179,12 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   if (isDimmed) cardClasses.push('dimmed');
   if (isUncovered) cardClasses.push('uncovered');
   if (isAct) cardClasses.push('act-card');
+  if (isAtt) cardClasses.push('att-card');
   const cardClass = cardClasses.join(' ');
 
   let strokeColor = 'var(--dg-card-border)';
   let strokeWidth = '1';
+  let strokeDashArray = '';
 
   if (isHome) {
     strokeColor = 'var(--dg-home)';
@@ -193,6 +195,10 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   } else if (isExt) {
     strokeColor = 'var(--dg-ext)';
     strokeWidth = '2';
+  } else if (isAtt) {
+    strokeColor = 'var(--dg-att)';
+    strokeWidth = '1.5';
+    strokeDashArray = '4 4';
   }
 
   let fillBg = 'var(--dg-card)';
@@ -206,15 +212,16 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   let svg = `<g class="${cardClass}" data-id="${node.id}" data-code="${code}" transform="translate(${x}, ${y})">`;
 
   // Pile dynamique (+3px et +6px)
-  if (isDynamic && !isAct) {
+  if (isDynamic && !isAct && !isAtt) {
     svg += `<rect x="6" y="6" width="${w}" height="${h}" rx="5" fill="var(--dg-stack-2)" stroke="var(--dg-card-border)" stroke-width="1" />`;
     svg += `<rect x="3" y="3" width="${w}" height="${h}" rx="5" fill="var(--dg-stack-1)" stroke="var(--dg-card-border)" stroke-width="1" />`;
   }
 
   // Rectangle Principal
-  svg += `<rect class="card-main" width="${w}" height="${h}" rx="5" fill="${fillBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}" />`;
+  const dashAttr = strokeDashArray ? ` stroke-dasharray="${strokeDashArray}"` : '';
+  svg += `<rect class="card-main" width="${w}" height="${h}" rx="5" fill="${fillBg}" stroke="${strokeColor}" stroke-width="${strokeWidth}"${dashAttr} />`;
 
-  // Icône d'Action ACT
+  // Icône d'Action ACT ou ATT
   if (isAct) {
     svg += `<text x="14" y="26" class="material-symbols-outlined" fill="var(--primary)" font-size="20">ads_click</text>`;
     svg += `<text x="38" y="22" fill="var(--primary)" font-size="10" font-weight="700">ACTION</text>`;
@@ -228,7 +235,8 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   }
 
   // 2. Titre sur 2 Lignes sans ID Répété
-  const cleanTitle = node.label || code;
+  const rawTitle = node.label || code;
+  const cleanTitle = rawTitle.replace(/\s*⏸\s*/g, ' ').trim();
   const [line1, line2] = splitTitleTwoLines(cleanTitle, 18);
 
   const titleY = line2 ? 56 : 64;
@@ -236,6 +244,13 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
     <tspan x="${w / 2}" dy="0">${line1}</tspan>
     ${line2 ? `<tspan x="${w / 2}" dy="16">${line2}</tspan>` : ''}
   </text>`;
+
+  // Marqueur de rupture ⏸ (Cercle ardoise en coin haut-gauche)
+  const hasBreak = node.break === 'yes' || rawTitle.includes('⏸') || (node.rawLabel && node.rawLabel.includes('⏸'));
+  if (hasBreak) {
+    svg += `<circle cx="4" cy="4" r="11" fill="#5d6475" stroke="#ffffff" stroke-width="1.5" />`;
+    svg += `<text x="4" y="8" class="material-symbols-outlined" fill="#ffffff" font-size="12" text-anchor="middle">pause</text>`;
+  }
 
   // 3. Pastille d'Ordre (sitemap uniquement, si calque activé)
   if (state.layers.numbers && ast.meta.kind === 'sitemap') {
@@ -245,8 +260,9 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   }
 
   // 4. Code & Type/Subtype (Bas-droite)
+  const displayedSubtype = isAtt ? 'Attente' : (isAct ? 'Action' : subtype);
   svg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${code}</text>`;
-  svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${subtype}</text>`;
+  svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${displayedSubtype}</text>`;
 
   // 5. Bulles d'Icônes Material Symbols (Coin Haut-Gauche débordant)
   if (!isAct && !isAtt) {

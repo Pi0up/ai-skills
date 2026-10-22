@@ -4,6 +4,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   root: 'src',
+  publicDir: false,
   plugins: [viteSingleFile()],
   build: {
     outDir: resolve(__dirname, 'dist'),

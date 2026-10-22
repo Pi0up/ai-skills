@@ -40,6 +40,29 @@ flowchart TD
     expect(cleanNodeTitle('C001 - Fiche Espace', 'C001', 'C001')).toBe('Fiche Espace');
     expect(cleanNodeTitle('F001:RECAP · Récapitulatif', 'F001:RECAP', 'F001_recap')).toBe('Récapitulatif');
     expect(cleanNodeTitle('Accueil Simple', 'HOME', 'HOME')).toBe('Accueil Simple');
+    expect(cleanNodeTitle('ND-042 ATT Contrôle pièces ⏸', 'ND042', 'ND042')).toBe('Contrôle pièces ⏸');
+    expect(cleanNodeTitle('ND-011 ACT FEAT-VALIDER-INFOS', 'ND011', 'ND011')).toBe('FEAT-VALIDER-INFOS');
+    expect(cleanNodeTitle('ND-010 ECR C010:EDIT', 'ND010', 'ND010')).toBe('C010:EDIT');
+  });
+
+  it('déduit automatiquement le type ATT, les formes et la pause ⏸ en userflow', () => {
+    const raw = `%%@file id=PF-TEST kind=userflow title="Userflow Test"
+flowchart LR
+  ND010(["ND-010 ECR C010:EDIT"])
+  ND011["ND-011 ACT FEAT-VALIDER-INFOS"]
+  ND012{{"ND-012 ATT Traitement async ⏸"}}
+  ND013[["CALL PF-SUB"]]
+  ND014[/"EXT Tiers"/]
+  ND010 --> ND011 --> ND012 --> ND013 --> ND014`;
+
+    const ast = parseMermaidFile(raw, 'PF-TEST.mmd');
+    expect(ast.nodes.ND010.type).toBe('ECR');
+    expect(ast.nodes.ND011.type).toBe('ACT');
+    expect(ast.nodes.ND012.type).toBe('ATT');
+    expect(ast.nodes.ND012.break).toBe('yes');
+    expect(ast.nodes.ND012.label).toBe('Traitement async ⏸');
+    expect(ast.nodes.ND013.type).toBe('CALL');
+    expect(ast.nodes.ND014.type).toBe('EXT');
   });
 
   it('gère les directives %%@edge pour typer les liens', () => {
