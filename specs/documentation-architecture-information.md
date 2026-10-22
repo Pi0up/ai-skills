@@ -5,7 +5,7 @@
 > **Detailed Child Parts**:
 > - [Information Architecture — Part 1: Arborescence Specification](./spec-arborescence.md)
 > - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](./spec-userflows.md)
-> - [Information Architecture — Unified Visualizer Specification (preview.html)](./spec-preview.md)
+> - [Information Architecture — Unified Visualizer Specification (preview.html)](../studio/specs/spec-preview.md)
 
 ---
 

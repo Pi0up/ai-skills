@@ -1,12 +1,12 @@
 # Spécification fonctionnelle et technique du Visualiseur Unifié (`preview.html`)
 
 > **Rôle du document** : Spécification d'accompagnement — Outil de visualisation unifié  
-> **Document parent** : [Information Architecture — Global Documentation](./documentation-architecture-information.md)  
+> **Document parent** : [Information Architecture — Global Documentation](../../specs/documentation-architecture-information.md)  
 > **Documents frères associés** :
-> - [Information Architecture — Part 1: Arborescence Specification](./spec-arborescence.md)
-> - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](./spec-userflows.md)  
-> **Version** : 1.1 — Octobre 2026  
-> **Statut** : À valider (révision de la v1.0)  
+> - [Information Architecture — Part 1: Arborescence Specification](../../specs/spec-arborescence.md)
+> - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](../../specs/spec-userflows.md)  
+> **Version** : 1.2 — Octobre 2026  
+> **Statut** : Validé (révision v1.2 suite aux retours utilisateurs)  
 
 ---
 
@@ -16,20 +16,21 @@
 
 ---
 
-## 0. Synthèse des changements v1.0 → v1.1
+## 0. Synthèse des évolutions v1.1 → v1.2
 
-| # | Sujet | v1.0 | v1.1 |
+| # | Sujet | v1.1 | v1.2 |
 | :--- | :--- | :--- | :--- |
-| 1 | Rendu | Mermaid.js génère le SVG, puis post-traitement DOM | **Moteur de rendu propre** (SVG) piloté par le design system ; Mermaid.js réduit à un mode « vue brute » de secours (§4) |
-| 2 | Pureté du `.mmd` | « Aucune donnée de style » | Aucun **style** ; la **meta sémantique** (type, état, variante, accès…) est autorisée en commentaires `%%@` (§2.4) |
-| 3 | Meta de fichier | Frontmatter YAML | Lignes `%%@file` ; frontmatter toléré en lecture |
-| 4 | Réconciliation nœud ↔ métadonnées | `startsWith` sur le texte rendu | **Correspondance exacte** sur `code` (§6.3) |
-| 5 | Habillage | Palette générique par thème | **Design system** extrait des captures de référence (§3) |
-| 6 | Interactions | Clic → inspecteur | Clic + **survol** + **navigation croisée** « voir dans l'arbo » (§6) |
-| 7 | Thème par défaut | Sombre | **Clair** (les captures de référence sont claires) ; sombre dérivé (§9) |
-| 8 | Contenus | Non précisé | Principe **structure seule** : le visualiseur ne juge pas les contenus (§1.2) |
-| 9 | Contrôles | — | **Diagnostics structurels** non bloquants (§11) |
-| 10 | Typographie du document | Caractères corrompus (`?"`) | Corrigés |
+| 1 | **Architecture source** | Fichier HTML unique monolithique | **Sous-projet modulaire `studio/`** avec `package.json`, Vite singlefile, JS et CSS découpés dans `src/`, distribution unique dans `dist/preview.html`. |
+| 2 | **Bibliothèque d'icônes** | Emojis et glyphes approximatifs | **Google Material Symbols (Material Icons)** via CDN officiel Google Fonts. |
+| 3 | **Layout Arborescence** | Calcul séquentiel (frères pouvant se superposer) | **Algorithme récursif de bounding box** : réservation de l'espace de sous-arbre garantissant que les frères (`D001`, `E404`) sont placés **côte à côte** à droite de `L001`. |
+| 4 | **Titres de cartes** | Répétition de l'ID (`ND-001 · Accueil`) | **Titre épuré sur 2 lignes max** sans répétition de l'ID (déjà en bas à droite). |
+| 5 | **Gestion des URLs** | URL unique affichée | **URL relative** sur la carte et **URL absolue canonique** calculée par concaténation ascendante dans l'inspecteur. |
+| 6 | **Liens de Userflow** | Traits invisibles (seule la tête de flèche visible) | **Tracés vectoriels `<path>` avec `stroke` garanti** et flèches orientées. |
+| 7 | **Étapes ACT (Actions)** | Chips étroites provoquant des sauts au survol | **Carte page standard sans bordure** avec icône Material Symbol dédiée (`ads_click`). |
+| 8 | **Inspecteur de nœud** | Volet latéral statique | **Panneau modal interactif** avec recentrage automatique du canevas et navigation cliquable continue **Parent direct ↔ Enfants directs**. |
+| 9 | **Rendu du canevas** | `radial-gradient` CSS créant un moiré pixelisé | **Motif vectoriel SVG natif `<pattern>`** 100% net à tous les niveaux de zoom (`0.15x` à `4.0x`). |
+| 10 | **Contrôles & Export** | Boutons éparpillés dans la barre d'outils | **Barre d'outils flottante au-dessus du canvas** (Calques, Légende, Diags, Zoom) + **Menu déroulant d'export unifié** (*SVG*, *PNG*, *PNG HD*, *Print*). |
+| 11 | **Validation & Tests** | Tests manuels uniquement | **Suite de tests automatisés (Vitest)** pour le parseur, la hiérarchie d'URLs, le layout et le rendu SVG. |
 
 ---
 
