@@ -412,7 +412,7 @@ Les liaisons entre entités sont formalisées selon 4 styles canoniques portant 
 | Lien / Style | Rendu visuel | Sémantique en Arborescence (`kind=sitemap`) | Sémantique en Userflows (`kind=userflow`) | Notation Mermaid |
 | :--- | :--- | :--- | :--- | :--- |
 | **Trait continu sombre** | Trait plein `--dg-edge` (1,5 px), flèche pleine | **Lien hiérarchique direct** : relation structurelle parent ➔ enfant dans l'arbre | **Flux nominal / Chemin principal** : enchaînement séquentiel nominal standard entre écrans ou actions | `-->` |
-| **Trait pointillé gris** | Trait pointillé `--dg-edge-cross` (1,5 px, tirets `6 4`), flèche ouverte | **Renvoi fonctionnel ou élément rattaché** : ouverture de popin (`!`), ancre interne (`#`), invocation de module (`M###`) | **Chemin alternatif / Variante** : divergence (`diverge`), étape d'une variante (`variant`) ou rejonction (`rejoin`) | `-.->` |
+| **Trait pointillé gris** | Trait pointillé `--dg-edge-cross` (1,5 px, tirets `6 4`), tracé systématiquement courbe, flèche `arrow-cross` | **Renvoi fonctionnel ou élément rattaché** : ouverture de popin (`!`), ancre interne (`#`), invocation de module (`M###`) (toujours courbe, cambrure en voûte sur le même niveau Y) | **Chemin alternatif / Variante** : divergence (`diverge`), étape d'une variante (`variant`) ou rejonction (`rejoin`) | `-.->` |
 | **Trait violet** | Trait plein `--dg-call` (`#8b4dff`, 1,5 px), flèche violette | N/A (réservé aux parcours) | **Liaison issue d'un sous-parcours (CALL)** : sortie ou enchaînement consécutif à un sous-parcours réutilisable | Déduit si la source est `CALL` |
 | **Trait orange** | Trait plein `--dg-ext` (`#ff9500`, 1,5 px), flèche orange | N/A (réservé aux parcours) | **Liaison issue d'un événement externe (EXT)** : reprise après échange hors application (email, conseiller, webhook) | Déduit si la source est `EXT` |
 
@@ -483,7 +483,7 @@ Les cartes (plusieurs zones de texte, bulles, tags, piles, liens coudés, lignes
 5. Liens parent → enfants : coude avec bus horizontal à mi-hauteur de l'espace inter-niveaux.
 6. **Éléments rattachés** : colonne latérale réservée (pas de chevauchement avec les frères).
 7. **Modules** : bande dédiée en pied.
-8. **Renvois** (`action`) : routage orthogonal le long des gouttières, pointillés clairs ; option « Renvois » pour les masquer.
+8. **Renvois et lignes cross** : tracé systématiquement courbe (courbes de Bézier cubiques fluides avec cambrure continue, y compris arc supérieur sur les éléments rattachés au même niveau Y), pointillés clairs (`--dg-edge-cross`), flèche `arrow-cross` ; option « Renvois » pour les masquer.
 9. **Vue par rôle** : si une meta `%%@file role=` est présente, le diagramme est affiché tel quel (déjà filtré). Un **filtre de rôle** est aussi proposé sur n'importe quelle vue (§5.1).
 
 ### 4.4 Mise en page — userflows (`kind=userflow`) et Cas d'Usage (`UC-xxx`)

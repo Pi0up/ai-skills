@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { renderSvgCanvas, splitTitleTwoLines, renderCardBadge, renderCardTag } from '../src/scripts/svg-renderer.js';
+import {
+  renderSvgCanvas,
+  splitTitleTwoLines,
+  renderCardBadge,
+  renderCardTag,
+  computeSitemapCrossPath,
+} from '../src/scripts/svg-renderer.js';
 
 describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9, 13)', () => {
   it('découpe un titre long sur deux lignes sans déborder (Point 6)', () => {
@@ -185,5 +191,92 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
     // Les tags sont groupés en <g class="dg-tag"> et empilés du haut vers le bas (0 puis 22)
     expect(svg).toContain('<g class="dg-tag tag-MVP" data-tag="MVP" transform="translate(0, 0)">');
     expect(svg).toContain('<g class="dg-tag tag-SP1" data-tag="SP1" transform="translate(0, 22)">');
+  });
+
+  describe('Lignes Cross Courbes en Arborescence', () => {
+    it('calcule une courbe avec cambrure en voûte pour des nœuds au même niveau Y (éléments rattachés)', () => {
+      const p1 = { x: 50, y: 100, w: 200, h: 118 };
+      const p2 = { x: 280, y: 100, w: 200, h: 118 }; // Élément rattaché à droite
+
+      const curve = computeSitemapCrossPath(p1, p2);
+
+      // Points d'ancrage : flanc droit de p1 (250) à flanc gauche de p2 (280)
+      expect(curve.sx).toBe(250);
+      expect(curve.ex).toBe(280);
+      expect(curve.sy).toBe(159);
+      expect(curve.ey).toBe(159);
+
+      // Pour être courbe et non droite, les points de contrôle cp1y et cp2y doivent être cambrés vers le haut (inférieurs à 159)
+      expect(curve.cp1y).toBeLessThan(159);
+      expect(curve.cp2y).toBeLessThan(159);
+      expect(curve.cp1y).toBe(curve.cp2y); // Voûte symétrique régulière
+
+      expect(curve.pathD).toMatch(/^M 250 159 C \d+(\.\d+)? \d+(\.\d+)?, \d+(\.\d+)? \d+(\.\d+)?, 280 159$/);
+    });
+
+    it('adapte les flancs d\'ancrage lorsque la cible est située à gauche sur une rangée différente', () => {
+      const p1 = { x: 400, y: 100, w: 200, h: 118 };
+      const p2 = { x: 100, y: 300, w: 200, h: 118 }; // Cible à gauche et plus bas
+
+      const curve = computeSitemapCrossPath(p1, p2);
+
+      // Sortie par le flanc gauche de p1 (400) et entrée par le flanc droit de p2 (300)
+      expect(curve.sx).toBe(400);
+      expect(curve.ex).toBe(300);
+      expect(curve.sy).toBe(159);
+      expect(curve.ey).toBe(359);
+
+      // Les points de contrôle s'étendent vers l'extérieur pour une transition fluide
+      expect(curve.cp1x).toBeLessThan(400);
+      expect(curve.cp2x).toBeGreaterThan(300);
+    });
+
+    it('génère un contournement latéral courbe par la droite pour des nœuds superposés verticalement', () => {
+      const p1 = { x: 100, y: 100, w: 200, h: 118 };
+      const p2 = { x: 100, y: 350, w: 200, h: 118 }; // Même colonne X
+
+      const curve = computeSitemapCrossPath(p1, p2);
+
+      // Les deux points s'ancrent sur le flanc droit (300) et contournent par la droite
+      expect(curve.sx).toBe(300);
+      expect(curve.ex).toBe(300);
+      expect(curve.cp1x).toBeGreaterThan(300);
+      expect(curve.cp2x).toBeGreaterThan(300);
+    });
+
+    it('rend les liaisons cross dans l\'arborescence avec marqueur arrow-cross et étiquette éventuelle', () => {
+      const ast = {
+        meta: { kind: 'sitemap' },
+        nodes: {
+          C001: { id: 'C001', code: 'C001', type: 'C', label: 'Produit' },
+          M001: { id: 'M001', code: 'M001', type: 'MOD', label: 'Aide' },
+        },
+        edges: [
+          { src: 'C001', dst: 'M001', kind: 'invoke', label: 'FEAT-HELP' },
+        ],
+      };
+      const layout = {
+        width: 800,
+        height: 600,
+        positions: {
+          C001: { x: 100, y: 100, w: 200, h: 118 },
+          M001: { x: 100, y: 350, w: 200, h: 118, isModule: true },
+        },
+      };
+      const state = { layers: { levels: false, renvois: true, numbers: false, avatars: false, tags: false, coverage: false } };
+
+      const svg = renderSvgCanvas(ast, layout, state);
+
+      // Présence du marker arrow-cross dans defs
+      expect(svg).toContain('<marker id="arrow-cross"');
+
+      // Présence du lien cross courbé avec marqueur
+      expect(svg).toContain('<g class="dg-edge cross"><path d="');
+      expect(svg).toContain('marker-end="url(#arrow-cross)"');
+
+      // Présence de l'étiquette de renvoi
+      expect(svg).toContain('<g class="edge-label"');
+      expect(svg).toContain('FEAT-HELP');
+    });
   });
 });

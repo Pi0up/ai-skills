@@ -28,6 +28,9 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--dg-edge)" />
     </marker>
+    <marker id="arrow-cross" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--dg-edge-cross)" />
+    </marker>
     <marker id="arrow-call" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="var(--dg-call)" />
     </marker>
@@ -98,12 +101,17 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
         const pathD = `M ${sx} ${sy} L ${sx} ${midY} L ${ex} ${midY} L ${ex} ${ey}`;
         svg += `<g class="dg-edge"><path d="${pathD}" marker-end="url(#arrow)" /></g>`;
       } else if (state.layers.renvois) {
-        const sx = p1.x + p1.w;
-        const sy = p1.y + p1.h / 2;
-        const ex = p2.x;
-        const ey = p2.y + p2.h / 2;
-        const pathD = `M ${sx} ${sy} C ${sx + 30} ${sy}, ${ex - 30} ${ey}, ${ex} ${ey}`;
-        svg += `<g class="dg-edge cross"><path d="${pathD}" /></g>`;
+        const { pathD, midX, midY } = computeSitemapCrossPath(p1, p2);
+        svg += `<g class="dg-edge cross"><path d="${pathD}" marker-end="url(#arrow-cross)" />`;
+        if (e.label) {
+          const lbl = escapeXml(e.label);
+          const lblWidth = Math.max(40, lbl.length * 6.5 + 12);
+          svg += `<g class="edge-label" transform="translate(${midX}, ${midY})">
+            <rect x="${-lblWidth / 2}" y="-9" width="${lblWidth}" height="18" rx="4" fill="var(--bg-app)" stroke="var(--dg-edge-cross)" stroke-width="1" />
+            <text x="0" y="3.5" fill="var(--text-muted)" font-size="9" font-weight="600" text-anchor="middle">${lbl}</text>
+          </g>`;
+        }
+        svg += `</g>`;
       }
     } else {
       // Userflow : liens horizontaux ou coudés
@@ -505,4 +513,93 @@ export function splitTitleTwoLines(text, maxLineLength = 18) {
 export function truncate(str, len) {
   if (!str) return '';
   return str.length > len ? str.slice(0, len) + '…' : str;
+}
+
+/**
+ * Calcule le tracé d'une liaison "cross" en arborescence (renvois, attach, modules, etc.).
+ * Garantit que la liaison est systématiquement COURBE et jamais droite,
+ * y compris pour les nœuds au même niveau horizontal.
+ */
+export function computeSitemapCrossPath(p1, p2) {
+  const c1y = p1.y + p1.h / 2;
+  const c2y = p2.y + p2.h / 2;
+
+  let sx, sy, ex, ey, cp1x, cp1y, cp2x, cp2y;
+
+  const isSameRow = Math.abs(c1y - c2y) < 25;
+  const isTargetRight = p2.x >= p1.x + p1.w - 10;
+  const isTargetLeft = p2.x + p2.w <= p1.x + 10;
+
+  if (isSameRow) {
+    // Cas 1 : Même rangée horizontale (ex: éléments rattachés popins/ancres côte à côte)
+    if (isTargetRight) {
+      sx = p1.x + p1.w;
+      sy = c1y;
+      ex = p2.x;
+      ey = c2y;
+      const dx = Math.max(ex - sx, 20);
+      const sagitta = Math.min(26, Math.max(16, dx * 0.22)); // Cambrure en voûte vers le haut
+      cp1x = sx + dx * 0.28;
+      cp1y = sy - sagitta;
+      cp2x = ex - dx * 0.28;
+      cp2y = ey - sagitta;
+    } else {
+      sx = p1.x;
+      sy = c1y;
+      ex = p2.x + p2.w;
+      ey = c2y;
+      const dx = Math.max(sx - ex, 20);
+      const sagitta = Math.min(26, Math.max(16, dx * 0.22));
+      cp1x = sx - dx * 0.28;
+      cp1y = sy - sagitta;
+      cp2x = ex + dx * 0.28;
+      cp2y = ey - sagitta;
+    }
+  } else if (isTargetRight) {
+    // Cas 2 : Cible située à droite sur une autre rangée
+    sx = p1.x + p1.w;
+    sy = c1y;
+    ex = p2.x;
+    ey = c2y;
+    const dx = Math.max(ex - sx, 20);
+    const ctrlDist = Math.max(40, dx * 0.45);
+    cp1x = sx + ctrlDist;
+    cp1y = sy;
+    cp2x = ex - ctrlDist;
+    cp2y = ey;
+  } else if (isTargetLeft) {
+    // Cas 3 : Cible située à gauche sur une autre rangée
+    sx = p1.x;
+    sy = c1y;
+    ex = p2.x + p2.w;
+    ey = c2y;
+    const dx = Math.max(sx - ex, 20);
+    const ctrlDist = Math.max(40, dx * 0.45);
+    cp1x = sx - ctrlDist;
+    cp1y = sy;
+    cp2x = ex + ctrlDist;
+    cp2y = ey;
+  } else {
+    // Cas 4 : Chevauchement horizontal (même colonne verticale ou alignés)
+    // Contournement latéral par la droite
+    sx = p1.x + p1.w;
+    sy = c1y;
+    ex = p2.x + p2.w;
+    ey = c2y;
+    const dy = ey - sy;
+    const arcOffset = Math.max(48, Math.abs(dy) * 0.2);
+    const archX = Math.max(sx, ex) + arcOffset;
+    cp1x = archX;
+    cp1y = sy + dy * 0.2;
+    cp2x = archX;
+    cp2y = ey - dy * 0.2;
+  }
+
+  const pathD = `M ${sx} ${sy} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${ex} ${ey}`;
+
+  // Point médian de la courbe de Bézier (t = 0.5) pour positionner une éventuelle étiquette
+  const midX = 0.125 * sx + 0.375 * cp1x + 0.375 * cp2x + 0.125 * ex;
+  const midY = 0.125 * sy + 0.375 * cp1y + 0.375 * cp2y + 0.125 * ey;
+
+  return { pathD, sx, sy, ex, ey, cp1x, cp1y, cp2x, cp2y, midX, midY };
 }
