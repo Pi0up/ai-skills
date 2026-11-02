@@ -340,7 +340,7 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 | Emplacement | Position | Source | Règle |
 | :--- | :--- | :--- | :--- |
 | Bulle(s) / badge(s) d'icône | Coin haut-droit, débordant légèrement, objet SVG unitaire `<g class="dg-badge">` | `icon` + `lock` dérivé | 1er à `translate(0, 0)`, suivants stackés vers le bas avec recouvrement de 2 px (§3.5) |
-| Tag(s) | Coin haut-droit, décalés à gauche de la colonne de badges si présente, marge droite 10 px | `tags` | 2 visibles max |
+| Tag(s) | Coin haut-droit, groupés (`<g class="dg-tag">`) et alignés verticalement du haut vers le bas à gauche de la colonne de badges | `tags` | 3 visibles max (§3.5) |
 | Avatar(s) | Coin bas-droit, débordant | `who` / `roles` | Cercle, anneau blanc (§3.5) |
 | URL | Haut-gauche, intérieur | `url` | Segment relatif ou chemin absolu (règle ci-dessous) |
 | Mode d'URL | Sous l'URL | dérivé ou `urlmode` | `Relatif` ou `Absolu` |
@@ -389,7 +389,7 @@ Les cas sont **cumulables** (ex. dynamique + variante + protégée). Précédenc
 | `info` (« i ») | lavande | Information |
 | `lock` (cadenas, ajout) | ardoise | Page protégée (dérivée de `access`) |
 
-**Tags** — rectangle arrondi (rayon 3 px, ~20 px de haut), texte 10 px gras. Palette : 5 couleurs (bleu, rouge, gris, vert, orange) × 2 styles :
+**Tags** — objet vectoriel unitaire (`<g class="dg-tag tag-{nom}">`) groupant un rectangle arrondi (rayon 3 px, 40 × 18 px) et son libellé textuel centré, positionné dans un conteneur `<g class="card-tags">` aligné sur la droite de la carte et stacké verticalement du haut vers le bas (décalage de 22 px par tag). Palette : 5 couleurs (bleu, rouge, gris, vert, orange) × 2 styles :
 - `fill` : fond plein, texte blanc ;
 - `outline` : bordure 2 px, fond teinté à 12 %, texte sombre.
 

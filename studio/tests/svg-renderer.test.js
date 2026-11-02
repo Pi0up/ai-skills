@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderSvgCanvas, splitTitleTwoLines, renderCardBadge } from '../src/scripts/svg-renderer.js';
+import { renderSvgCanvas, splitTitleTwoLines, renderCardBadge, renderCardTag } from '../src/scripts/svg-renderer.js';
 
 describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9, 13)', () => {
   it('découpe un titre long sur deux lignes sans déborder (Point 6)', () => {
@@ -144,7 +144,14 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
     expect(posDevice).toBeLessThan(posLock);
   });
 
-  it('décale les tags vers la gauche lorsque des badges sont présents en haut à droite', () => {
+  it('unifie le fond rect et le texte dans un seul objet SVG <g class="dg-tag">', () => {
+    const tagSvg = renderCardTag('MVP', { x: 0, y: 0, width: 40, height: 18, color: 'var(--tag-blue)', label: 'MVP' });
+    expect(tagSvg).toContain('<g class="dg-tag tag-MVP" data-tag="MVP" transform="translate(0, 0)">');
+    expect(tagSvg).toContain('<rect width="40" height="18" rx="3" fill="var(--dg-card)" stroke="var(--tag-blue)" stroke-width="1.5" />');
+    expect(tagSvg).toContain('<text x="20" y="12" fill="var(--tag-blue)" font-size="8" font-weight="700" text-anchor="middle">MVP</text>');
+  });
+
+  it('groupe et stacke les tags verticalement du haut vers le bas sur la droite', () => {
     const ast = {
       meta: { kind: 'sitemap' },
       nodes: {
@@ -155,11 +162,11 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
           label: 'Page avec tags et badges',
           icon: ['device'],
           access: 'protected',
-          tags: ['MVP'],
+          tags: ['MVP', 'SP1'],
         },
       },
       edges: [],
-      tags: { MVP: { color: 'blue' } },
+      tags: { MVP: { color: 'blue' }, SP1: { color: 'green' } },
     };
     const layout = {
       width: 800,
@@ -172,7 +179,11 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
 
     const svg = renderSvgCanvas(ast, layout, state);
 
-    // badgesOffset = 24 => tx = 200 - 10 - 24 - 44 = 122
-    expect(svg).toContain('<rect x="122" y="-8" width="40" height="18" rx="3"');
+    // badgesOffset = 24, tagWidth = 40 => containerX = 200 - 10 - 24 - 40 = 126
+    expect(svg).toContain('<g class="card-tags" transform="translate(126, -8)">');
+
+    // Les tags sont groupés en <g class="dg-tag"> et empilés du haut vers le bas (0 puis 22)
+    expect(svg).toContain('<g class="dg-tag tag-MVP" data-tag="MVP" transform="translate(0, 0)">');
+    expect(svg).toContain('<g class="dg-tag tag-SP1" data-tag="SP1" transform="translate(0, 22)">');
   });
 });

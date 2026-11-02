@@ -183,6 +183,11 @@ export function renderCardBadge(type, { x = 0, y = 0, radius = 12, size = 14 } =
   return `<g class="dg-badge badge-${escapeXml(type)}" data-badge="${escapeXml(type)}" transform="translate(${x}, ${y})"><circle cx="0" cy="0" r="${radius}" fill="${bColor}" stroke="#ffffff" stroke-width="1.5" /><g class="dg-badge-icon" transform="translate(0, 0)">${iconSvg}</g></g>`;
 }
 
+export function renderCardTag(tag, { x = 0, y = 0, width = 40, height = 18, color = 'var(--tag-blue)', label = '' } = {}) {
+  const displayLabel = truncate(label || tag, 6);
+  return `<g class="dg-tag tag-${escapeXml(tag)}" data-tag="${escapeXml(tag)}" transform="translate(${x}, ${y})"><rect width="${width}" height="${height}" rx="3" fill="var(--dg-card)" stroke="${color}" stroke-width="1.5" /><text x="${width / 2}" y="${height / 2 + 3}" fill="${color}" font-size="8" font-weight="700" text-anchor="middle">${escapeXml(displayLabel)}</text></g>`;
+}
+
 export function escapeXml(str) {
   if (!str) return '';
   return String(str)
@@ -415,12 +420,19 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
     }
   }
 
-  // 6. Tags (Coin Haut-Droit, décalés à gauche de la colonne de badges si présente)
+  // 6. Tags (Coin Haut-Droit, groupés et alignés verticalement du haut vers le bas)
   if (state.layers.tags && node.tags && !isAct) {
     const tags = Array.isArray(node.tags) ? node.tags : [node.tags];
+    const tagWidth = 40;
+    const tagHeight = 18;
+    const stepY = 22;
     const badgesOffset = bubbles.length > 0 ? 24 : 0;
-    tags.slice(0, 2).forEach((tg, idx) => {
-      const tx = w - 10 - badgesOffset - (idx + 1) * 44;
+    const containerX = w - 10 - badgesOffset - tagWidth;
+    const containerY = -8;
+
+    svg += `<g class="card-tags" transform="translate(${containerX}, ${containerY})">`;
+    tags.slice(0, 3).forEach((tg, idx) => {
+      const ty = idx * stepY;
       const tagDecl = ast.tags?.[tg];
       const colorMap = {
         blue: 'var(--tag-blue)',
@@ -432,9 +444,10 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
       const tColor = tagDecl?.color
         ? (colorMap[tagDecl.color] || tagDecl.color)
         : (tg === 'MVP' ? 'var(--tag-blue)' : (tg === 'SP1' ? 'var(--tag-green)' : 'var(--tag-orange)'));
-      svg += `<rect x="${tx}" y="-8" width="40" height="18" rx="3" fill="var(--dg-card)" stroke="${tColor}" stroke-width="1.5" />`;
-      svg += `<text x="${tx + 20}" y="4" fill="${tColor}" font-size="8" font-weight="700" text-anchor="middle">${escapeXml(truncate(tg, 6))}</text>`;
+
+      svg += renderCardTag(tg, { x: 0, y: ty, width: tagWidth, height: tagHeight, color: tColor, label: tg });
     });
+    svg += `</g>`;
   }
 
   // 7. Avatars (Coin Bas-Droit / Haut-Droit)
