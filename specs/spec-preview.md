@@ -1,12 +1,12 @@
 # Spécification fonctionnelle et technique du Visualiseur Unifié (`preview.html`)
 
 > **Rôle du document** : Spécification d'accompagnement — Outil de visualisation unifié  
-> **Document parent** : [Information Architecture — Global Documentation](../../specs/documentation-architecture-information.md)  
+> **Document parent** : [Information Architecture — Global Documentation](./documentation-architecture-information.md)  
 > **Documents frères associés** :
-> - [Information Architecture — Part 1: Arborescence Specification](../../specs/spec-arborescence.md)
-> - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](../../specs/spec-userflows.md)  
-> **Version** : 1.4 — Octobre 2026  
-> **Statut** : Validé (révision v1.4 : distinction UC dossier / Parcours PF empilés verticalement avec nominaux en haut, centrage direct sur coordonnées réelles du nœud sans animation de rebond SVG, épuration des mentions redondantes avec la meta)  
+> - [Information Architecture — Part 1: Arborescence Specification](./spec-arborescence.md)
+> - [Information Architecture — Part 2: Userflows Specification (Journey Graph)](./spec-userflows.md)  
+> **Version** : 1.5 — Novembre 2026  
+> **Statut** : Validé (révision v1.5 : distinction stricte UC dossier / parcours PF linéaires empilés verticalement, centrage sans rebond, liaisons cross courbes de Bézier, stacking vertical badges et tags SVG, minification du livrable unique `dist/preview.html`, harmonisation des cartes ACT/ATT et élimination des redondances de titres)
 
 ---
 
@@ -16,59 +16,48 @@
 
 ---
 
-## 0. Synthèse des évolutions v1.3 → v1.4
+## 0. Synthèse des évolutions v1.4 → v1.5
 
-| # | Sujet | v1.3 | v1.4 |
+| # | Sujet | v1.4 | v1.5 |
 | :--- | :--- | :--- | :--- |
-| 1 | **Distinction Cas d'Usage (UC) vs Parcours (PF)** | Un UC était traité comme un diagramme `.mmd` ordinaire (`UC-xxx-overview.mmd`) au même niveau que les parcours | **Modèle Dossier UC ➔ Parcours empilés** : Un Cas d'Usage (`UC-xxx`) est un conteneur logique (dossier repliable dans `#sidebar`) regroupant tous les parcours (`PF-*.mmd` portant `uc=UC-xxx`) qui l'exécutent. Cliquer sur le dossier UC ouvre un canevas composite affichant tous les parcours de l'UC **empilés verticalement les uns au-dessus des autres**, avec les **parcours nominaux (`statut=nominal`) en haut**, suivis des variantes (`statut=variante`) et des segments (`statut=segment`). |
-| 2 | **Centrage sur un nœud & suppression du rebond** | L'animation `.pulse` (`transform: scale`) écrasait l'attribut SVG `transform="translate(x,y)"` (faisant sauter le nœud en `(0,0)`), et `getBBox()` renvoyait `(0,0)` au lieu des coordonnées du canevas | **Centrage mathématique exact sans rebond** : Suppression de toute animation CSS `transform` / `pulse` sur les `<g class="dg-card">`. `centerOnNode` lit directement les coordonnées canevas (`data-x`, `data-y`, `data-w`, `data-h`) et compense la largeur de l'inspecteur latéral ouvert pour centrer le nœud dans la zone visible. |
-| 3 | **Non-redondance des titres avec la meta** | Les titres contenaient des mentions redondantes (`"Cas d'Usage : ..."`, `"Segment : ..."`, `"Variante"`, `"(Hub)"`, `"(Popin)"`) | **Titres métier purs** : Aucune mention de type ou de statut (`"Cas d'Usage"`, `"Segment"`, `"Variante"`, `"Nominal"`, `"Vue Repliée"`, `"(Hub)"`, `"(Popin)"`, `"(Modale)"`, `"(Ancre)"`) dans les libellés et titres ; ces informations sont portées exclusivement par la meta (`kind`, `view`, `statut`, `type`, `subtype`). |
-| 4 | **Optimisations mémoire & rendu** | Écouteurs d'événements individuels recréés à chaque rendu et fuite de `window.addEventListener('mousemove')` | **Délégation d'événements unique** sur le conteneur SVG (survol et clic), chargement parallèle (`Promise.all`) des fichiers et enrichissement O(1) des cartes `ECR` depuis l'arborescence. |
+| 1 | **Distinction stricte UC vs PF & purge du modèle monolithique** | Résidus de diagrammes `UC-xxx-overview.mmd` avec embranchements et vues `collapsed`/`expanded` | **Modèle Dossier UC ➔ Parcours linéaires empilés** : Un Cas d'Usage (`UC-xxx`) est exclusivement un conteneur logique (dossier dans `#sidebar`) sans fichier `.mmd` propre. Chaque parcours (`PF-*.mmd`) est consigné dans un fichier distinct strictement linéaire. Cliquer sur l'UC ouvre le canevas composite empilant verticalement tous les parcours de l'UC (`journeyTracks`), triés selon la hiérarchie : nominaux en haut (`statut=nominal`), variantes au milieu (`statut=variante`), segments en bas (`statut=segment`). |
+| 2 | **Liaisons cross systématiquement courbes en arborescence** | Lignes orthogonales ou coudées pouvant chevaucher les nœuds intermédiaires | **Courbes de Bézier cubiques continues (`computeSitemapCrossPath`)** : Les renvois et rattachements (`--dg-edge-cross`, tiretés `6 4`, flèche `arrow-cross`) adoptent un tracé systématiquement courbe avec cambrure en voûte vers le haut pour les éléments situés sur la même rangée horizontale (même niveau Y) et courbes de contournement fluides sans aucune cassure orthogonale. |
+| 3 | **Badges et tags vectoriels en objets SVG avec stacking vertical** | Badges et tags en éléments disparates ou mal ordonnés | **Objets SVG unitaires vectoriels (`<g class="dg-badge">`, `<g class="dg-tag">`)** : Badges pastilles rondes (R=12) avec icônes vectorielles natives, positionnés en haut à droite et empilés verticalement vers le bas avec recouvrement de 2 px. Tags rectangles arrondis (40×18 px, R=3) empilés verticalement du haut vers le bas sur la tranche droite (max 3 visibles). |
+| 4 | **Chaîne de build et minification optimisée (`dist/preview.html`)** | Bundle brut avec loader de modules Vite, commentaires et fichier `index.html` résiduel | **Distribution unifiée épurée** : Intégration de `html-minifier-terser` et plugin post-build Vite (`vite:minify-preview-html`). Retrait du loader de modules Vite (`removeViteModuleLoader: true`), suppression intégrale des commentaires et espaces HTML, minification inlinée CSS/JS, et émission directe de l'unique livrable `dist/preview.html` sans aucun `index.html` résiduel. |
+| 5 | **Harmonisation des composants ACT et ATT & Contraction topologique** | Mention obsolète de « pastilles (chips) » en contradiction avec le moteur de rendu | **Composants cartes dédiés et fidèles** : `ACT` en carte standard sans bordure (fond translucide neutre, icône `ads_click`, libellé `ACTION`), `ATT` en carte standard à bordure tiretée grise 1.5 px (`--dg-att`, icône horloge `schedule`, libellé `ATTENTE`). Masquables sélectivement via le menu des calques avec contraction topologique transitive continue. |
+| 6 | **Non-redondance absolue des intitulés avec les métadonnées** | Intitulés d'exemples mentionnant le type ou le statut (`"Parcours Variante :"`, `"(Point de divergence)"`) | **Titres métier purs** : Aucune mention de type ou statut dans les libellés (`title="Assistance téléphonique"` au lieu de `"Parcours Variante : Assistance Téléphonique"`, libellés épurés sans répétition de la meta). |
 
 ---
 
-## 0.bis Synthèse des évolutions v1.2 → v1.3
+## 0.bis Synthèse des évolutions antérieures
 
-| # | Sujet | v1.2 | v1.3 |
-| :--- | :--- | :--- | :--- |
-| 1 | **Panneau Légende** | Éléments non stylisés en flux DOM brut, visuel cassé | **Panneau modal flottant structuré** avec header, bouton de fermeture, et 3 sections thématiques soignées (*Composants*, *Liaisons & Lignes*, *Bulles & Statuts*). |
-| 2 | **Bouton Exporter** | Bouton `primary` (bleu vif) dominant la barre d'outils | **Bouton d'outil neutre standard** (`btn-tool`) : l'export est une action secondaire, la fonction principale restant l'exploration. |
-| 3 | **Netteté & Rastérisation** | Texture bitmap compositée GPU avec `will-change: transform` provoquant un flou persistant | **Transformation vectorielle directe** sur `<g id="viewport-content">` natif SVG : zéro flou, zéro pixellisation, netteté vectorielle 100% à tous les niveaux de zoom (`0.15x` à `4.0x`). |
-| 4 | **Canevas & Centrage** | Boîte finie avec fond pointillé délimité et diagramme décentré | **Canevas vectoriel infini** couvrant 100% du viewport (`patternTransform` synchronisé) et **centrage automatique mathématique** (`fitToBounds`) au chargement et au changement de diagramme. |
-| 5 | **Alignement Y des Userflows** | Marches d'escalier / zigzags verticaux causés par `variant`/`diverge` | **Alignement horizontal strict sur l'axe Y** : les étapes du flux nominal et des parcours linéaires partagent une coordonnée `Y` strictement identique, avec couloirs dédiés pour les variantes. |
-| 6 | **Sémantique des Liaisons** | Lignes aux styles différents sans documentation dans la légende | **Spécification normative complète et swatches de légende** pour les 4 familles de liaisons (nominal/hiérarchie, variante/renvoi, CALL violet, EXT orange). |
-| 7 | **Chargement initial & repli dossier** | Découverte HTTP conditionnelle stricte ; pas de tentative d'ouverture sous `file://` | **Tentative systématique d'ouverture de `metadata.json`** à côté de `preview.html`. En cas d'échec ou d'absence de diagrammes, déclenchement et affichage automatique de la dialog d'ouverture de dossier (`showDirectoryPicker()` / dialogue de fichier). |
-| 8 | **Glisser-Déposer direct de `metadata.json` & Entête de version** | Glisser-déposer d'un fichier JSON seul non pris en charge ; métadonnées non versionnées | **Prise en charge du glisser-déposer de `metadata.json` seul ou avec `.mmd`** à tout moment. Entête normatif (`header`) avec `format`, `version` et `template_version` permettant au Studio d'adapter son comportement aux différentes versions de templates. Rétrocompatibilité totale avec l'ancien format dictionnaire direct. |
+### v1.3 → v1.4
+- **Centrage mathématique exact sans rebond** : Suppression de toute animation CSS `transform` / `pulse` sur les `<g class="dg-card">`. `centerOnNode` lit directement les coordonnées canevas (`data-x`, `data-y`, `data-w`, `data-h`) et compense la largeur de l'inspecteur latéral ouvert pour centrer le nœud dans la zone visible.
+- **Titres métier purs** : Épuration de toutes les mentions de type ou statut (`"Cas d'Usage"`, `"Segment"`, `"Variante"`, `"Nominal"`, `"Vue Repliée"`, `"(Hub)"`, `"(Popin)"`, `"(Modale)"`, `"(Ancre)"`) dans les libellés et titres.
+- **Délégation d'événements unique** sur le conteneur SVG (survol et clic), chargement parallèle (`Promise.all`) des fichiers et enrichissement O(1) des cartes `ECR` depuis l'arborescence.
 
----
+### v1.2 → v1.3
+- **Panneau modal flottant structuré pour la légende** avec header, bouton de fermeture et 3 sections thématiques soignées (*Composants*, *Liaisons & Lignes*, *Bulles & Statuts*).
+- **Transformation vectorielle directe** sur `<g id="viewport-content">` natif SVG : zéro flou, zéro pixellisation, netteté vectorielle 100% à tous les niveaux de zoom (`0.15x` à `4.0x`).
+- **Canevas vectoriel infini** couvrant 100% du viewport (`patternTransform` synchronisé) et **centrage automatique mathématique** (`fitToBounds`) au chargement et au changement de diagramme.
+- **Alignement horizontal strict sur l'axe Y** : les étapes du flux nominal et des parcours linéaires partagent une coordonnée `Y` strictement identique, avec couloirs dédiés pour les variantes.
 
-## 0.bis Rappel des évolutions v1.1 → v1.2
-
-| # | Sujet | v1.1 | v1.2 |
-| :--- | :--- | :--- | :--- |
-| 1 | **Architecture source** | Fichier HTML unique monolithique | **Sous-projet modulaire `studio/`** avec `package.json`, Vite singlefile, JS et CSS découpés dans `src/`, distribution unique dans `dist/preview.html`. |
-| 2 | **Bibliothèque d'icônes** | Emojis et glyphes approximatifs | **Google Material Symbols (Material Icons)** via CDN officiel Google Fonts. |
-| 3 | **Layout Arborescence** | Calcul séquentiel (frères pouvant se superposer) | **Algorithme récursif de bounding box** : réservation de l'espace de sous-arbre garantissant que les frères (`D001`, `E404`) sont placés **côte à côte** à droite de `L001`. |
-| 4 | **Titres de cartes** | Répétition de l'ID (`ND-001 · Accueil`) | **Titre épuré sur 2 lignes max** sans répétition de l'ID (déjà en bas à droite). |
-| 5 | **Gestion des URLs** | URL unique affichée | **URL relative** sur la carte et **URL absolue canonique** calculée par concaténation ascendante dans l'inspecteur. |
-| 6 | **Liens de Userflow** | Traits invisibles (seule la tête de flèche visible) | **Tracés vectoriels `<path>` avec `stroke` garanti** et flèches orientées. |
-| 7 | **Étapes ACT (Actions)** | Chips étroites provoquant des sauts au survol | **Carte page standard sans bordure** avec icône Material Symbol dédiée (`ads_click`). |
-| 8 | **Inspecteur de nœud** | Volet latéral statique | **Panneau modal interactif** avec recentrage automatique du canevas et navigation cliquable continue **Parent direct ↔ Enfants directs**. |
-| 9 | **Rendu du canevas** | `radial-gradient` CSS créant un moiré pixelisé | **Motif vectoriel SVG natif `<pattern>`** 100% net à tous les niveaux de zoom (`0.15x` à `4.0x`). |
-| 10 | **Contrôles & Export** | Boutons éparpillés dans la barre d'outils | **Barre d'outils flottante au-dessus du canvas** (Calques, Légende, Diags, Zoom) + **Menu déroulant d'export unifié** (*SVG*, *PNG*, *PNG HD*, *Print*). |
-| 11 | **Validation & Tests** | Tests manuels uniquement | **Suite de tests automatisés (Vitest)** pour le parseur, la hiérarchie d'URLs, le layout et le rendu SVG. |
+### v1.1 → v1.2
+- **Sous-projet modulaire `studio/`** avec `package.json`, Vite singlefile, JS et CSS découpés dans `src/`, distribution unique dans `dist/preview.html`.
+- **Google Material Symbols** vectorisés nativement en tracés SVG `<path>` (suppression de toute dépendance réseau à l'export).
+- **Algorithme récursif de bounding box** pour l'arborescence garantissant un espacement parfait entre sous-arbres.
 
 ---
 
 ## 1. Objet et Philosophie du Visualiseur
 
-Le fichier `preview.html` constitue le **visualiseur unifié autonome** de l'ensemble des livrables graphiques et documentaires générés pour un projet d'Architecture de l'Information (IA) : arborescences (sitemaps) et userflows.
+Le fichier `dist/preview.html` constitue le **visualiseur unifié autonome** de l'ensemble des livrables graphiques et documentaires générés pour un projet d'Architecture de l'Information (IA) : arborescences (sitemaps) et parcours utilisateurs (userflows).
 
 ### 1.1 Objectifs clés
-1. **Visualiseur unique** : charger, afficher, filtrer et inspecter tous les diagrammes (`sitemap-*.mmd`, `UC-*-overview.mmd`, `PF-*-*.mmd`…) et leurs métadonnées dans un répertoire cible (par défaut `generated/`).
+1. **Visualiseur unique** : charger, afficher, filtrer et inspecter tous les diagrammes (`sitemap-*.mmd`, `PF-*.mmd`…) et leurs métadonnées dans un répertoire cible (par défaut `generated/`).
 2. **Habillage piloté par la meta** : l'apparence d'un élément dépend de son **type, état, variante, rôle, accès, tags**… Ces informations sont stockées dans les fichiers `.mmd` (meta de fichier ou de nœud, §2.4). Elles ne gênent pas la lecture dans un lecteur Mermaid standard ; elles ajoutent le style dans le visualiseur.
 3. **Navigation entre livrables** : un même objet (page) apparaît dans l'arbo et dans les parcours ; le visualiseur permet de passer de l'un à l'autre (« voir dans l'arbo », « voir dans les parcours »).
-4. **Autonomie totale** : un fichier HTML5 unique, CSS et JavaScript vanilla, sans build. Fonctionne en `file://` comme derrière un serveur local (`ia-tools preview`).
+4. **Autonomie totale** : distribué sous la forme d'un unique fichier HTML5 autonome `dist/preview.html` intégrant CSS et JavaScript vanilla minifiés. Fonctionne nativement en protocole `file://` sans nécessiter de serveur local ou de runtime Node.js, ainsi que derrière un serveur HTTP local (`ia-tools preview`).
 5. **Inspection contextuelle** : survol (aperçu rapide) et clic (inspecteur complet : URL, template, rôles, accès, `ctx_in`/`ctx_out`, signaux de tracking, fiche écran).
 
 ### 1.2 Principes directeurs
@@ -97,9 +86,9 @@ generated/
 ├── sitemap-overview.mmd             <-- Arborescence générale
 ├── sitemap-detailed.mmd             <-- Arborescence détaillée (variantes, modules, renvois)
 ├── sitemap-by-role.mmd              <-- Arborescence filtrée par rôle
-├── UC-xxx-overview.mmd              <-- Vue d'un cas d'usage (parcours regroupés)
-├── PF-xxx-collapsed.mmd             <-- Parcours (vue repliée)
-├── PF-xxx-expanded.mmd              <-- Parcours (sous-parcours dépliés)
+├── PF-xxx-NOM.mmd                   <-- Parcours nominal (strictement linéaire, relié à son UC via uc=UC-xxx)
+├── PF-xxx-VAR-yyy.mmd               <-- Parcours variante (strictement linéaire, diverge/rejoint)
+├── PF-xxx-SEG-zzz.mmd               <-- Segment réutilisable (strictement linéaire)
 └── screen-sheets/                   <-- Fiches écrans Markdown synthétiques
     ├── screen-HOME.md
     └── screen-L001.md
@@ -146,8 +135,6 @@ flowchart TD
 
 ### 2.4 Grammaire de la meta `%%@`
 
-> Grammaire **validée** (octobre 2026). Les ajouts de la v1.1 sont regroupés au §2.4.6.
-
 #### 2.4.1 Syntaxe
 
 ```
@@ -172,11 +159,11 @@ flowchart TD
 | `id` | slug unique par projet | Identifiant du diagramme |
 | `project` | slug | Périmètre : borne la navigation croisée et la collision de codes |
 | `kind` | `sitemap` / `userflow` / `reference` | Catégorie (badge de la liste latérale) |
-| `view` | `general` / `detailed` / `role` / `uc` / `collapsed` / `expanded` | Niveau de vue |
+| `view` | `general` / `detailed` / `role` | Niveau de vue (arborescence) |
 | `role` | code de rôle | Rôle filtré (vue par rôle) |
 | `roles` | liste | Rôles concernés par le diagramme |
 | `uc`, `obj` | identifiants | Rattachement cas d'usage / objectif |
-| `statut` | `nominal` / `variante` / `segment` | Statut du parcours |
+| `statut` | `nominal` / `variante` / `segment` | Statut du parcours utilisateur |
 | `diverge`, `rejoint` | `PF-xxx@N` | Points de divergence / rejonction d'une variante |
 | `atterrissage` | code de page | Écran d'atterrissage d'un parcours |
 | `confiance`, `validation`, `funnel` | valeurs du template UC | Informations de suivi (affichées dans l'en-tête) |
@@ -191,7 +178,7 @@ flowchart TD
 | `subtype` | texte court (`datagrid`, `stepper`, `form`…) | Libellé de type affiché (ligne 2, bas-droite) |
 | `access` | `public` / `protected` | Accès |
 | `roles` | liste | Rôles habilités |
-| `url` | chemin canonique (`/rooms/[id]`) | URL de la page |
+| `url` | chemin canonique (`/rooms/[id]/`) | URL de la page |
 | `order` | entier | Ordre d'affichage / numéro d'étape |
 | `ref` | `FEAT-xxx` / `PF-xxx` / texte | Référence portée par le nœud (ACT, CALL, EXT…) |
 | `obs` | `url` / `event` / `none` | Observabilité du nœud |
@@ -211,7 +198,6 @@ flowchart TD
 #### 2.4.3 Code canonique et identifiant Mermaid
 
 Les identifiants de nœud Mermaid n'acceptent pas `@`, `:`, `!`, `#`, `/`. On sépare donc :
-
 - **`<id>` Mermaid** : technique, `[A-Za-z0-9_]`, jamais utilisé pour la logique ;
 - **`code`** : forme canonique, seule clé de correspondance.
 
@@ -239,7 +225,7 @@ Un code suffixé par `!` ou `#` désigne un **élément rattaché** à la page d
 | | `F` | Formulaire |
 | | `C` | Contenu |
 | | `D` | Dashboard |
-| | `E` | Page technique (**à confirmer**, cf. §13) |
+| | `E` | Technique |
 | Éléments rattachés | `DLG` (popin / prompt, `!`), `ANC` (ancre, `#`) | Popin / Ancre |
 | Modules transverses | `MOD` (code `M###`, hors arbre) | Module |
 | Entités de parcours | `ECR`, `ACT`, `ATT`, `EXT`, `CALL` | Écran, Action, Attente, Externe, Sous-parcours |
@@ -250,7 +236,7 @@ Un code suffixé par `!` ou `#` désigne un **élément rattaché** à la page d
 
 | Information manquante | Déduction |
 | :--- | :--- |
-| `code` | Premier mot du libellé s'il respecte la grammaire du code (`L001 /rooms` → `L001`) ; sinon pas de navigation croisée pour ce nœud |
+| `code` | Premier mot du libellé s'il respecte la grammaire du code (`L001 /rooms/` → `L001`) ; sinon pas de navigation croisée pour ce nœud |
 | `url` | Premier mot du libellé commençant par `/` |
 | `type` (sitemap) | Lettre du code (`L`, `C`, `F`…) |
 | `type` (userflow) | Forme Mermaid : stade `([ ])` = ECR ; rectangle = ACT ; hexagone `{{ }}` = ATT ; parallélogramme `[/ /]` = EXT ; double bord `[[ ]]` = CALL |
@@ -262,15 +248,13 @@ Un bandeau discret signale « fichier sans meta : habillage déduit » ; le diag
 
 #### 2.4.6 Extensions proposées à la grammaire validée
 
-Ces ajouts ne cassent pas la grammaire validée (clés optionnelles). **À accepter ou refuser** :
-
-| Ajout | Forme | Pourquoi |
+| Ajout | Forme | Rôle |
 | :--- | :--- | :--- |
 | `%%@tag <NOM>` | `%%@tag SP1 color=green style=outline label="Sprint 1"` | Déclare la couleur et le style d'un tag (palette §3.5) et alimente la légende. Sans déclaration : gris, contour. |
 | `tags` | `tags=SP1,MVP` | Tags d'un nœud |
-| `icon` | `icon=device,a11y` | Bulles d'icône (registre §3.5) |
+| `icon` | `icon=device,a11y` | Bulles d'icône vectorielles (§3.5) |
 | `who` | `who=ADMIN,BUYER` | Avatars / personnes associés (§3.5) |
-| `tone` | `tone=accent` | Fond d'accentuation (le fond lavande des captures, §3.4) |
+| `tone` | `tone=accent` | Fond d'accentuation (fond lavande §3.4) |
 | `urlmode` | `urlmode=abs` / `rel` | Force l'affichage « Absolu » / « Relatif » de l'URL (§3.3) |
 | `dynamic` | `dynamic=yes` | Force la pile « page dynamique » (sinon déduit de `[x]` ou `:x` dans `url`) |
 | `label` | `label="Nom affiché"` | Surcharge du titre affiché |
@@ -280,13 +264,11 @@ Ces ajouts ne cassent pas la grammaire validée (clés optionnelles). **À accep
 
 ## 3. Design System
 
-Les captures de référence (arbo, flows, components) définissent le langage visuel. Seuls la **structure** et le **style** comptent ; les contenus qu'elles montrent sont ignorés. Les valeurs numériques ci-dessous sont **estimées à partir des captures** et doivent être calibrées au rendu final (bloc de tokens en annexe B).
-
 ### 3.1 Principes
 1. **Cartes blanches, traits fins, couleur rare** : la couleur est réservée au sens (page d'accueil, appel de sous-parcours, événement externe, tags, bulles).
 2. **Un seul composant « Carte Page »** pour les pages d'arbo **et** les écrans de parcours (P7).
 3. **Information en périphérie, nom au centre** : le nom de la page est lisible d'un coup d'œil ; le reste (URL, code, type) est discret, aux coins.
-4. **Hiérarchie = trait plein coudé ; renvoi = pointillé clair.**
+4. **Hiérarchie = trait plein coudé ; renvoi = pointillé clair systématiquement courbe.**
 5. **Lisibilité à la mise à l'échelle** : tout est exprimé en tokens relatifs à la taille de carte.
 
 ### 3.2 Tokens
@@ -294,7 +276,7 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 | Famille | Token | Valeur (clair) | Usage |
 | :--- | :--- | :--- | :--- |
 | Canvas | `--dg-canvas` / `--dg-dot` | `#f5f5f5` / `#cfcfcf` | Fond pointillé |
-| | `--dg-frame` / `--dg-frame-border` | `#ffffff` / `#e5e5e5` | Cadre (frame) de userflows, rayon 8 px |
+| | `--dg-frame` / `--dg-frame-border` | `#ffffff` / `#e5e5e5` | Cadre de piste de parcours (`uc-journey-track`), rayon 10 px |
 | | `--dg-level-line` | `#d9d9d9` | Lignes de niveau (arbo), 1 px |
 | Carte | `--dg-card` / `--dg-card-border` | `#ffffff` / `#d4d4d4` | Fond / bordure 1 px |
 | | `--dg-radius` | `5px` | Arrondi |
@@ -308,7 +290,7 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 | | `--dg-url` / `--dg-muted` | `#6b6b6b` (10 px) / `#a8a8a8` (8 px) | URL / mode URL |
 | | `--dg-code` / `--dg-type` | `#333333` / `#777777` (9 px) | Code / type |
 | Liens | `--dg-edge` | `#666666`, 1,5 px | Hiérarchie, nominal |
-| | `--dg-edge-cross` | `#a3a3a3`, 1,5 px, pointillé `6 4` | Renvois, variantes |
+| | `--dg-edge-cross` | `#a3a3a3`, 1,5 px, pointillé `6 4` | Renvois, variantes (courbes de Bézier) |
 | Entités | `--dg-call` | `#8b4dff` | Sous-parcours (CALL) |
 | | `--dg-ext` | `#ff9500` | Événement externe (EXT) |
 | | `--dg-att` | `#8a8f9b` | Attente (ATT) |
@@ -316,41 +298,41 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 | Bulles | `--bubble-peach/amber/blue/lavender` | `#fdd3b0` / `#fcc36b` / `#a6d3f6` / `#d2c5f4` | Fond des bulles d'icône ; glyphe `#2b3a55` |
 | Marqueurs | `--marker-violet` / `--marker-slate` / `--marker-green` | `#b5a1ee` / `#5d6475` / `#4a9a2c` | Pastilles de flux |
 | Pastille | `--order-circle` | `#b7a6ea` | Numéro d'ordre |
-| Police | `--dg-font` | `Inter, system-ui, "Segoe UI", sans-serif` | Pile avec repli système (export fiable) |
+| Police | `--dg-font` | `Inter, system-ui, "Segoe UI", sans-serif` | Pile avec repli système (export fidèle) |
 | Espacement | `--dg-gap-x` / `--dg-gap-y` | `48` / `72` px | Entre frères / entre niveaux (arbo) |
 | | `--dg-flow-gap` | `88` px | Entre deux cartes d'un parcours |
 
 ### 3.3 Carte Page (composant commun)
 
 ```
-                                                         ┌─────┐   ╭───╮
-                                                         │ SP1 │   │ 📱│  bulle/badge (0, 0)
- ┌───────────────────────────────────────────────────────┴─────┴───╰─┬─╯
- │ url/example/                                                    ╭─┴─╮
- │ Relatif                                                         │ 🔒│  stack vers le bas (recouvrement 2px)
- │                                                                 ╰───╯
- │                         Nom de la page                              │  titre, 3 lignes max
+                                                         ┌──────┐  ╭───╮
+                                                         │ SP1  │  │ 📱│  1er badge (0, 0)
+ ┌───────────────────────────────────────────────────────┴──────┴──╰─┬─╯
+ │ url/example/                                          ┌──────┐  ╭─┴─╮
+ │ Relatif                                               │ MVP  │  │ 🔒│  badges : stack vers le bas (recouvrement 2px)
+ │                                                       └──────┘  ╰───╯
+ │                         Nom de la page                          tags : stack vers le bas (décalage 22px)
  │                                                                     │
- │ (01)                                      template/VARIANT:STATE    │  pastille | code
+ │ (01)                                      template/VARIANT:STATE    │  pastille d'ordre | code
  │                                           Type de page              │  type / sous-type
  └─────────────────────────────────────────────────────────────────────┘
 ```
 
 | Emplacement | Position | Source | Règle |
 | :--- | :--- | :--- | :--- |
-| Bulle(s) / badge(s) d'icône | Coin haut-droit, débordant légèrement, objet SVG unitaire `<g class="dg-badge">` | `icon` + `lock` dérivé | 1er à `translate(0, 0)`, suivants stackés vers le bas avec recouvrement de 2 px (§3.5) |
-| Tag(s) | Coin haut-droit, groupés (`<g class="dg-tag">`) et alignés verticalement du haut vers le bas à gauche de la colonne de badges | `tags` | 3 visibles max (§3.5) |
+| Bulle(s) / badge(s) d'icône | Coin haut-droit, objet SVG unitaire `<g class="dg-badge">` | `icon` + `lock` dérivé | 1er à `translate(0, 0)`, suivants stackés verticalement vers le bas avec recouvrement de 2 px (§3.5) |
+| Tag(s) | Tranche droite, objet SVG unitaire `<g class="dg-tag">` aligné verticalement du haut vers le bas à gauche des badges | `tags` | Stackés verticalement du haut vers le bas (décalage 22 px), 3 visibles max (§3.5) |
 | Avatar(s) | Coin bas-droit, débordant | `who` / `roles` | Cercle, anneau blanc (§3.5) |
 | URL | Haut-gauche, intérieur | `url` | Segment relatif ou chemin absolu (règle ci-dessous) |
 | Mode d'URL | Sous l'URL | dérivé ou `urlmode` | `Relatif` ou `Absolu` |
 | Titre | Centre, gras, centré | libellé du nœud ou `label` | 3 lignes max, ellipse au-delà (texte complet au survol) |
-| Pastille d'ordre | Bas-gauche | `order` | Option « Numérotation » (§5.2) ; désactivée par défaut |
+| Pastille d'ordre | Bas-gauche | `order` | Option « Numérotation » (§5.2) ; masquée par défaut |
 | Code | Bas-droite, ligne 1 | `code` | Affiché tel quel (`C010:EDIT`) |
 | Type | Bas-droite, ligne 2 | `subtype`, sinon libellé du `type` | Gris, plus petit |
 
-**Règle d'affichage de l'URL (déduite des captures)**
+**Règle d'affichage de l'URL** :
 - Homepage : `/` en **Absolu**.
-- En **arbo** : segment propre de la page **relatif** à celui de son parent (`/rooms/[id]` sous `/rooms` → `[id]/`). Tous les chemins relatifs se terminent obligatoirement par un slash `/` final, à l'exception de ceux qui sont en bout de chaîne (ancres internes `#` et popins/modales `!`).
+- En **arbo** : segment propre de la page **relatif** à celui de son parent (`/rooms/[id]/` sous `/rooms/` → `[id]/`). Tous les chemins relatifs se terminent obligatoirement par un slash `/` final, à l'exception de ceux qui sont en bout de chaîne (ancres internes `#` et popins/modales `!`).
 - En **parcours** : **Relatif** quand la page est un enfant hiérarchique du nœud précédent du parcours (d'après l'arbo) ; **Absolu** sinon. Lorsqu'il est relatif, il se termine par `/` (sauf popins `!` et ancres `#`).
 - Élément rattaché : `!suppression` (popin) ou `#reviews` (ancre), en **Relatif** à la page de base (jamais de `/` final).
 - Surcharge possible par `urlmode`.
@@ -375,11 +357,9 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 
 Les cas sont **cumulables** (ex. dynamique + variante + protégée). Précédence du fond : `tone` explicite > variante dérivée > blanc.
 
-> Dans les captures, deux fonds colorés coexistent : bleu-gris (page « état » du panneau components) et lavande (pages `new/` de l'arbo). Le visualiseur les modélise respectivement par la variante dérivée et par `tone=accent`. Le sens métier du fond lavande est à confirmer (§13).
-
 ### 3.5 Bulles, tags, avatars et marqueurs
 
-**Bulles et badges d'icône** — objet vectoriel unitaire (`<g class="dg-badge badge-{type}">`) groupant une pastille ronde (rayon 12 px, bordure blanche 1,5 px) et son icône vectorielle native centrée (`<g class="dg-badge-icon" transform="translate(0, 0)">`), positionné en haut à droite de la carte dans un conteneur `<g class="card-badges">` et stacké verticalement vers le bas (1er badge à `translate(0, 0)`, les suivants décalés de 22 px vers le bas avec recouvrement de 2 px, apparaissant nativement au-dessus visuellement) :
+**Bulles et badges d'icône** — objet vectoriel unitaire (`<g class="dg-badge badge-{type}">`) groupant une pastille ronde (rayon 12 px, bordure blanche 1,5 px) et son icône vectorielle native centrée (`<g class="dg-badge-icon">`), positionné en haut à droite de la carte dans un conteneur `<g class="card-badges">` et stacké verticalement vers le bas (1er badge à `translate(0, 0)`, les suivants décalés de 22 px vers le bas avec recouvrement de 2 px, apparaissant nativement au-dessus visuellement) :
 
 | Icône | Couleur | Lecture proposée |
 | :--- | :--- | :--- |
@@ -393,9 +373,7 @@ Les cas sont **cumulables** (ex. dynamique + variante + protégée). Précédenc
 - `fill` : fond plein, texte blanc ;
 - `outline` : bordure 2 px, fond teinté à 12 %, texte sombre.
 
-Exemple des captures : `SP1` vert contour, `SP2` orange contour, `SP3` rouge contour, `MVP` dans les 10 combinaisons.
-
-**Avatars** — cercle ~28 px, anneau blanc 2 px, ombre légère, chevauchement −8 px. Pas de photo : initiales calculées avec repli automatique (priorité à `who=` si présent, sinon repli sur `roles=`) sur fond de couleur stable (hachage du rôle). Affichage activable via le calque « Avatars » (§5.2, masqué par défaut).
+**Avatars** — cercle ~28 px, anneau blanc 2 px, ombre légère, chevauchement −8 px. Initiales calculées avec repli automatique (priorité à `who=` si présent, sinon repli sur `roles=`) sur fond de couleur stable (hachage du rôle). Affichage activable via le calque « Avatars » (§5.2, masqué par défaut).
 
 **Marqueurs d'arborescence** — pastilles réservées exclusivement aux arborescences (aucun marqueur sur les userflows, qui restent sobres et épurés) :
 
@@ -421,8 +399,8 @@ Les liaisons entre entités sont formalisées selon 4 styles canoniques portant 
 
 ### 3.7 Éléments propres aux arborescences
 - **Lignes de niveau** : une bande horizontale fine par profondeur, sur toute la largeur du canvas (option « Niveaux », activée par défaut).
-- **Éléments rattachés** (`DLG`, `ANC`) : placés en colonne à droite de leur page, même niveau, reliés par un court pointillé `attach`.
-- **Modules transverses** (`MOD`) : hors arbre, regroupés dans une bande « Modules transverses (hors arbre) » en pied de diagramme. Leurs liens `invoke` sont **masqués** par défaut et révélés au survol de la page ou du module (évite la surcharge).
+- **Éléments rattachés** (`DLG`, `ANC`) : placés en colonne à droite de leur page, même niveau, reliés par une courbe pointillée `attach` avec flèche `arrow-cross`.
+- **Modules transverses** (`MOD`) : hors arbre, regroupés dans une bande « Modules transverses (hors arbre) » en pied de diagramme. Leurs liens `invoke` sont **masqués** par défaut et révélés au survol de la page ou du module.
 - **Regroupements** Mermaid (`subgraph` de zones) : ignorés pour la mise en page ; la zone protégée s'exprime par `access`.
 
 ### 3.8 Éléments propres aux userflows
@@ -430,10 +408,10 @@ Les liaisons entre entités sont formalisées selon 4 styles canoniques portant 
 | Entité | Rendu | Détails |
 | :--- | :--- | :--- |
 | `ECR` | **Carte Page** strictement identique (§3.3) | Y compris homepage, pile, fond d'état |
-| `ACT` | **Carte standard sans bordure** | Fond translucide neutre, icône Material Symbol `ads_click`, texte ACTION, libellé sur 2 lignes. Masquable via le calque « Actions » avec contraction de graphe (§3.10) |
-| `CALL` | Carte à **bordure violette 2 px**, fond blanc, titre en gras (`PF-… — titre`) | Lien sortant violet. Vue dépliée : cadre violet pointillé contenant le sous-parcours |
+| `ACT` | **Carte standard sans bordure** | Fond translucide neutre, icône Material Symbol `ads_click`, texte ACTION, libellé sur 2 lignes. Masquable via le calque « Actions » avec contraction topologique (§3.9) |
+| `CALL` | Carte à **bordure violette 2 px**, fond blanc, titre en gras (`PF-… — titre`) | Lien sortant violet. Ouvre le segment de parcours réutilisable |
 | `EXT` | Carte à **bordure orange 2 px**, titre gras + sous-titre (`ref`) | Lien sortant orange. Point d'entrée de type notification, email, échange hors application |
-| `ATT` | **Carte standard à bordure tiretée grise** | Bordure tiretée 1.5 px `--dg-att`, icône `schedule`, sous-titre `ATTENTE`, marqueur `⏸` si pause déclarée. Masquable via le calque « Attentes » avec contraction de graphe (§3.10) |
+| `ATT` | **Carte standard à bordure tiretée grise** | Bordure tiretée 1.5 px `--dg-att`, icône `schedule`, sous-titre `ATTENTE`, marqueur `⏸` si pause déclarée. Masquable via le calque « Attentes » avec contraction topologique (§3.9) |
 | Rupture ⏸ | Marqueur « pause » (cercle ardoise) en coin haut-gauche | Détails (mémoire, persistance, reprise, délai) au survol |
 
 ### 3.9 Masquage sélectif et Contraction Topologique de Graphe
@@ -444,7 +422,7 @@ Lors de la visualisation des parcours (`kind=userflow`), l'utilisateur peut choi
 ### 3.10 Légende automatique
 Un panneau modal flottant repliable liste de façon dynamique et exhaustive, pour le diagramme affiché, l'ensemble des conventions graphiques :
 1. **Composants & Cartes** : Homepage (bordure 3 px bleue), Page standard, État / Variante (fond bleu-gris), Accentuation (fond lavande), CALL violet, EXT orange, Action ACT (carte sans bordure, icône clic), Attente ATT (carte à bordure tiretée grise, icône horloge), Page dynamique (pile décalée).
-2. **Liaisons & Lignes** : Trait continu sombre (hiérarchie ou nominal), Trait pointillé gris (variante ou renvoi), Trait violet (CALL), Trait orange (EXT).
+2. **Liaisons & Lignes** : Trait continu sombre (hiérarchie ou nominal), Trait pointillé gris (variante ou renvoi courbe), Trait violet (CALL), Trait orange (EXT).
 3. **Bulles d'Icônes & Statuts** : Cadenas ardoise (`access=protected`), Smartphone pêche (`device`), Personne ambre (`a11y`), Cible bleue (`entry`), Numéro d'ordre violet (`order`), Symbole pause ardoise (`⏸`).
 
 ---
@@ -452,14 +430,14 @@ Un panneau modal flottant repliable liste de façon dynamique et exhaustive, pou
 ## 4. Moteur de Rendu et Mise en Page
 
 ### 4.1 Principe
-Les cartes (plusieurs zones de texte, bulles, tags, piles, liens coudés, lignes de niveau) ne sont pas réalisables avec le rendu natif de Mermaid. Le visualiseur n'utilise donc **pas** le SVG de Mermaid : il **lit** le code et la meta, puis dessine lui-même.
+Les cartes ne sont pas réalisables avec le rendu natif de Mermaid. Le visualiseur n'utilise donc **pas** le SVG de Mermaid : il **lit** le code et la meta, puis dessine lui-même.
 
 ```
 .mmd ──> parse (code Mermaid + %%@) ──> AST ──> résolution (codes, parents)
       ──> mise en page (arbre / flux) ──> SVG ──> pan & zoom, survol, export
 ```
 
-- Le SVG est construit par le visualiseur : `data-code`, `data-id`, `data-kind` sont posés **directement** (plus de réconciliation sur du texte rendu).
+- Le SVG est construit par le visualiseur : `data-code`, `data-id`, `data-kind` sont posés **directement**.
 - Mermaid.js n'est chargé (CDN, à la demande) que pour la **vue Mermaid brute** (§4.6) et en **repli** si un fichier sort du sous-ensemble supporté.
 
 ### 4.2 Sous-ensemble Mermaid supporté
@@ -483,7 +461,7 @@ Les cartes (plusieurs zones de texte, bulles, tags, piles, liens coudés, lignes
 5. Liens parent → enfants : coude avec bus horizontal à mi-hauteur de l'espace inter-niveaux.
 6. **Éléments rattachés** : colonne latérale réservée (pas de chevauchement avec les frères).
 7. **Modules** : bande dédiée en pied.
-8. **Renvois et lignes cross** : tracé systématiquement courbe (courbes de Bézier cubiques fluides avec cambrure continue, y compris arc supérieur sur les éléments rattachés au même niveau Y), pointillés clairs (`--dg-edge-cross`), flèche `arrow-cross` ; option « Renvois » pour les masquer.
+8. **Renvois et lignes cross** : tracé systématiquement courbe (courbes de Bézier cubiques fluides avec cambrure continue `computeSitemapCrossPath`, y compris arc supérieur sur les éléments rattachés au même niveau Y), pointillés clairs (`--dg-edge-cross`), flèche `arrow-cross` ; option « Renvois » pour les masquer.
 9. **Vue par rôle** : si une meta `%%@file role=` est présente, le diagramme est affiché tel quel (déjà filtré). Un **filtre de rôle** est aussi proposé sur n'importe quelle vue (§5.1).
 
 ### 4.4 Mise en page — userflows (`kind=userflow`) et Cas d'Usage (`UC-xxx`)
@@ -491,15 +469,15 @@ Les cartes (plusieurs zones de texte, bulles, tags, piles, liens coudés, lignes
 2. **Alignement horizontal strict sur l'axe Y** :
    - **Ligne 0 (`row = 0`)** : chaque parcours (`PF-*.mmd`) est unitaire et strictement linéaire ; toutes ses étapes partagent une coordonnée `Y` strictement identique sans aucun décalage vertical (pas d'effet d'escalier ni de zigzag).
 3. **ACT & ATT** : masquables via le menu des calques avec contraction topologique de graphe (§3.9).
-4. **CALL** : carte à bordure violette pointant vers un sous-parcours ou segment (`PF-*-SEG`), ouvrable en un clic depuis l'inspecteur ou le survol.
+4. **CALL** : carte à bordure violette pointant vers un segment réutilisable (`PF-*-SEG`), ouvrable en un clic depuis l'inspecteur ou le survol.
 5. **Distinction Cas d'Usage (`UC-xxx`) et Parcours (`PF-xxx`)** :
    - Un **Cas d'Usage (`UC-xxx`)** n'est pas un parcours : c'est un **dossier logique** qui regroupe l'ensemble des parcours (`PF-*.mmd` déclarant `uc=UC-xxx`) permettant d'exécuter l'UC et d'en respecter les objectifs.
    - Les métadonnées de l'UC (`title`, `objectifs`, `roles`) sont déclarées dans la clé `use_cases` de `metadata.json` ou via `uc_title` dans `%%@file`.
    - **Ouverture d'un Cas d'Usage (`layoutUseCase`)** : cliquer sur le dossier d'un UC dans le panneau latéral ouvre un canevas composite affichant **tous les parcours de cet UC empilés verticalement les uns au-dessus des autres** dans des cadres dédiés (`journeyTracks`), triés selon l'ordre normatif :
      1. **Parcours nominaux (`statut=nominal`) en haut** ;
      2. **Parcours variantes (`statut=variante`) au milieu** (avec indication de `diverge` / `rejoint`) ;
-     3. **Segments réutilisables (`statut=segment`) et vues détaillées en bas**.
-   - Cliquer sur un parcours individuel à l'intérieur du dossier UC dans le panneau latéral (ou sur le bouton « Isoler » dans l'inspecteur) affiche uniquement ce parcours seul sur le canevas.
+     3. **Segments réutilisables (`statut=segment`) en bas**.
+   - Cliquer sur un parcours individuel à l'intérieur du dossier UC dans le panneau latéral (ou sur le bouton « Isoler parcours ➔ » dans l'en-tête de la piste) affiche uniquement ce parcours seul sur le canevas.
 
 ### 4.5 Texte
 - Retour à la ligne calculé par mesure (`measureText`) à la largeur de carte moins marges ; **3 lignes max**, ellipse ensuite.
@@ -512,7 +490,7 @@ Un bouton « Vue Mermaid » affiche le fichier tel que rendu par Mermaid.js, san
 
 ## 5. Structure et Ergonomie de l'Interface
 
-Modèle à trois panneaux réactifs, repris de la v1.0.
+Modèle à trois panneaux réactifs.
 
 ```
 +----------------------------------------------------------------------------------------------------------+
@@ -525,8 +503,9 @@ Modèle à trois panneaux réactifs, repris de la v1.0.
 |                          |            ┃ Page accueil┃                                      | URL: /rooms |
 | > Sitemap Overview       |            ┗━━━━┯━━━━━━━━┛     ┌─────────────┐                   |-------------|
 |   Sitemap Detailed       |   ─ ─ ─ ─ ─ ─ ─│─ niveau 1 ─ ─ │ Carte (hover)│ ─ ─ ─ ─         | Rôles ...   |
-|   UC-001 — Overview      |            ┌────┴─────┐       │ ▸ Voir dans │                   | ctx_in ...  |
-|   PF-001 — Collapsed     |            │  Carte   │       │   l'arbo    │                   | [Fiche]     |
+| ▾ 📁 UC-001 Soumettre    |            ┌────┴─────┐       │ ▸ Voir dans │                   | ctx_in ...  |
+|     PF-001-NOM           |            │  Carte   │       │   l'arbo    │                   | [Fiche]     |
+|     PF-001-VAR-ASSIST    |            └──────────┘       └─────────────┘                   |             |
 +--------------------------+-----------------------------------------------------------------+-------------+
 ```
 
@@ -542,7 +521,7 @@ Modèle à trois panneaux réactifs, repris de la v1.0.
 ### 5.2 Zone centrale (`#main-viewport`)
 - **Barre d'outils** : bascule du panneau latéral ; titre et badge ; **menu Calques** ; **Légende** ; exports (`PNG HD`, `PNG`, `SVG`, `Print`) ; bascule de l'inspecteur.
 - **Calques** (cases à cocher structurées en 3 domaines) :
-  - *Arborescence* : `Niveaux` (activé), `Renvois & modules` (activé), `Numérotation` (pastilles d'ordre, désactivé), `Couverture` (désactivé, cf. ci-dessous).
+  - *Arborescence* : `Niveaux` (activé), `Renvois & modules` (activé), `Numérotation` (pastilles d'ordre, désactivé), `Couverture` (désactivé).
   - *Parcours (Userflows)* : `Actions (ACT)` (activé par défaut), `Attentes (ATT)` (activé par défaut) avec contraction topologique de graphe (§3.9).
   - *Général* : `Avatars` (désactivé), `Tags` (activé), `Vue Mermaid` (§4.6).
 - **Calque Couverture** : en arbo, marque d'un trait pointillé rouge les pages qu'**aucun écran de parcours** ne référence (d'après l'index global), et affiche sur chaque page le **nombre de parcours** qui la traversent (cliquable → « voir dans les parcours »). Contrôle purement structurel.
@@ -553,7 +532,7 @@ Modèle à trois panneaux réactifs, repris de la v1.0.
 - Les clés de meta inconnues sont listées en bas, sous « Autres propriétés ».
 
 ### 5.4 Modale de fiche écran (`#screen-sheet-modal`)
-Inchangée : modale centrée, Markdown intégral en police monospace, fermeture par croix ou clic sur l'overlay.
+Modale centrée, Markdown intégral en police monospace, fermeture par croix ou clic sur l'overlay.
 
 ---
 
@@ -578,12 +557,12 @@ La carte de survol se termine par une barre d'actions (les actions non pertinent
 
 | Action | Disponible sur | Comportement |
 | :--- | :--- | :--- |
-| **Voir dans l'arbo** | ECR, ACT, CALL (via sa page d'appel), nœuds de l'overview UC | Ouvre l'arbo et centre le nœud correspondant (§6.3) |
+| **Voir dans l'arbo** | ECR, ACT, CALL (via sa page d'appel) | Ouvre l'arbo et centre le nœud correspondant (§6.3) |
 | **Voir dans les parcours** | Pages de l'arbo, popins | Liste les parcours qui contiennent le code ; choix → ouvre le parcours et centre l'écran |
 | **Ouvrir la fiche écran** | Pages avec `screen-sheets/screen-{code}.md` | Ouvre la modale (§5.4) |
 | **Copier le code** / **Copier l'URL** | Pages | Presse-papiers (retour visuel bref) |
 | **Surligner les voisins** | Tous | Atténue le reste ; chemin entrant et sortant mis en évidence |
-| **Déplier le sous-parcours** | CALL | Bascule en vue dépliée du parcours appelant |
+| **Ouvrir le sous-parcours** | CALL | Ouvre le parcours segment référencé (`PF-xxx-SEG`) |
 | **Replier / déplier le sous-arbre** | Pages parentes (arbo) | Masque ou montre les descendants |
 
 ### 6.3 Résolution de « Voir dans l'arbo »
@@ -611,8 +590,6 @@ Le visualiseur reflète l'état dans le hash de l'URL : `#file=<id>&node=<code>`
 ---
 
 ## 7. Moteur de Manipulation Graphique (Pan & Zoom)
-
-Navigation inspirée des outils de design vectoriel (Figma, Miro). La spécification mathématique de la v1.0 est conservée.
 
 ### 7.1 Pan & zoom
 - **État** : `scale` (min `0.15`, max `4.0`, initial `1.0`), `panX`, `panY`.
@@ -651,7 +628,7 @@ Le SVG exporté est celui du moteur de rendu (§4). Les textes sont dessinés en
 
 Bascule instantanée par `document.body.dataset.theme = 'light' | 'dark'`. **Au premier chargement, le thème est détecté automatiquement selon l'OS (`window.matchMedia('(prefers-color-scheme: dark)')`)**, avec mémorisation locale (`localStorage`) et bouton de bascule manuelle dans la barre d'outils.
 
-**Interface (hors diagramme)** — inchangé par rapport à la v1.0 :
+**Interface (hors diagramme)** :
 
 | Variable | Clair | Sombre |
 | :--- | :--- | :--- |
@@ -665,25 +642,24 @@ Bascule instantanée par `document.body.dataset.theme = 'light' | 'dark'`. **Au 
 | `--badge-userflow` | `#0284c7` | `#0ea5e9` |
 | `--grid-dot` | `#cfcfcf` | `#1e293b` |
 
-**Diagramme** : les tokens du §3.2 constituent le thème clair. Le thème sombre est **dérivé** (non issu des captures) et à calibrer :
+**Diagramme** :
 
-| Token | Sombre dérivé |
-| :--- | :--- |
-| `--dg-card` / `--dg-card-border` | `#1e293b` / `#334155` |
-| `--dg-home` | `#818cf8` |
-| `--dg-fill-state` / `--dg-fill-accent` | `#1e3a4a` / `#2a2a52` |
-| `--dg-stack-1` / `--dg-stack-2` | `#182235` / `#131c2c` |
-| `--dg-title` / `--dg-url` / `--dg-code` | `#f1f5f9` / `#94a3b8` / `#cbd5e1` |
-| `--dg-edge` / `--dg-edge-cross` | `#94a3b8` / `#64748b` |
-| `--dg-level-line` / `--dg-frame` | `#1e293b` / `#111827` |
-| Tags, bulles, marqueurs | inchangés (contrastes à vérifier) |
+| Token | Clair | Sombre dérivé |
+| :--- | :--- | :--- |
+| `--dg-card` / `--dg-card-border` | `#ffffff` / `#d4d4d4` | `#1e293b` / `#334155` |
+| `--dg-home` | `#3232f5` | `#818cf8` |
+| `--dg-fill-state` / `--dg-fill-accent` | `#dbe6ec` / `#ebebfb` | `#1e3a4a` / `#2a2a52` |
+| `--dg-stack-1` / `--dg-stack-2` | `#f3f3f3` / `#e8e8e8` | `#182235` / `#131c2c` |
+| `--dg-title` / `--dg-url` / `--dg-code` | `#222222` / `#6b6b6b` / `#333333` | `#f1f5f9` / `#94a3b8` / `#cbd5e1` |
+| `--dg-edge` / `--dg-edge-cross` | `#666666` / `#a3a3a3` | `#94a3b8` / `#64748b` |
+| `--dg-level-line` / `--dg-frame` | `#d9d9d9` / `#ffffff` | `#1e293b` / `#111827` |
 
 ---
 
 ## 10. Commandes CLI et Intégration dans l'Outillage
 
 ### 10.1 Génération
-`generate-mermaid` produit les `.mmd` **avec leurs lignes `%%@`** à partir des templates prédéfinis, et copie le gabarit `unified-preview-template.html` vers `{out_dir}/preview.html` avec `--preview` :
+`generate-mermaid` produit les `.mmd` **avec leurs lignes `%%@`** à partir des templates prédéfinis, et copie le livrable `preview.html` vers `{out_dir}/preview.html` avec `--preview` :
 ```bash
 python -m ia_tools.cli generate-mermaid --type all --out generated --preview
 ```
@@ -731,25 +707,26 @@ Un clic sur une ligne du panneau centre le nœud concerné.
 | **REQ-PVW-04** | Fluidité pan & zoom | Zoom molette centré curseur (`0.15x`–`4.0x`), pan, ajustement à la vue, zoom sur nœud | Must |
 | **REQ-PVW-05** | Inspection | Le clic affiche URL, accès, rôles, `ctx_in`, `ctx_out`, signaux, rupture, liens croisés | Must |
 | **REQ-PVW-06** | Fiches écrans | Si `screen-sheets/screen-{code}.md` existe, un bouton l'ouvre en modale | Must |
-| **REQ-PVW-07** | Exports | SVG (variables résolues), PNG 1x, PNG HD ×2,5 ; état des calques respecté | Must |
+| **REQ-PVW-07** | Exports | SVG (variables résolues, icônes `<path>`), PNG 1x, PNG HD ×2,5 ; état des calques respecté | Must |
 | **REQ-PVW-08** | Impression propre | Seul le diagramme est imprimé, sur fond blanc | Must |
-| **REQ-PVW-09** | Thématisation | Bascule clair / sombre instantanée, **clair par défaut**, fond d'export adapté | Must |
+| **REQ-PVW-09** | Thématisation | Détection automatique système (`prefers-color-scheme`), bascule manuelle instantanée, fond d'export adapté | Must |
 | **REQ-PVW-10** | Carte Page unique | Pages d'arbo et écrans de parcours utilisent le même composant (§3.3) ; mêmes variantes (§3.4) | Must |
 | **REQ-PVW-11** | Habillage piloté par la meta | Type, variante/état, accès, tags, icônes, dynamique, rupture modifient le rendu selon §3.4 ; sans meta, repli §2.4.5 | Must |
-| **REQ-PVW-12** | Moteur de rendu et mise en page | Arbre compact avec lignes de niveau (arbo) ; flux gauche→droite avec lignes de variantes (parcours) ; liens conformes §3.6 | Must |
+| **REQ-PVW-12** | Moteur de rendu et mise en page | Arbre compact avec lignes de niveau (arbo) ; flux gauche→droite avec empilement UC (§4.4) ; liens conformes §3.6 | Must |
 | **REQ-PVW-13** | Correspondance exacte des codes | Aucune correspondance par préfixe : `L001` ne résout jamais `L0010` ; `C001:EDIT` ≠ `C001` sauf repli explicite annoncé | Must |
-| **REQ-PVW-14** | Carte de survol | Aperçu ≤ 300 ms après le survol, contenu §6.1, persistant au survol de la carte, accessible au clavier et au tap | Must |
-| **REQ-PVW-15** | Voir dans l'arbo | Depuis un ECR / ACT / CALL, ouvre l'arbo, centre et pulse le nœud ; repli annoncé ; bouton retour | Must |
+| **REQ-PVW-14** | Carte de survol | Aperçu ≤ 200 ms après le survol, contenu §6.1, persistant au survol de la carte, accessible au clavier et au tap | Must |
+| **REQ-PVW-15** | Centrage exact sans rebond | Le centrage d'un nœud lit les coordonnées réelles sans animation CSS `transform`/`pulse` perturbant le SVG | Must |
 | **REQ-PVW-16** | Voir dans les parcours | Depuis une page, liste et ouvre les parcours qui la contiennent | Should |
 | **REQ-PVW-17** | Filtres | Filtrage par type, tag, rôle (atténuation), état/variante | Should |
 | **REQ-PVW-18** | Diagnostics structurels | Panneau §11 avec navigation vers le nœud | Should |
-| **REQ-PVW-19** | Légende automatique | Panneau §3.9 généré depuis le diagramme | Should |
+| **REQ-PVW-19** | Légende automatique | Panneau flottant modal §3.10 généré depuis le diagramme | Should |
 | **REQ-PVW-20** | Liens profonds | `#file=…&node=…` restaure le diagramme et le nœud | Should |
 | **REQ-PVW-21** | Vue Mermaid brute | Bascule vers le rendu Mermaid.js sans habillage | Should |
 | **REQ-PVW-22** | Calque Couverture | Pages sans parcours signalées ; compteur de parcours par page | Should |
 | **REQ-PVW-23** | Replier / déplier un sous-arbre | Masque / montre les descendants, recalcule la mise en page | Could |
 | **REQ-PVW-24** | Surcharge des tokens | Fichier optionnel `preview.theme.json` remplaçant des tokens §3.2 | Could |
 | **REQ-PVW-25** | Mini-carte | Aperçu global cliquable des grands diagrammes | Could |
+| **REQ-PVW-26** | Minification & Bundle optimisé | Le build génère uniquement `dist/preview.html` minifié (HTML/CSS/JS optimisés, commentaires purgés, sans doublon `index.html`) | Must |
 
 ---
 
@@ -758,26 +735,29 @@ Un clic sur une ligne du panneau centre le nœud concerné.
 | # | Sujet | Décision validée |
 | :--- | :--- | :--- |
 | 1 | Fond **lavande** (`tone=accent`) | **Accentuation générique (`tone=accent`)** : utilisable librement via la directive `%%@node` sur n'importe quelle page ou écran à mettre en valeur (création, page clé, point critique). |
-| 2 | **Bulles d'icône** | **Registre standard validé des 5 icônes** : `device` (pêche), `a11y` (ambre), `entry` (bleu), `info` (lavande) et `lock` automatique (ardoise si `access=protected`). |
+| 2 | **Bulles d'icône** | **Registre standard validé des 5 icônes vectorielles natives** : `device` (pêche), `a11y` (ambre), `entry` (bleu), `info` (lavande) et `lock` automatique (ardoise si `access=protected`). |
 | 3 | **Avatars** (`who`) | **Initiales calculées avec repli automatique** : priorité à `who=` si précisé, sinon repli sur `roles=` ; cercles avec anneau blanc et couleur stable, activables via le calque « Avatars » (désactivé par défaut). |
 | 4 | **Marqueurs de flux** | **Pas de marqueurs sur les userflows, uniquement sur l'arborescence** : les userflows restent sobres et épurés, sans triangles ni losanges. |
 | 5 | **Tags** (`%%@tag` et `tags=`) | **Palette standard de 5 couleurs** : bleu, rouge, gris, vert, orange ; styles `outline` (par défaut) et `fill` ; repli gris contour si non déclaré ; max 3 visibles puis « +n ». |
 | 6 | Type **`E`** (pages techniques) | **Officialisé dans les templates canoniques** (`HOME`, `H`, `L`, `F`, `C`, `D`, `E`) avec « Technique » comme libellé par défaut. |
 | 7 | Rôle public | **`ANONYMOUS` retenu comme standard canonique** (avec alias toléré pour `PUBLIC`) pour préserver la rétrocompatibilité des fichiers et tests existants. |
-| 8 | **ATT** (Attente / asynchrone) | **Format pastille (chip)** : posée sur le lien comme les actions `ACT`, pastille allongée grise avec icône sablier ⏳ (plus compact qu'une carte). |
+| 8 | **ATT** (Attente / asynchrone) | **Composant carte standard à bordure tiretée grise 1.5 px (`--dg-att`)** : avec icône horloge `schedule` et libellé `ATTENTE`, masquable via calque avec contraction topologique de graphe. |
 | 9 | Métadonnées de fichier | **Migration stricte vers `%%@file`** : suppression progressive des frontmatters YAML existants au profit des directives `%%@file`, simplifiant le parseur sur `%%@` uniquement. |
 | 10 | Thème initial | **Détection automatique selon l'OS (`prefers-color-scheme`)** : adopte le thème système au premier chargement, avec mémorisation locale (`localStorage`) et bouton de bascule manuelle instantanée (clair / sombre). |
 | 11 | Pastille d'ordre (`(01)`) | **Masquée par défaut, activable via le calque « Numérotation » sur l'arborescence uniquement** (exclue des userflows). |
+| 12 | **Minification et distribution unifiée** | **Minification automatique au build** : `dist/preview.html` est directement généré, inliné, épuré de tout loader de modules ou commentaires et minifié par `html-minifier-terser` sans fichier `index.html` résiduel. |
+| 13 | **Liaisons cross courbes de Bézier** | **Tracé systématiquement courbe en arborescence (`computeSitemapCrossPath`)** : Les renvois et rattachements adoptent une courbe continue avec cambrure en voûte vers le haut pour les éléments situés sur la même rangée horizontale, évitant les lignes droites et coudes orthogonaux. |
+| 14 | **Objets SVG unitaires vectoriels pour badges et tags** | **Stacking vertical déterministe** : Badges pastilles rondes empilés vers le bas avec recouvrement de 2 px (`translate(0, 0)`, puis `translate(0, 22)`…) ; tags rectangles arrondis empilés vers le bas sur la tranche droite. |
 
 ---
 
 ## Annexe A — Exemples de `.mmd` avec meta
 
-### A.1 Parcours brut de variante linéaire séparé (`PF-DOSSIER-VAR-ASSIST.mmd`)
+### A.1 Parcours d'une variante linéaire séparée (`PF-DOSSIER-VAR-ASSIST.mmd`)
 
 ```mermaid
-%%@file id=PF-DOSSIER-VAR-ASSIST project=DOSSIER kind=userflow view=collapsed uc=UC-DOSSIER obj=OBJ-DOSSIER-01 statut=variante roles=MANAGER
-%%@file diverge=PF-DOSSIER-NOM@1 rejoint=PF-DOSSIER-NOM@4 confiance=RED validation=QA title="Parcours Variante : Assistance Téléphonique" version="1.1"
+%%@file id=PF-DOSSIER-VAR-ASSIST project=DOSSIER kind=userflow uc=UC-DOSSIER obj=OBJ-DOSSIER-01 statut=variante roles=MANAGER
+%%@file diverge=PF-DOSSIER-NOM@1 rejoint=PF-DOSSIER-NOM@4 confiance=RED validation=QA title="Assistance téléphonique" version="1.1"
 %%@node ND010 code=C010:EDIT type=ECR order=1
 %%@node ND030 ref=FEAT-DEMANDER-AIDE type=ACT order=2
 %%@node ND031 code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND020 persist=external delay=days order=3
@@ -786,53 +766,48 @@ Un clic sur une ligne du panneau centre le nœud concerné.
 %%@edge ND030>ND031 kind=variant
 %%@edge ND031>ND020 kind=rejoin
 flowchart LR
-  ND010(["ND-010 · C010:EDIT (Point de divergence)"])
+  ND010(["ND-010 · C010:EDIT"])
   ND030["ND-030 · Demande d'aide"]
   ND031[/"ND-031 · Échange conseiller ⏸"/]
-  ND020(["ND-020 · C010 (Point de rejonction)"])
+  ND020(["ND-020 · C010"])
   ND010 -. "diverge @1" .-> ND030 -.-> ND031 -. "rejoint @4" .-> ND020
 ```
 
-### A.2 Synthèse globale de cas d'usage modélisant l'ensemble des variations (`UC-DOSSIER-overview.mmd`)
+### A.2 Parcours nominal rattaché à son Cas d'Usage (`PF-DOSSIER-NOM.mmd`)
 
 ```mermaid
-%%@file id=UC-DOSSIER-overview project=DOSSIER kind=userflow view=uc uc=UC-DOSSIER obj=OBJ-DOSSIER-01 roles=MANAGER title="Cas d'Usage : Soumettre un Dossier (Vue Unifiée)" version="1.1"
+%%@file id=PF-DOSSIER-NOM project=DOSSIER kind=userflow uc=UC-DOSSIER obj=OBJ-DOSSIER-01 statut=nominal roles=MANAGER title="Soumission d'un dossier" version="1.1"
 %%@node ND010 code=C010:EDIT type=ECR order=1
 %%@node ND011 ref=FEAT-VALIDER-INFOS type=ACT order=2
 %%@node ND012 ref=PF-DOSSIER-PJ-SEG type=CALL order=3
 %%@node ND020 code=C010 type=ECR order=4
 %%@node ND021 ref=FEAT-SOUMETTRE type=ACT order=5
-%%@node ND030 ref=FEAT-DEMANDER-AIDE type=ACT order=6
-%%@node ND031 code=EXT-SUPPORT type=EXT obs=none break=yes resume=ND020 persist=external delay=days order=7
 %%@edge ND010>ND011 kind=nominal
 %%@edge ND011>ND012 kind=nominal
 %%@edge ND012>ND020 kind=nominal
 %%@edge ND020>ND021 kind=nominal
-%%@edge ND010>ND030 kind=diverge
-%%@edge ND030>ND031 kind=variant
-%%@edge ND031>ND020 kind=rejoin
 flowchart LR
-  ND010(["ND-010 · Ouvre le dossier"])
-  ND011["ND-011 · Valide les infos"]
+  ND010(["ND-010 · Édition du dossier"])
+  ND011["ND-011 · Validation des informations"]
   ND012[["ND-012 · Pièces justificatives"]]
-  ND020(["ND-020 · Retour au dossier"])
-  ND021["ND-021 · Soumet le dossier"]
-  ND030["ND-030 · Demande d'aide"]
-  ND031[/"ND-031 · Échange conseiller"/]
+  ND020(["ND-020 · Synthèse du dossier"])
+  ND021["ND-021 · Soumission finale"]
   ND010 --> ND011 --> ND012 --> ND020 --> ND021
-  ND010 -.-> ND030 -.-> ND031 -.-> ND020
 ```
 
-### A.3 Arborescence avec popin, ancre, module et tags
+> **Note d'assemblage du Cas d'Usage `UC-DOSSIER`** :
+> Le Cas d'Usage `UC-DOSSIER` regroupe l'ensemble des parcours portant `uc=UC-DOSSIER` (`PF-DOSSIER-NOM`, `PF-DOSSIER-VAR-ASSIST`, etc.). Dans Studio, ouvrir `UC-DOSSIER` affiche sur un canevas unique les pistes de parcours empilées verticalement avec le parcours nominal `PF-DOSSIER-NOM` en haut, suivi de la variante `PF-DOSSIER-VAR-ASSIST`.
+
+### A.3 Arborescence avec popin, ancre, module et tags (`sitemap-detailed.mmd`)
 
 ```mermaid
 %%@file id=sitemap-detailed project=SALLES kind=sitemap view=detailed
 %%@tag SP1 color=green style=outline label="Sprint 1"
 %%@tag SP2 color=orange style=outline label="Sprint 2"
 %%@node HOME code=HOME type=HOME access=public roles=ANONYMOUS,AUTH url=/ order=1
-%%@node L003 code=L003 type=L subtype=datagrid access=protected roles=ADMIN url=/admin/rooms order=2 tags=SP1
-%%@node F005 code=F005 type=F access=protected roles=ADMIN url=/admin/rooms/[id]/edit order=3 tags=SP2
-%%@node F005_ADMIN_EDIT code=F005@ADMIN:EDIT type=F access=protected roles=ADMIN url=/admin/rooms/[id]/edit order=4
+%%@node L003 code=L003 type=L subtype=datagrid access=protected roles=ADMIN url=/admin/rooms/ order=2 tags=SP1
+%%@node F005 code=F005 type=F access=protected roles=ADMIN url=/admin/rooms/[id]/edit/ order=3 tags=SP2
+%%@node F005_ADMIN_EDIT code=F005@ADMIN:EDIT type=F access=protected roles=ADMIN url=/admin/rooms/[id]/edit/ order=4
 %%@node L003_dlg_suppression code=L003!suppression type=DLG
 %%@node C002_anc_reviews code=C002#reviews type=ANC
 %%@node M001 code=M001 type=MOD scope=ALL
