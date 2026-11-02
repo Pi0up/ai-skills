@@ -153,6 +153,36 @@ export function renderSvgCanvas(ast, layout, state, urlMap = {}) {
   return svg;
 }
 
+export function renderCardBadge(type, { x = 0, y = 0, radius = 12, size = 14 } = {}) {
+  let bColor = 'var(--bubble-peach)';
+  let matSymbol = 'smartphone';
+  let iconFill = '#2b3a55';
+
+  if (type === 'a11y') {
+    bColor = 'var(--bubble-amber)';
+    matSymbol = 'accessibility_new';
+  } else if (type === 'entry') {
+    bColor = 'var(--bubble-blue)';
+    matSymbol = 'login';
+  } else if (type === 'info') {
+    bColor = 'var(--bubble-lavender)';
+    matSymbol = 'info';
+  } else if (type === 'lock') {
+    bColor = '#475569';
+    matSymbol = 'lock';
+    iconFill = '#ffffff';
+  }
+
+  const iconSvg = renderIconSvg(matSymbol, {
+    x: -size / 2,
+    y: -size / 2,
+    size,
+    fill: iconFill,
+  });
+
+  return `<g class="dg-badge badge-${escapeXml(type)}" data-badge="${escapeXml(type)}" transform="translate(${x}, ${y})"><circle cx="0" cy="0" r="${radius}" fill="${bColor}" stroke="#ffffff" stroke-width="1.5" />${iconSvg}</g>`;
+}
+
 export function escapeXml(str) {
   if (!str) return '';
   return String(str)
@@ -359,37 +389,29 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   svg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${escapeXml(code)}</text>`;
   svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${escapeXml(displayedSubtype)}</text>`;
 
-  // 5. Bulles d'Icônes Vectorielles (Coin Haut-Gauche débordant)
+  // 5. Bulles / Badges d'Icônes Vectorielles (Coin Haut-Droit débordant & stackés)
+  const bubbles = [];
   if (!isAct && !isAtt) {
-    const bubbles = [];
     if (node.icon) {
       const icons = Array.isArray(node.icon) ? node.icon : [node.icon];
       icons.forEach((ic) => bubbles.push(ic));
     }
     if (isProtected) bubbles.push('lock');
 
-    bubbles.slice(0, 2).forEach((b, idx) => {
-      const bx = -4 + idx * 28;
-      const by = -8;
-      let bColor = 'var(--bubble-peach)';
-      let matSymbol = 'smartphone';
-
-      if (b === 'a11y') { bColor = 'var(--bubble-amber)'; matSymbol = 'accessibility_new'; }
-      else if (b === 'entry') { bColor = 'var(--bubble-blue)'; matSymbol = 'login'; }
-      else if (b === 'info') { bColor = 'var(--bubble-lavender)'; matSymbol = 'info'; }
-      else if (b === 'lock') { bColor = '#475569'; matSymbol = 'lock'; }
-
-      const iconFill = b === 'lock' ? '#ffffff' : '#2b3a55';
-      svg += `<circle cx="${bx + 12}" cy="${by + 12}" r="13" fill="${bColor}" stroke="#ffffff" stroke-width="1.5" />`;
-      svg += renderIconSvg(matSymbol, { x: bx + 5, y: by + 5, size: 14, fill: iconFill });
+    // Stacking horizontal de droite à gauche en haut à droite
+    bubbles.forEach((b, idx) => {
+      const badgeX = w - 16 - idx * 22;
+      const badgeY = -2;
+      svg += renderCardBadge(b, { x: badgeX, y: badgeY, radius: 12, size: 14 });
     });
   }
 
-  // 6. Tags (Coin Haut-Droit)
+  // 6. Tags (Coin Haut-Droit, décalés à gauche des badges si présents)
   if (state.layers.tags && node.tags && !isAct) {
     const tags = Array.isArray(node.tags) ? node.tags : [node.tags];
+    const badgesOffset = bubbles.length > 0 ? (bubbles.length * 22 + 6) : 0;
     tags.slice(0, 2).forEach((tg, idx) => {
-      const tx = w - 10 - (idx + 1) * 44;
+      const tx = w - 10 - badgesOffset - (idx + 1) * 44;
       const tagDecl = ast.tags?.[tg];
       const colorMap = {
         blue: 'var(--tag-blue)',

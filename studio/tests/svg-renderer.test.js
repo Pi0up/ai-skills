@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderSvgCanvas, splitTitleTwoLines } from '../src/scripts/svg-renderer.js';
+import { renderSvgCanvas, splitTitleTwoLines, renderCardBadge } from '../src/scripts/svg-renderer.js';
 
 describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9, 13)', () => {
   it('découpe un titre long sur deux lignes sans déborder (Point 6)', () => {
@@ -87,5 +87,84 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
 
     const svg = renderSvgCanvas(ast, layout, state);
     expect(svg).toContain('<path d="M 250 159 L 350 159" marker-end="url(#arrow)"');
+  });
+
+  it('unifie le circle et l\'icône dans un seul objet SVG <g class="dg-badge"> positionné via transform', () => {
+    const badgeSvg = renderCardBadge('lock', { x: 184, y: -2, radius: 12, size: 14 });
+    expect(badgeSvg).toContain('<g class="dg-badge badge-lock" data-badge="lock" transform="translate(184, -2)">');
+    expect(badgeSvg).toContain('<circle cx="0" cy="0" r="12" fill="#475569" stroke="#ffffff" stroke-width="1.5" />');
+    expect(badgeSvg).toContain('<svg class="dg-icon " x="-7" y="-7" width="14" height="14"');
+  });
+
+  it('génère et stacke plusieurs badges en haut à droite sans troncature arbitraire', () => {
+    const ast = {
+      meta: { kind: 'sitemap' },
+      nodes: {
+        ND1: {
+          id: 'ND1',
+          code: 'L001',
+          type: 'L',
+          label: 'Liste des hébergements',
+          icon: ['device', 'a11y', 'entry'],
+          access: 'protected',
+        },
+      },
+      edges: [],
+    };
+    const layout = {
+      width: 800,
+      height: 400,
+      positions: {
+        ND1: { x: 50, y: 50, w: 200, h: 118 },
+      },
+    };
+    const state = { layers: { levels: false, renvois: false, numbers: false, avatars: false, tags: false, coverage: false } };
+
+    const svg = renderSvgCanvas(ast, layout, state);
+
+    // Vérifie que les 4 badges sont tous présents (3 icons + 1 lock)
+    expect(svg).toContain('class="dg-badge badge-device"');
+    expect(svg).toContain('class="dg-badge badge-a11y"');
+    expect(svg).toContain('class="dg-badge badge-entry"');
+    expect(svg).toContain('class="dg-badge badge-lock"');
+
+    // Vérifie le stacking horizontal en haut à droite (x décroissant depuis 200 - 16 = 184)
+    expect(svg).toContain('transform="translate(184, -2)"');
+    expect(svg).toContain('transform="translate(162, -2)"');
+    expect(svg).toContain('transform="translate(140, -2)"');
+    expect(svg).toContain('transform="translate(118, -2)"');
+  });
+
+  it('décale les tags vers la gauche lorsque des badges sont présents en haut à droite', () => {
+    const ast = {
+      meta: { kind: 'sitemap' },
+      nodes: {
+        ND_TAGS: {
+          id: 'ND_TAGS',
+          code: 'L002',
+          type: 'L',
+          label: 'Page avec tags et badges',
+          icon: ['device'],
+          access: 'protected',
+          tags: ['MVP'],
+        },
+      },
+      edges: [],
+      tags: { MVP: { color: 'blue' } },
+    };
+    const layout = {
+      width: 800,
+      height: 400,
+      positions: {
+        ND_TAGS: { x: 50, y: 50, w: 200, h: 118 },
+      },
+    };
+    const state = { layers: { levels: false, renvois: false, numbers: false, avatars: false, tags: true, coverage: false } };
+
+    const svg = renderSvgCanvas(ast, layout, state);
+
+    // 2 badges : bubbles.length = 2 => offset = 2 * 22 + 6 = 50
+    // tx = 200 - 10 - 50 - 44 = 96
+    expect(svg).toContain('<rect x="96" y="-8" width="40" height="18" rx="3"');
   });
 });

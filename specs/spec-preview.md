@@ -323,9 +323,9 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 ### 3.3 Carte Page (composant commun)
 
 ```
-           ╭───╮                                         ┌─────┐
-           │ 📱│  bulle(s) d'icône                       │ SP1 │  tag(s)
- ┌─────────╰───╯─────────────────────────────────────────┴─────┴──────┐
+                                                         ┌─────┐   ╭───╮
+                                                         │ SP1 │   │ 📱│  bulle(s) / badge(s) d'icône
+ ┌───────────────────────────────────────────────────────┴─────┴───╰───╯
  │ url/example/                                                        │  URL (segment)
  │ Relatif                                                             │  mode d'URL
  │                                                                     │
@@ -338,9 +338,9 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 
 | Emplacement | Position | Source | Règle |
 | :--- | :--- | :--- | :--- |
-| Bulle(s) d'icône | Coin haut-gauche, débordant de ~12 px | `icon` + icônes dérivées | 2 bulles max côte à côte (§3.5) |
-| Tag(s) | Coin haut-droit, centrés sur la bordure haute, marge droite 10 px | `tags` | 3 visibles max, puis « +n » |
-| Avatar(s) | Coin haut-droit, débordant ; les tags se décalent à gauche | `who` | Cercle, anneau blanc (§3.5) |
+| Bulle(s) / badge(s) d'icône | Coin haut-droit, débordant légèrement, objet SVG unitaire `<g class="dg-badge">` | `icon` + `lock` dérivé | Stackées horizontalement de droite à gauche (§3.5) |
+| Tag(s) | Coin haut-droit, décalés à gauche des badges si présents, marge droite 10 px | `tags` | 2 visibles max |
+| Avatar(s) | Coin bas-droit, débordant | `who` / `roles` | Cercle, anneau blanc (§3.5) |
 | URL | Haut-gauche, intérieur | `url` | Segment relatif ou chemin absolu (règle ci-dessous) |
 | Mode d'URL | Sous l'URL | dérivé ou `urlmode` | `Relatif` ou `Absolu` |
 | Titre | Centre, gras, centré | libellé du nœud ou `label` | 3 lignes max, ellipse au-delà (texte complet au survol) |
@@ -379,7 +379,7 @@ Les cas sont **cumulables** (ex. dynamique + variante + protégée). Précédenc
 
 ### 3.5 Bulles, tags, avatars et marqueurs
 
-**Bulles d'icône** — pastille ronde (~34 px) avec petite queue en bas-droite, glyphe `#2b3a55` :
+**Bulles et badges d'icône** — objet vectoriel unitaire (`<g class="dg-badge badge-{type}">`) groupant une pastille ronde (rayon 12 px, bordure blanche 1,5 px) et son icône vectorielle native centrée, positionné en haut à droite de la carte et stacké horizontalement de droite à gauche :
 
 | Icône | Couleur | Lecture proposée |
 | :--- | :--- | :--- |
