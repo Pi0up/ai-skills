@@ -325,11 +325,11 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 
 ```
                                                          ┌─────┐   ╭───╮
-                                                         │ SP1 │   │ 📱│  bulle(s) / badge(s) d'icône
- ┌───────────────────────────────────────────────────────┴─────┴───╰───╯
- │ url/example/                                                        │  URL (segment)
- │ Relatif                                                             │  mode d'URL
- │                                                                     │
+                                                         │ SP1 │   │ 📱│  bulle/badge (0, 0)
+ ┌───────────────────────────────────────────────────────┴─────┴───╰─┬─╯
+ │ url/example/                                                    ╭─┴─╮
+ │ Relatif                                                         │ 🔒│  stack vers le bas (recouvrement 2px)
+ │                                                                 ╰───╯
  │                         Nom de la page                              │  titre, 3 lignes max
  │                                                                     │
  │ (01)                                      template/VARIANT:STATE    │  pastille | code
@@ -339,8 +339,8 @@ Les captures de référence (arbo, flows, components) définissent le langage vi
 
 | Emplacement | Position | Source | Règle |
 | :--- | :--- | :--- | :--- |
-| Bulle(s) / badge(s) d'icône | Coin haut-droit, débordant légèrement, objet SVG unitaire `<g class="dg-badge">` | `icon` + `lock` dérivé | Stackées horizontalement de droite à gauche (§3.5) |
-| Tag(s) | Coin haut-droit, décalés à gauche des badges si présents, marge droite 10 px | `tags` | 2 visibles max |
+| Bulle(s) / badge(s) d'icône | Coin haut-droit, débordant légèrement, objet SVG unitaire `<g class="dg-badge">` | `icon` + `lock` dérivé | 1er à `translate(0, 0)`, suivants stackés vers le bas avec recouvrement de 2 px (§3.5) |
+| Tag(s) | Coin haut-droit, décalés à gauche de la colonne de badges si présente, marge droite 10 px | `tags` | 2 visibles max |
 | Avatar(s) | Coin bas-droit, débordant | `who` / `roles` | Cercle, anneau blanc (§3.5) |
 | URL | Haut-gauche, intérieur | `url` | Segment relatif ou chemin absolu (règle ci-dessous) |
 | Mode d'URL | Sous l'URL | dérivé ou `urlmode` | `Relatif` ou `Absolu` |
@@ -379,7 +379,7 @@ Les cas sont **cumulables** (ex. dynamique + variante + protégée). Précédenc
 
 ### 3.5 Bulles, tags, avatars et marqueurs
 
-**Bulles et badges d'icône** — objet vectoriel unitaire (`<g class="dg-badge badge-{type}">`) groupant une pastille ronde (rayon 12 px, bordure blanche 1,5 px) et son icône vectorielle native centrée, positionné en haut à droite de la carte et stacké horizontalement de droite à gauche :
+**Bulles et badges d'icône** — objet vectoriel unitaire (`<g class="dg-badge badge-{type}">`) groupant une pastille ronde (rayon 12 px, bordure blanche 1,5 px) et son icône vectorielle native centrée (`<g class="dg-badge-icon" transform="translate(0, 0)">`), positionné en haut à droite de la carte dans un conteneur `<g class="card-badges">` et stacké verticalement vers le bas (1er badge à `translate(0, 0)`, les suivants décalés de 22 px vers le bas avec recouvrement de 2 px, apparaissant nativement au-dessus visuellement) :
 
 | Icône | Couleur | Lecture proposée |
 | :--- | :--- | :--- |

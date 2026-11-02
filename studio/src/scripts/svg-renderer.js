@@ -180,7 +180,7 @@ export function renderCardBadge(type, { x = 0, y = 0, radius = 12, size = 14 } =
     fill: iconFill,
   });
 
-  return `<g class="dg-badge badge-${escapeXml(type)}" data-badge="${escapeXml(type)}" transform="translate(${x}, ${y})"><circle cx="0" cy="0" r="${radius}" fill="${bColor}" stroke="#ffffff" stroke-width="1.5" />${iconSvg}</g>`;
+  return `<g class="dg-badge badge-${escapeXml(type)}" data-badge="${escapeXml(type)}" transform="translate(${x}, ${y})"><circle cx="0" cy="0" r="${radius}" fill="${bColor}" stroke="#ffffff" stroke-width="1.5" /><g class="dg-badge-icon" transform="translate(0, 0)">${iconSvg}</g></g>`;
 }
 
 export function escapeXml(str) {
@@ -389,7 +389,7 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
   svg += `<text x="${w - 12}" y="${h - 22}" fill="var(--dg-code)" font-size="9" font-weight="700" text-anchor="end">${escapeXml(code)}</text>`;
   svg += `<text x="${w - 12}" y="${h - 10}" fill="var(--dg-type)" font-size="9" text-anchor="end">${escapeXml(displayedSubtype)}</text>`;
 
-  // 5. Bulles / Badges d'Icônes Vectorielles (Coin Haut-Droit débordant & stackés)
+  // 5. Bulles / Badges d'Icônes Vectorielles (Coin Haut-Droit débordant & stackés verticalement vers le bas)
   const bubbles = [];
   if (!isAct && !isAtt) {
     if (node.icon) {
@@ -398,18 +398,27 @@ export function renderSingleNode(node, pos, ast, state, urlMap) {
     }
     if (isProtected) bubbles.push('lock');
 
-    // Stacking horizontal de droite à gauche en haut à droite
-    bubbles.forEach((b, idx) => {
-      const badgeX = w - 16 - idx * 22;
-      const badgeY = -2;
-      svg += renderCardBadge(b, { x: badgeX, y: badgeY, radius: 12, size: 14 });
-    });
+    if (bubbles.length > 0) {
+      const badgeRadius = 12;
+      const badgeOverlap = 2; // Recouvrement de 2px
+      const stepY = badgeRadius * 2 - badgeOverlap; // 22px
+      const containerX = w - 16;
+      const containerY = -2;
+
+      svg += `<g class="card-badges" transform="translate(${containerX}, ${containerY})">`;
+      // Stacking vers le bas : 1ère à translate(0, 0), les suivantes en dessous et au-dessus visuellement
+      bubbles.forEach((b, idx) => {
+        const by = idx * stepY;
+        svg += renderCardBadge(b, { x: 0, y: by, radius: badgeRadius, size: 14 });
+      });
+      svg += `</g>`;
+    }
   }
 
-  // 6. Tags (Coin Haut-Droit, décalés à gauche des badges si présents)
+  // 6. Tags (Coin Haut-Droit, décalés à gauche de la colonne de badges si présente)
   if (state.layers.tags && node.tags && !isAct) {
     const tags = Array.isArray(node.tags) ? node.tags : [node.tags];
-    const badgesOffset = bubbles.length > 0 ? (bubbles.length * 22 + 6) : 0;
+    const badgesOffset = bubbles.length > 0 ? 24 : 0;
     tags.slice(0, 2).forEach((tg, idx) => {
       const tx = w - 10 - badgesOffset - (idx + 1) * 44;
       const tagDecl = ast.tags?.[tg];

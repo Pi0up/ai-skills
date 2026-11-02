@@ -90,13 +90,14 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
   });
 
   it('unifie le circle et l\'icône dans un seul objet SVG <g class="dg-badge"> positionné via transform', () => {
-    const badgeSvg = renderCardBadge('lock', { x: 184, y: -2, radius: 12, size: 14 });
-    expect(badgeSvg).toContain('<g class="dg-badge badge-lock" data-badge="lock" transform="translate(184, -2)">');
+    const badgeSvg = renderCardBadge('lock', { x: 0, y: 0, radius: 12, size: 14 });
+    expect(badgeSvg).toContain('<g class="dg-badge badge-lock" data-badge="lock" transform="translate(0, 0)">');
     expect(badgeSvg).toContain('<circle cx="0" cy="0" r="12" fill="#475569" stroke="#ffffff" stroke-width="1.5" />');
+    expect(badgeSvg).toContain('<g class="dg-badge-icon" transform="translate(0, 0)">');
     expect(badgeSvg).toContain('<svg class="dg-icon " x="-7" y="-7" width="14" height="14"');
   });
 
-  it('génère et stacke plusieurs badges en haut à droite sans troncature arbitraire', () => {
+  it('génère et stacke plusieurs badges vers le bas avec recouvrement de 2px dans un conteneur dédié', () => {
     const ast = {
       meta: { kind: 'sitemap' },
       nodes: {
@@ -122,17 +123,25 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
 
     const svg = renderSvgCanvas(ast, layout, state);
 
+    // Vérifie le conteneur ancré en haut à droite
+    expect(svg).toContain('<g class="card-badges" transform="translate(184, -2)">');
+
     // Vérifie que les 4 badges sont tous présents (3 icons + 1 lock)
     expect(svg).toContain('class="dg-badge badge-device"');
     expect(svg).toContain('class="dg-badge badge-a11y"');
     expect(svg).toContain('class="dg-badge badge-entry"');
     expect(svg).toContain('class="dg-badge badge-lock"');
 
-    // Vérifie le stacking horizontal en haut à droite (x décroissant depuis 200 - 16 = 184)
-    expect(svg).toContain('transform="translate(184, -2)"');
-    expect(svg).toContain('transform="translate(162, -2)"');
-    expect(svg).toContain('transform="translate(140, -2)"');
-    expect(svg).toContain('transform="translate(118, -2)"');
+    // Vérifie le stacking vertical vers le bas (1er à translate(0, 0), puis pas de 22px avec recouvrement de 2px)
+    expect(svg).toContain('transform="translate(0, 0)"');
+    expect(svg).toContain('transform="translate(0, 22)"');
+    expect(svg).toContain('transform="translate(0, 44)"');
+    expect(svg).toContain('transform="translate(0, 66)"');
+
+    // Vérifie que l'icône du bas est injectée après celle du haut dans le flux SVG (donc apparaît au-dessus visuellement)
+    const posDevice = svg.indexOf('badge-device');
+    const posLock = svg.indexOf('badge-lock');
+    expect(posDevice).toBeLessThan(posLock);
   });
 
   it('décale les tags vers la gauche lorsque des badges sont présents en haut à droite', () => {
@@ -163,8 +172,7 @@ describe('SVG Renderer - Qualité Vectorielle & Nouveaux Styles (Points 6, 8, 9,
 
     const svg = renderSvgCanvas(ast, layout, state);
 
-    // 2 badges : bubbles.length = 2 => offset = 2 * 22 + 6 = 50
-    // tx = 200 - 10 - 50 - 44 = 96
-    expect(svg).toContain('<rect x="96" y="-8" width="40" height="18" rx="3"');
+    // badgesOffset = 24 => tx = 200 - 10 - 24 - 44 = 122
+    expect(svg).toContain('<rect x="122" y="-8" width="40" height="18" rx="3"');
   });
 });
