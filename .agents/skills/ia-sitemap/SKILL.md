@@ -33,6 +33,10 @@ This skill implements the normative specification:
    - Features: `FEAT-SUBMIT`
 5. **Variant vs. Object State**: A variant exists ONLY when page layout structure or access permissions change. Business object state (draft, submitted, ready) is a userflow context term, not a page variant.
 6. **Layout Mutualization & Duty of Alert (C15)**: Two pages must not duplicate layout for logically related entities. Mutualizing under a canonical page with variants (`:VARIANT` or `@ROLE`) is required. Unjustified divergence triggers a mandatory human alert for arbitration.
+7. **Mermaid Page Card Projections**:
+   - Card title MUST strictly use the verbatim `label` from `pages.md` (no additions, no code prefix like `H001`, no translation).
+   - Display URL on a separate line under title (`<br/>`): `/` for `HOME`, relative URL computed from parent for children, without leading `/` and with trailing `/` (e.g. `HOME["Accueil du portail<br/>/"]`, `H001["Sitactivity<br/>sitactivity/"]`).
+   - Simplified views (`sitemap-overview.mmd`) may omit pages but must never invent or alter titles.
 
 ---
 

@@ -59,6 +59,26 @@ Filtered projection showing only pages, variants, modules, and features accessib
 - **Direct Hierarchical Link (`-->`)**: Solid line (`--dg-edge`). Connects parent page directly to its children in the tree (`kind=navigation`).
 - **Attached Element / Functional Cross-Reference (`-.->`)**: Dashed line (`--dg-edge-cross`, `stroke-dasharray: 6 4`). Connects a page to an attached popin/modal (`attach` with `!`), internal anchor (`attach` with `#`), transverse module (`invoke` with `M###`), or functional cross-reference (`renvois.md`).
 
+### 3.5 Page Card Rendering in Mermaid Projections
+`pages.md` is the sole source of truth; Mermaid diagrams (`sitemap-overview.mmd`, `sitemap-detailed.mmd`, `sitemap-by-role.mmd`) are derived visual projections. Each page card MUST strictly conform to the following rules:
+1. **Card Title**: Strictly the `label` field of `pages.md`, used verbatim (no rewording, translation, additions, or replacements; never invent alternative titles even in a simplified view such as `sitemap-overview.mmd` which may omit pages but must never alter titles; never prefix the title with the page code `H001`, `L001`, etc. — codes serve solely as Mermaid node IDs and may appear in an external legend, never in the card title).
+2. **Relative URL on Separate Line**: Display the URL on a distinct line under the title, separated by `<br/>`.
+   - Root page `HOME`: displays canonical absolute URL `/`.
+   - Any child page: relative path computed by subtracting the parent page's canonical URL from the child's canonical URL.
+   - The relative path NEVER begins with a leading `/`.
+   - Static segments and dynamic parameters MUST terminate with a trailing slash `/` (e.g. `sitactivity/`, `administration/`, `projets/:projetId/`, `[id]/`).
+   - The canonical absolute URL stored in `pages.md` remains intact and unmodified.
+3. **Normative Syntax Example**:
+```mermaid
+flowchart TD
+  HOME["Accueil du portail<br/>/"]
+  H001["Sitactivity<br/>sitactivity/"]
+  H002["Administration<br/>administration/"]
+  HOME --> H001
+  H001 --> H002
+```
+
+
 ## 4. URL Construction
 
 ### 4.1 Principle

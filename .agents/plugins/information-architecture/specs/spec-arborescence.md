@@ -59,6 +59,26 @@ Filtered projection showing only pages, variants, modules, and features accessib
 - **Direct Hierarchical Link (`-->`)**: Solid line (`--dg-edge`). Connects parent page directly to its children in the tree (`kind=navigation`).
 - **Attached Element / Functional Cross-Reference (`-.->`)**: Dashed line (`--dg-edge-cross`, `stroke-dasharray: 6 4`). Connects a page to an attached popin/modal (`attach` with `!`), internal anchor (`attach` with `#`), transverse module (`invoke` with `M###`), or functional cross-reference (`renvois.md`).
 
+### 3.5 Page Card Rendering in Mermaid Projections
+`pages.md` is the sole source of truth; Mermaid diagrams (`sitemap-overview.mmd`, `sitemap-detailed.mmd`, `sitemap-by-role.mmd`) are derived visual projections. Each page card MUST strictly conform to the following rules:
+1. **Card Title**: Strictly the `label` field of `pages.md`, used verbatim (no rewording, translation, additions, or replacements; never invent alternative titles even in a simplified view such as `sitemap-overview.mmd` which may omit pages but must never alter titles; never prefix the title with the page code `H001`, `L001`, etc. — codes serve solely as Mermaid node IDs and may appear in an external legend, never in the card title).
+2. **Relative URL on Separate Line**: Display the URL on a distinct line under the title, separated by `<br/>`.
+   - Root page `HOME`: displays canonical absolute URL `/`.
+   - Any child page: relative path computed by subtracting the parent page's canonical URL from the child's canonical URL.
+   - The relative path NEVER begins with a leading `/`.
+   - Static segments and dynamic parameters MUST terminate with a trailing slash `/` (e.g. `sitactivity/`, `administration/`, `projets/:projetId/`, `[id]/`).
+   - The canonical absolute URL stored in `pages.md` remains intact and unmodified.
+3. **Normative Syntax Example**:
+```mermaid
+flowchart TD
+  HOME["Accueil du portail<br/>/"]
+  H001["Sitactivity<br/>sitactivity/"]
+  H002["Administration<br/>administration/"]
+  HOME --> H001
+  H001 --> H002
+```
+
+
 ## 4. URL Construction
 
 ### 4.1 Principle
@@ -71,6 +91,7 @@ A URL represents the hierarchical location of a page in the tree. It is a proper
 - No arbitrary depth limit; child URL strictly extends parent URL (Check C4).
 - Root homepage is `/`.
 - Square brackets define dynamic variables: `/products/[id]`.
+- **Relative URL Paths**: Relative paths (individual segment or sub-path relative to parent) MUST end with a trailing slash `/` (e.g., `products/`, `[id]/`, `edit/`), EXCEPT when representing an in-page leaf anchor (`#...`) or modal/popin (`!...`) at the end of the chain, which must NOT end with a trailing slash.
 
 ### 4.3 In-Page Markers
 
@@ -91,10 +112,11 @@ A journey can navigate directly to an entity detail view from a secondary list o
 
 ```
 page-code    = "HOME" | template ID
-template     = "H" | "L" | "F" | "C" | "D" | "E"
+template     = "H" | "L" | "F" | "C" | "D" | "E" | "EXT"
 page-ref     = page-code [ "@" CODE ] [ ":" CODE ]
 module-ref   = "M" ID
 comp-ref     = page-code ( "!" key | "#" key )
+ext-ref      = "EXT-" key
 ID           = 3*DIGIT                      ; 3 or more digits
 CODE         = UPPER *( UPPER | DIGIT | "_" ) ; role or variant code
 key          = lower *( lower | DIGIT ) *( "-" 1*( lower | DIGIT ) )
@@ -106,6 +128,7 @@ Regular expressions:
 page-ref   : ^(?:[a-z0-9]+(?:-[a-z0-9]+)*-)?(HOME|[HLFCDE][0-9]{3,})(@[A-Z][A-Z0-9_]*)?(:[A-Z][A-Z0-9_]*)?$
 module-ref : ^(?:[a-z0-9]+(?:-[a-z0-9]+)*-)?M[0-9]{3,}$
 comp-ref   : ^(HOME|[HLFCDE][0-9]{3,})[!#][a-z0-9]+(?:-[a-z0-9]+)*$
+ext-ref    : ^EXT-[a-z0-9]+(?:-[a-z0-9]+)*$
 ```
 
 Examples:
@@ -117,6 +140,7 @@ Examples:
 - `M001`: Module 001
 - `C001!quick-view`: Modal `quick-view` attached to `C001`
 - `C001#reviews`: Internal anchor `reviews` of `C001`
+- `EXT-3DSECURE`: External bank 3D-Secure challenge page
 
 ### 5.2 Templates
 
@@ -130,6 +154,7 @@ Examples:
 | `D` | Dashboard | Overview panel |
 | `E` | Technical Page | 403, 404, maintenance |
 | `M` | Module | Out-of-tree reusable block |
+| `EXT` | External Service Page | Out-of-tree third-party page / service (payment gateway, 3D-Secure, advisory, identity provider) |
 
 ### 5.3 Variants
 
@@ -182,7 +207,17 @@ In-page modals (`!`) and anchors (`#`) specific to a single page:
 - `label`: colloquial description
 - `fonctionnalites`: capabilities hosted
 
-### 6.5 `renvois` Table
+### 6.5 `services_externes` Table
+
+External third-party pages, portals, or validation services interacted with during user journeys:
+- `code`: unique code matching grammar `ext-ref` (e.g. `EXT-3DSECURE`, `EXT-CONSEIL`)
+- `label`: colloquial description
+- `url`: target external URL or URI scheme (`ext://...`, `https://...`)
+- `fournisseur` / `provider`: entity or organization operating the external service
+- `access`: authorized user roles
+- `fonctionnalites`: associated capabilities (e.g. `FEAT-SAISIE-CB`, `FEAT-DEMANDE-LABEL`)
+
+### 6.6 `renvois` Table
 
 Functional cross-references between screens:
 - `source`: source reference
@@ -190,12 +225,12 @@ Functional cross-references between screens:
 - `cible`: target screen or component
 - `type`: `page`, `module`, or `composant`
 
-### 6.6 `roles` Table
+### 6.7 `roles` Table
 
 - `code`: uppercase role code (includes mandatory `ANONYMOUS`)
 - `label`: colloquial description
 
-### 6.7 Feature Identifiers
+### 6.8 Feature Identifiers
 
 ```
 FEAT-ref = "FEAT-" CODE-KEBAB   ; e.g., FEAT-SUBMIT, FEAT-VALIDATE-INFO
@@ -213,6 +248,13 @@ Modules are reusable functional blocks rendered within a host page without being
   - `AUTH`: pages without `ANONYMOUS` in access
   - `@ROLE`: pages where this role is permitted
   - `PAGE:code1,code2`: explicitly enumerated host pages
+
+## 7.bis External Service Pages (EXT)
+
+External service pages represent out-of-application screens or third-party validation systems (e.g., bank 3D-Secure challenge, payment gateway, external video/audit session, identity provider) required to fulfill a use case.
+- **Out of Tree**: Like modules, external service pages have no parent in the internal tree hierarchy.
+- **Visual Representation**: In sitemap diagrams (`sitemap-detailed.mmd`), they are displayed in a dedicated horizontal band `SERVICES EXTERNES (HORS ARBRE)` with an orange border (`--dg-ext`), distinct from transversal modules.
+- **Linkage**: Inward transitions from application pages to external services are represented by functional dashed arrows (`-.->` with `kind=action` or `kind=ext`).
 
 ## 8. Integrity Checks
 
