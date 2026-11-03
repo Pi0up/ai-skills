@@ -42,7 +42,6 @@ coverage.xml
 # Node / JS
 node_modules/
 .vite/
-studio/public/
 
 # Generated deliverables
 generated/
