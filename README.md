@@ -128,6 +128,23 @@ Extracts synthetic cross-cutting sheets for every identified screen:
 python -m ia_tools.cli extract-screens --dir . --out generated/screen-sheets
 ```
 
+### 3.5 Studio Visualizer (`ai-studio`)
+The Information Architecture Studio is maintained and published in its dedicated external repository:
+- **Repository**: [https://github.com/Pi0up/ai-studio](https://github.com/Pi0up/ai-studio)
+- **Live Web App**: [https://pi0up.github.io/ai-studio/](https://pi0up.github.io/ai-studio/)
+
+#### Run Local Preview Server
+```bash
+python -m ia_tools.cli preview --dir generated
+```
+
+#### Update Studio Template from GitHub Releases
+```bash
+python -m ia_tools.cli studio update
+# Or specify a release tag:
+# python -m ia_tools.cli studio update --tag v1.0.0
+```
+
 ---
 
 ## 4. Templates Catalog (`templates/`)

@@ -43,7 +43,7 @@
 - **Alignement horizontal strict sur l'axe Y** : les étapes du flux nominal et des parcours linéaires partagent une coordonnée `Y` strictement identique, avec couloirs dédiés pour les variantes.
 
 ### v1.1 → v1.2
-- **Sous-projet modulaire `studio/`** avec `package.json`, Vite singlefile, JS et CSS découpés dans `src/`, distribution unique dans `dist/preview.html`.
+- **Découplage modulaire externe du Studio** : Le visualiseur est maintenu et publié sur son propre dépôt autonome [https://github.com/Pi0up/ai-studio](https://github.com/Pi0up/ai-studio) (application en ligne : [https://pi0up.github.io/ai-studio/](https://pi0up.github.io/ai-studio/), distribution standalone via ses releases GitHub).
 - **Google Material Symbols** vectorisés nativement en tracés SVG `<path>` (suppression de toute dépendance réseau à l'export).
 - **Algorithme récursif de bounding box** pour l'arborescence garantissant un espacement parfait entre sous-arbres.
 
@@ -51,7 +51,7 @@
 
 ## 1. Objet et Philosophie du Visualiseur
 
-Le fichier `dist/preview.html` constitue le **visualiseur unifié autonome** de l'ensemble des livrables graphiques et documentaires générés pour un projet d'Architecture de l'Information (IA) : arborescences (sitemaps) et parcours utilisateurs (userflows).
+Le fichier `preview.html` (généré à partir du template officiel distribué par [ai-studio](https://github.com/Pi0up/ai-studio)) constitue le **visualiseur unifié autonome** de l'ensemble des livrables graphiques et documentaires générés pour un projet d'Architecture de l'Information (IA) : arborescences (sitemaps) et parcours utilisateurs (userflows).
 
 ### 1.1 Objectifs clés
 1. **Visualiseur unique** : charger, afficher, filtrer et inspecter tous les diagrammes (`sitemap-*.mmd`, `PF-*.mmd`…) et leurs métadonnées dans un répertoire cible (par défaut `generated/`).

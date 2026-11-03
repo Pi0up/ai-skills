@@ -123,6 +123,31 @@ class TestCLI(unittest.TestCase):
         finally:
             sys.argv = old_argv
 
+    def test_studio_info(self):
+        import io
+        import sys
+        old_argv = sys.argv
+        captured_out = io.StringIO()
+        try:
+            sys.argv = ["ia_tools", "studio", "info"]
+            old_stdout = sys.stdout
+            sys.stdout = captured_out
+            exit_code = main()
+            self.assertEqual(exit_code, 0)
+            output = captured_out.getvalue()
+            self.assertIn("https://github.com/Pi0up/ai-studio", output)
+            self.assertIn("https://pi0up.github.io/ai-studio/", output)
+        finally:
+            sys.stdout = old_stdout
+            sys.argv = old_argv
+
+    def test_studio_sync_validation(self):
+        from ia_tools.studio_sync import validate_studio_content
+        self.assertFalse(validate_studio_content(""))
+        self.assertFalse(validate_studio_content("short content"))
+        self.assertFalse(validate_studio_content("<html>" + "a" * 1500 + "</html>"))
+        self.assertTrue(validate_studio_content("<!doctype html><html><body>Information Architecture Studio render-target" + "x" * 1000 + "</body></html>"))
+
 
 if __name__ == "__main__":
     unittest.main()

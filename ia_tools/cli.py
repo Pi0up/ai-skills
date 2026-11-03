@@ -93,8 +93,16 @@ def main() -> int:
     prev_parser.add_argument("--port", type=int, default=8080, help="HTTP server port (default: 8080)")
     prev_parser.add_argument("--no-open", action="store_true", help="Do not open browser automatically")
 
+    # 6. studio
+    studio_parser = subparsers.add_parser("studio", help="Manage external Studio visualizer dependency (ai-studio).")
+    studio_sub = studio_parser.add_subparsers(dest="studio_action", help="Studio action")
+    studio_update = studio_sub.add_parser("update", help="Update unified preview template from GitHub release or Web App")
+    studio_update.add_argument("--tag", default=None, help="Release tag (e.g. v1.0.0, default: latest)")
+    studio_update.add_argument("--repo", default="Pi0up/ai-studio", help="Source repository (default: Pi0up/ai-studio)")
+    studio_sub.add_parser("info", help="Show studio dependency information and official URLs")
+
     args = parser.parse_args()
-    root_dir = Path(args.dir).resolve()
+    root_dir = Path(getattr(args, "dir", ".")).resolve()
 
     if args.command == "init":
         templates_dir = find_templates_dir()
@@ -324,6 +332,24 @@ def main() -> int:
 
         print(f"❌ Error: Could not bind to any port in range {port}-{port+20}.")
         return 1
+
+    elif args.command == "studio":
+        if getattr(args, "studio_action", None) == "update":
+            from ia_tools.studio_sync import sync_studio
+            try:
+                return sync_studio(tag=args.tag, repo=args.repo, verbose=True)
+            except Exception as e:
+                print(f"❌ Error updating studio: {e}")
+                return 1
+        elif getattr(args, "studio_action", None) == "info":
+            print("🎨 Information Architecture Studio")
+            print("  • Repository : https://github.com/Pi0up/ai-studio")
+            print("  • Web App    : https://pi0up.github.io/ai-studio/")
+            print("  • Releases   : https://github.com/Pi0up/ai-studio/releases")
+            return 0
+        else:
+            studio_parser.print_help()
+            return 0
 
     return 0
 
