@@ -16,7 +16,8 @@ class TestMermaidGenerator(unittest.TestCase):
     def test_generate_arborescence_generale_standard(self):
         mmd = MermaidGenerator.generate_arborescence_generale(self.arbo, mode="standard")
         self.assertIn("flowchart TD", mmd)
-        self.assertIn('HOME["HOME /"]', mmd)
+        self.assertIn('HOME["home<br/>/"]', mmd)
+        self.assertIn('L001["search-results<br/>search-results/"]', mmd)
         self.assertIn("subgraph ZonePublique", mmd)
         self.assertIn("subgraph ZoneProtegee", mmd)
         self.assertIn("HOME --> L001", mmd)
@@ -40,6 +41,8 @@ class TestMermaidGenerator(unittest.TestCase):
     def test_generate_arborescence_detaillee_standard(self):
         mmd = MermaidGenerator.generate_arborescence_detaillee(self.arbo, mode="standard")
         self.assertIn("flowchart TD", mmd)
+        self.assertIn('HOME["home<br/>/"]', mmd)
+        self.assertIn('L001["search-results<br/>search-results/"]', mmd)
         self.assertIn("Sub_C001", mmd)
         self.assertIn("#reviews", mmd)
         self.assertIn("!quick-view", mmd)
@@ -92,6 +95,28 @@ class TestMermaidGenerator(unittest.TestCase):
         self.assertEqual(registry["HOME"]["template"], "HOME")
         self.assertEqual(registry["L001"]["nature"], "Absolu")
         self.assertEqual(registry["M001"]["nature"], "Module")
+
+
+
+
+    def test_page_card_rendering_and_relative_url(self):
+        from ia_tools.models import Page, ArborescenceModel
+        arbo = ArborescenceModel()
+        home = Page(code="HOME", label="Accueil du portail", url="/", access=["ANONYMOUS"], ordre=0)
+        h001 = Page(code="H001", label="Sitactivity", parent="HOME", url="/sitactivity", access=["ANONYMOUS"], ordre=1)
+        h002 = Page(code="H002", label="Administration", parent="H001", url="/sitactivity/administration", access=["AUTH"], ordre=1)
+        arbo.pages = {"HOME": home, "H001": h001, "H002": h002}
+
+        # Test calcul URLs relatives
+        self.assertEqual(MermaidGenerator.compute_page_relative_url(home, None), "/")
+        self.assertEqual(MermaidGenerator.compute_page_relative_url(h001, home), "sitactivity/")
+        self.assertEqual(MermaidGenerator.compute_page_relative_url(h002, h001), "administration/")
+
+        # Test rendu diagramme standard
+        mmd = MermaidGenerator.generate_arborescence_generale(arbo, mode="standard")
+        self.assertIn('HOME["Accueil du portail<br/>/"]', mmd)
+        self.assertIn('H001["Sitactivity<br/>sitactivity/"]', mmd)
+        self.assertIn('H002["Administration<br/>administration/"]', mmd)
 
 
 if __name__ == "__main__":

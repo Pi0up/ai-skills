@@ -217,8 +217,38 @@ class MermaidGenerator:
         return registry
 
     # ==========================================================================
-    # Helpers : Formatage de cartes HTML Riches (Inspiré du Design System Figma)
+    # Helpers : Calcul d'URL et Formatage de cartes
     # ==========================================================================
+
+    @classmethod
+    def compute_page_relative_url(cls, page: Page, parent_page: Optional[Page] = None) -> str:
+        """Calcule l'URL affichée sur la carte : absolue pour HOME, relative au parent pour les enfants.
+        
+        - Pour la page racine HOME : affiche '/'.
+        - Pour toute page enfant : calcule le chemin relatif en retirant l'URL canonique du parent.
+        - Le chemin relatif ne commence jamais par '/'.
+        - Ajoute un trailing slash '/' aux segments statiques et paramètres dynamiques.
+        - Préserve les ancres (#...) et modales (!...) sans trailing slash final.
+        """
+        if page.code == "HOME":
+            return "/"
+
+        child_url = page.url
+        if parent_page and parent_page.url:
+            parent_url = parent_page.url.rstrip("/")
+            if parent_url and child_url.startswith(parent_url + "/"):
+                rel = child_url[len(parent_url) + 1 :]
+            elif parent_url and child_url.startswith(parent_url):
+                rel = child_url[len(parent_url) :].lstrip("/")
+            else:
+                rel = child_url.lstrip("/")
+        else:
+            rel = child_url.lstrip("/")
+
+        if not rel.endswith("/") and not any(rel.endswith(x) for x in ["#", "!"]):
+            rel += "/"
+        return rel
+
 
     @classmethod
     def _format_rich_page_node(
@@ -227,9 +257,11 @@ class MermaidGenerator:
         is_primary: bool = False,
         override_label: Optional[str] = None,
         badge_pill: Optional[str] = None,
+        parent_page: Optional[Page] = None,
     ) -> str:
         """Produit une carte à 4 quadrants au format HTML pour un nœud de page."""
-        url_nature = "Absolu" if page.url == "/" or page.url.startswith("/") else "Relatif"
+        url_display = cls.compute_page_relative_url(page, parent_page)
+        url_nature = "Absolu" if page.code == "HOME" or page.url == "/" or page.url.startswith("/") else "Relatif"
         
         classes = ["ia-card"]
         if is_primary:
@@ -261,7 +293,7 @@ class MermaidGenerator:
             f"<div class='{card_class}'>"
             f"<div class='ia-card__top'>"
             f"<div class='ia-card__url-box'>"
-            f"<span class='ia-card__url'>{page.url}</span>"
+            f"<span class='ia-card__url'>{url_display}</span>"
             f"<span class='ia-card__url-nature'>{url_nature}</span>"
             f"</div>"
             f"{pill_html}"
@@ -473,7 +505,8 @@ class MermaidGenerator:
         if mode == "rich" and home_page:
             lines.append(cls._format_rich_page_node(home_page, is_primary=True))
         else:
-            lines.append('    HOME["HOME /"]')
+            home_label = home_page.label if home_page and home_page.label else "HOME"
+            lines.append(f'    HOME["{home_label}<br/>/"]')
         lines.append("")
 
         public_pages: List[str] = []
@@ -482,11 +515,13 @@ class MermaidGenerator:
         for code, page in arbo.pages.items():
             if code == "HOME":
                 continue
+            parent_page = arbo.pages.get(page.parent) if page.parent else None
             if mode == "rich":
-                node_def = cls._format_rich_page_node(page)
+                node_def = cls._format_rich_page_node(page, parent_page=parent_page)
             else:
-                prot_label = " (protégée)" if page.is_protected else ""
-                node_def = f'    {code}["{code} {page.url}{prot_label}"]'
+                page_title = page.label if page.label else page.code
+                rel_url = cls.compute_page_relative_url(page, parent_page)
+                node_def = f'    {code}["{page_title}<br/>{rel_url}"]'
 
             if page.is_protected:
                 protected_pages.append(node_def)
@@ -598,16 +633,19 @@ class MermaidGenerator:
         if mode == "rich" and home_page:
             lines.append(cls._format_rich_page_node(home_page, is_primary=True))
         else:
-            lines.append('    HOME["HOME /"]')
+            home_label = home_page.label if home_page and home_page.label else "HOME"
+            lines.append(f'    HOME["{home_label}<br/>/"]')
 
         for code, page in arbo.pages.items():
             if code == "HOME":
                 continue
+            parent_page = arbo.pages.get(page.parent) if page.parent else None
             if mode == "rich":
-                lines.append(cls._format_rich_page_node(page))
+                lines.append(cls._format_rich_page_node(page, parent_page=parent_page))
             else:
-                prot = " (protégée)" if page.is_protected else ""
-                lines.append(f'    {code}["{code} {page.url}{prot}"]')
+                page_title = page.label if page.label else page.code
+                rel_url = cls.compute_page_relative_url(page, parent_page)
+                lines.append(f'    {code}["{page_title}<br/>{rel_url}"]')
 
         for code, page in arbo.pages.items():
             if page.parent:
