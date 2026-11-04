@@ -32,13 +32,18 @@ infoarchi_docs/
 ```
 
 ### Studio Co-location Principle
-The Studio visualizer (`preview.html`) does **not** perform recursive folder traversals. Its discovery pipeline expects all visual artifacts (`*.mmd`), the metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) to be co-located within a single output folder:
+The official reference visualizer is the online Studio hosted at:
+**https://pi0up.github.io/ai-studio/**
+
+The Studio visualizer does **not** perform recursive folder traversals. Its discovery pipeline expects all visual artifacts (`*.mmd`), the metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) to be co-located within a single output folder:
 
 ```
 infoarchi_docs/generated/
 ```
 
 Never split sitemap outputs and userflow outputs into separate folders. They must be generated together in `infoarchi_docs/generated/` so Studio can load both page hierarchies and linear journeys simultaneously on the same canvas.
+
+**No Embedded Viewer Application**: The generated directory contains diagrams and their metadata, not the visualizer application. Never copy, embed, or generate a local copy of the viewer (such as `preview.html`) in `generated/`.
 
 ---
 
@@ -98,10 +103,10 @@ Activate skill `ia-userflows`:
 3. Systematically flag flow breaks `⏸` and session memory requirements on asynchronous wait nodes (`ATT`) and external nodes (`EXT`).
 
 ### Step 5: Generate Unified Mermaid Diagrams & Screen Sheets
-Generate all diagrams and derived deliverables into the common Studio folder `infoarchi_docs/generated/`:
+Generate all diagrams and derived deliverables into the common Studio folder `infoarchi_docs/generated/` (do NOT generate `preview.html`):
 ```bash
-# 1. Generate all Mermaid diagrams (sitemap + userflows), unified metadata, and preview.html
-python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated --preview
+# 1. Generate all Mermaid diagrams (sitemap + userflows) and unified metadata
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated
 
 # 2. Deduce cross-cutting screen sheets into the same location
 python -m ia_tools.cli extract-screens --dir infoarchi_docs --out infoarchi_docs/generated/screen-sheets
@@ -117,10 +122,15 @@ Run the validation engine on `infoarchi_docs/` to confirm that sitemap and use c
 python -m ia_tools.cli validate --dir infoarchi_docs
 ```
 - If violations are detected (broken references after external changes, broken URLs, missing break markers, uncovered pages), immediately apply normative corrective actions.
+- Audit generated `.mmd` artifacts (via `ia-audit`):
+  - Every userflow (`PF-*.mmd`) must feature line 1 `%%@file` metadata with `kind=userflow` (never `kind=sitemap`), `id`, `title`, `uc`, and `statut`.
+  - Every UC overview (`UC-*-overview.mmd`) must feature line 1 `%%@file` with `kind=userflow`, `view=uc`, and `uc=UC-...`.
+  - Sitemaps (`sitemap-*.mmd`) must explicitly declare `kind=sitemap`.
+  - Zero `preview.html` or viewer copies produced in `generated/`.
 
-### Step 7: Visual Inspection in Studio
-Open the generated directory in the Studio visualizer:
-```bash
-python -m ia_tools.cli preview --dir infoarchi_docs/generated
-```
-Studio will display both the sitemap arborescence and userflow journey tracks in the left sidebar, with bidirectional cross-navigation and metadata inspection.
+### Step 7: Visual Inspection in Studio (Online Reference Visualizer)
+Open the official online Studio visualizer in your browser:
+**https://pi0up.github.io/ai-studio/**
+
+Load the generated directory (`infoarchi_docs/generated/`) using the folder selection button or drag & drop.
+Studio will display both the sitemap arborescence and userflow journey tracks in the left sidebar, with bidirectional cross-navigation and metadata inspection. Never embed or generate a local copy of the visualizer application.

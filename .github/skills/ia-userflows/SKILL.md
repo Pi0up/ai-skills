@@ -28,12 +28,17 @@ infoarchi_docs/
 ```
 
 ### Studio Discovery & Ingestion Constraints
-The Studio viewer (`preview.html`) does **not** recursively search subdirectories. Its discovery reader scans **the single directory selected by the user** (or opened via HTTP):
+The official reference visualizer is the online Studio hosted at:
+**https://pi0up.github.io/ai-studio/**
+
+The Studio discovery reader scans **the single directory selected by the user** (or opened via HTTP):
 - Diagram files: directly at the root of `infoarchi_docs/generated/` (`*.mmd`)
 - Metadata registry: directly at `infoarchi_docs/generated/metadata.json`
 - Screen sheets: in the subfolder `infoarchi_docs/generated/screen-sheets/`
 
 Therefore, **never** generate sitemaps and userflows in separate output directories. Generating all diagrams together into `infoarchi_docs/generated/` ensures Studio renders sitemap trees and linear journey tracks on the same unified canvas, with cross-navigation between sitemap nodes and journey steps.
+
+**No Embedded Viewer Application**: The generated directory contains diagrams and their metadata, not the visualizer application. Never copy, embed, or generate a local copy of the viewer (such as `preview.html`) in `generated/`.
 
 ---
 
@@ -59,7 +64,6 @@ infoarchi_docs/
 │   ├── UC-xxx.md              <-- Journey specs: nominals, variants, segments
 │   └── ...
 └── generated/                 <-- UNIFIED OUTPUT LOADED BY STUDIO
-    ├── preview.html           <-- Unified standalone Studio visualizer
     ├── metadata.json          <-- Unified metadata registry (pages + journeys)
     ├── sitemap-overview.mmd   <-- Arborescence diagram
     ├── sitemap-detailed.mmd   <-- Detailed sitemap diagram
@@ -81,6 +85,19 @@ infoarchi_docs/
 5. **Mandatory Breaks (R-30)**: Any `ATT` node (asynchronous wait) or `EXT` node (out-of-app exchange) must declare a break marker `⏸` along with memory level (volatile, persistent, external) and resumption point.
 6. **Sitemap Coverage (R-12 / C9)**: All arborescence pages (except hubs `H` and technical error pages `E`) must be traversed by at least one journey.
 7. **Virtual Children & Canonical Reuse (P9 / R-05)**: When a journey reaches an entity from a secondary list or filtered view, reuse its canonical reference with its variant (`:VARIANT` or `@ROLE`).
+8. **Explicit Header Metadata (`%%@file`) for Studio Classification**:
+   The Studio parser initializes every `.mmd` diagram with `kind=sitemap` by default. To guarantee that Studio correctly classifies userflows and use cases, **every** generated `.mmd` file MUST explicitly declare `%%@file` metadata on line 1 before `flowchart LR` / `flowchart TD`:
+   - **For a Userflow (`PF-*.mmd`)**:
+     At minimum:
+     `%%@file id=PF-IDENTIFIANT title="Titre du parcours" kind=userflow uc=UC-IDENTIFIANT statut=nominal`
+     - Adapt `statut` according to conventions: `statut=nominal` (nominal flow), `statut=variante` (variant flow), `statut=segment` (factored segment).
+     - When the journey diverges or rejoins another flow, emit: `diverge=PF-PARENT@N` and `rejoint=PF-PARENT@M`.
+   - **For a Use Case Overview (`UC-*-overview.mmd`)**:
+     At minimum:
+     `%%@file id=UC-IDENTIFIANT title="Titre du cas d'usage" kind=userflow view=uc uc=UC-IDENTIFIANT`
+   - **Strict Rules**:
+     - Never use `kind=sitemap` for a userflow or UC overview.
+     - Verify that IDs (`PF-...`, `UC-...`) and titles strictly match source specifications in `infoarchi_docs/uc/UC-*.md`.
 
 ---
 
@@ -115,16 +132,20 @@ In each use case file:
 - `CALL`: target `PF-xxx` journey identifier.
 
 ### 5. Generate Mermaid Diagrams and Unified Metadata
-Generate all diagrams into `infoarchi_docs/generated/`:
+Generate all diagrams into `infoarchi_docs/generated/` (do NOT generate `preview.html`):
 ```bash
-# Recommended: generate everything together (sitemap + userflows + preview + metadata)
-python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated --preview
+# Recommended: generate everything together (sitemap + userflows + metadata)
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated
 
 # Or generate userflows selectively into the same output folder:
-python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type userflows --out infoarchi_docs/generated --preview
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type userflows --out infoarchi_docs/generated
 ```
 Userflows follow a **left-to-right horizontal** layout (`flowchart LR`).
 Because they are written to `infoarchi_docs/generated/`, they reside side-by-side with `sitemap-overview.mmd` and `metadata.json`.
+Produced userflow diagrams in `infoarchi_docs/generated/`:
+- `PF-*.mmd`: user journey diagrams (line 1: `%%@file id=PF-... kind=userflow uc=UC-... statut=...`).
+- `UC-*-overview.mmd`: synthetic use case diagrams (line 1: `%%@file id=UC-... kind=userflow view=uc uc=UC-...`).
+- `metadata.json`: unified metadata registry consumed by the Studio inspector.
 
 ### 6. Validate Conjointly
 Run the validation engine to confirm that Studio and tools can resolve all cross-references between sitemap pages and user case steps:
@@ -138,9 +159,9 @@ This check verifies:
 - Glossary keys and values adhere to `key=VALUE`
 - Page coverage (C9 / R-12) is satisfied.
 
-### 7. Preview in Studio
-Open the unified directory in the browser:
-```bash
-python -m ia_tools.cli preview --dir infoarchi_docs/generated
-```
-The Studio will discover both sitemaps and use cases in the sidebar, displaying journeys grouped by use case folders (`uc-folder`) with interactive node inspection.
+### 7. Preview in Studio (Online Reference Visualizer)
+Open the official online Studio visualizer in your browser:
+**https://pi0up.github.io/ai-studio/**
+
+Load the unified directory (`infoarchi_docs/generated/`) using the folder selection button or drag & drop.
+The Studio will discover both sitemaps and use cases in the sidebar, displaying journeys grouped by use case folders (`uc-folder`) with interactive node inspection. Never embed or generate a local copy of the visualizer application.

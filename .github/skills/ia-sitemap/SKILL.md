@@ -30,11 +30,14 @@ infoarchi_docs/
 
 ### Why a Single Shared Root?
 1. **Co-location with Userflows**: Sitemap reference tables (`pages.md`, `roles.md`, etc.) and user journey specifications (`uc/UC-*.md`, `registre/glossaire.md`) live side by side in `infoarchi_docs/` so that identifiers, codes, and context variables are strictly resolved and validated together.
-2. **Studio Single Ingestion Directory**: The Studio viewer (`preview.html`) does **not** perform arbitrary recursive directory searches. It loads Mermaid diagrams (`*.mmd`), the indexed metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) directly from a single unified generated folder:
+2. **Studio Single Ingestion Directory**: The official reference visualizer is the online Studio hosted at:
+   **https://pi0up.github.io/ai-studio/**
+   The visualizer does **not** perform arbitrary recursive directory searches. It directly loads Mermaid diagrams (`*.mmd`), the indexed metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) from a single unified generated folder:
    ```
    infoarchi_docs/generated/
    ```
    Never split sitemap outputs and userflow outputs into separate directories. They must be generated together in `infoarchi_docs/generated/` so Studio can load them simultaneously on the same canvas.
+3. **No Embedded Viewer Application**: The generated directory MUST only contain diagrams and their metadata. Never copy, embed, or generate a local copy of the viewer (such as `preview.html`) in `generated/`. Diagram inspection is performed by opening the online visualizer and loading the generated folder.
 
 ---
 
@@ -57,7 +60,6 @@ infoarchi_docs/
 │   ├── UC-xxx.md
 │   └── ...
 └── generated/                 <-- SINGLE TARGET FOLDER LOADED BY STUDIO
-    ├── preview.html           <-- Unified standalone Studio visualizer
     ├── metadata.json          <-- Unified metadata registry (pages, journeys, sheets)
     ├── sitemap-overview.mmd   <-- High-level hierarchical page overview
     ├── sitemap-detailed.mmd   <-- Detailed sitemap with variants, modules, and renvois
@@ -86,6 +88,10 @@ infoarchi_docs/
    - Card title MUST strictly use the verbatim `label` from `pages.md` (no additions, no code prefix like `H001`, no translation).
    - Display URL on a separate line under title (`<br/>`): `/` for `HOME`, relative URL computed from parent for children, without leading `/` and with trailing `/` (e.g. `HOME["Accueil du portail<br/>/"]`, `H001["Sitactivity<br/>sitactivity/"]`).
    - Simplified views (`sitemap-overview.mmd`) may omit pages but must never invent or alter titles.
+8. **Explicit Diagram Header Metadata (`%%@file`)**:
+   - Every generated sitemap diagram MUST write its metadata directive on line 1 before `flowchart TD`:
+     `%%@file id=sitemap-overview title="Sitemap Overview" kind=sitemap`
+   - Explicitly stating `kind=sitemap` guarantees unambiguous parsing by the Studio visualizer and clean separation from userflows.
 
 ---
 
@@ -106,22 +112,21 @@ python -m ia_tools.cli init --dir infoarchi_docs --mode minimal
 - `services_externes.md`: third-party external services (`EXT-xxx`, out-of-tree).
 - `renvois.md`: cross-cutting virtual links (`source -. FEAT .-> target:VAR`).
 
-### 3. Generate Mermaid Diagrams and Studio Preview
-Run the CLI pointing `--dir infoarchi_docs` to the root and `--out infoarchi_docs/generated` to the unified Studio folder:
+### 3. Generate Mermaid Diagrams and Metadata
+Run the CLI pointing `--dir infoarchi_docs` to the root and `--out infoarchi_docs/generated` to the unified Studio folder (do NOT generate `preview.html`):
 
 ```bash
-# Recommended: generate all diagrams (sitemap + userflows), unified metadata, and preview.html
-python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated --preview
+# Recommended: generate all diagrams (sitemap + userflows) and unified metadata
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated
 
 # Or generate only arborescence views into the common Studio folder:
-python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type arborescence --out infoarchi_docs/generated --preview
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type arborescence --out infoarchi_docs/generated
 ```
 
 Produced sitemap diagrams in `infoarchi_docs/generated/`:
-- `sitemap-overview.mmd`: high-level view (`flowchart TD`) with public/protected subgraphs and transversal modules.
-- `sitemap-detailed.mmd`: detailed view (`flowchart TD`) with components, variants, invocations, and functional cross-references.
+- `sitemap-overview.mmd`: high-level view (`flowchart TD`) with public/protected subgraphs and transversal modules (starts with `%%@file id=sitemap-overview ... kind=sitemap`).
+- `sitemap-detailed.mmd`: detailed view (`flowchart TD`) with components, variants, invocations, and functional cross-references (starts with `%%@file id=sitemap-detailed ... kind=sitemap`).
 - `metadata.json`: unified metadata registry consumed by the Studio inspector.
-- `preview.html`: standalone Studio visualizer.
 
 ### 4. Validate Cross-Disciplinary Consistency
 Always run validation on `infoarchi_docs` to verify that sitemap rules (C1-C15) pass and references match userflows:
@@ -129,9 +134,9 @@ Always run validation on `infoarchi_docs` to verify that sitemap rules (C1-C15) 
 python -m ia_tools.cli validate --dir infoarchi_docs
 ```
 
-### 5. Preview in Studio
-Open the generated directory in the Studio visualizer:
-```bash
-python -m ia_tools.cli preview --dir infoarchi_docs/generated
-```
-Studio will automatically load `metadata.json`, discover all sitemaps and userflows, and provide bi-directional navigation.
+### 5. Preview in Studio (Online Reference Visualizer)
+Open the official online Studio visualizer in your browser:
+**https://pi0up.github.io/ai-studio/**
+
+Load the generated directory (`infoarchi_docs/generated/`) using the folder selection button or drag & drop.
+The online Studio will read `metadata.json`, discover all sitemaps and userflows, and provide bi-directional navigation. Never embed or generate a local copy of the visualizer application.
