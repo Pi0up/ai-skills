@@ -1,6 +1,6 @@
 {
   "name": "information-architecture",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Complete Information Architecture (IA) suite: scoping, arborescence modeling, userflows, integrity audit, registry synchronization, Mermaid diagram rendering, and test plans.",
   "private": true,
   "scripts": {
