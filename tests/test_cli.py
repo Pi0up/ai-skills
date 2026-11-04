@@ -170,7 +170,38 @@ class TestCLI(unittest.TestCase):
         blocking = [v for v in violations if v.severity.value in ("Bloquant", "Blocking")]
         self.assertEqual(len(blocking), 0, f"No blocking violations allowed in infoarchi_docs: {blocking}")
 
-        gen_dir = ia_root / "generated"
+        # Test generation with the infoarchi_docs convention
+        import sys
+        old_argv = sys.argv
+        gen_dir = self.temp_dir / "generated"
+        try:
+            sys.argv = [
+                "ia_tools",
+                "generate-mermaid",
+                "--dir",
+                str(ia_root),
+                "--out",
+                str(gen_dir),
+                "--type",
+                "all",
+                "--preview",
+            ]
+            exit_code = main()
+            self.assertEqual(exit_code, 0)
+
+            sys.argv = [
+                "ia_tools",
+                "extract-screens",
+                "--dir",
+                str(ia_root),
+                "--out",
+                str(gen_dir / "screen-sheets"),
+            ]
+            exit_code = main()
+            self.assertEqual(exit_code, 0)
+        finally:
+            sys.argv = old_argv
+
         self.assertTrue((gen_dir / "preview.html").exists())
         self.assertTrue((gen_dir / "metadata.json").exists())
         self.assertTrue((gen_dir / "sitemap-overview.mmd").exists())
