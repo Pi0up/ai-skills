@@ -21,6 +21,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+information-architecture-v*.zip
 
 # Virtual environments
 venv/

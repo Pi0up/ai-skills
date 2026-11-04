@@ -1,0 +1,18 @@
+{
+  "name": "information-architecture",
+  "version": "0.3.0",
+  "description": "Complete Information Architecture (IA) suite: scoping, arborescence modeling, userflows, integrity audit, registry synchronization, Mermaid diagram rendering, and test plans.",
+  "private": true,
+  "scripts": {
+    "test": "python -m unittest discover -s tests",
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.1",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "semantic-release": "^25.0.9"
+  }
+}

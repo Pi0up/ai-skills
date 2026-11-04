@@ -23,10 +23,50 @@ Ce fichier consigne les règles et instructions spécifiques au comportement de 
   2. Afficher l’URL sur une ligne distincte sous le titre (séparée par `<br/>`). Pour la page racine `HOME`, afficher l’URL canonique absolue `/`. Pour toute page enfant, calculer le chemin relatif en retirant l’URL canonique du parent de celle de l’enfant (le chemin relatif ne commence jamais par `/` ; ajouter `/` final aux segments statiques affichés dans les cartes ; conserver les paramètres dynamiques, par exemple `projets/:projetId/` ou `[id]/` ; ne pas remplacer ni modifier l’URL canonique absolue enregistrée dans `pages.md`).
   3. Exemple conforme : `HOME["Accueil du portail<br/>/"]`, `H001["Sitactivity<br/>sitactivity/"]`, `H002["Administration<br/>administration/"]`.
 
-
-## 3. Gestion des commits et exécution des tests
-- **Commits fréquents et granulaires** : Commiter les modifications par petits groupes logiques d'actions avec un message de commit explicite.
+## 3. Gestion Git, Commits, Tests et Releases
+- **Commits fréquents et granulaires** : Commiter les modifications par petits groupes logiques d'actions avec un message de commit explicite respectant la syntaxe Conventional Commits.
 - **Déclenchement des tests** : Ne pas lancer la suite de tests systématiquement après chaque petite modification. Les tests ne doivent être exécutés que dans les cas suivants :
   1. À la demande explicite de l'utilisateur.
   2. À l'achèvement complet d'une nouvelle feature.
   3. Avant de pousser (`git push`) du code en ligne.
+
+### Stratégie de Branches et Flux Git
+- **Branche principale (`main`) protégée** : Tout merge sur `main` se fait exclusivement par Pull Request (PR) validée. Les commits directs sur `main` sont formellement proscrits, sauf hotfix critique immédiat.
+- **Branches de travail dédiées** : Toute tâche démarre sur une branche nommée en `kebab-case` préfixée selon sa nature :
+  - `feat/<nom-fonctionnalite>`
+  - `fix/<nom-correctif>`
+  - `hotfix/<nom-urgence>`
+  - `perf/<optimisation>`
+  - `refactor/<nom-refactoring>`
+  - `chore/<sujet>`
+
+### Norme de Commits (Conventional Commits)
+Chaque commit doit respecter strictement la syntaxe Conventional Commits afin de piloter le moteur de versioning automatique :
+`<type>(<périmètre optionnel>): <description courte à l'impératif>`
+
+Types et impacts sur le numéro de version (SemVer) :
+- `feat(...)` : Déclenche un incrément **MINEUR** (`1.1.0` ➔ `1.2.0`). Utilisé pour toute nouvelle fonctionnalité.
+- `fix(...)` : Déclenche un incrément **PATCH** (`1.1.0` ➔ `1.1.1`). Utilisé pour les corrections de bugs.
+- `hotfix(...)` : Déclenche un incrément **PATCH** (`1.1.0` ➔ `1.1.1`).
+- `perf(...)` : Déclenche un incrément **PATCH** (`1.1.0` ➔ `1.1.1`). Utilisé pour les gains de performance.
+- `BREAKING CHANGE:` (en corps de message) ou `feat(...!):` / `fix(...!):` : Déclenche un incrément **MAJEUR** (`1.1.0` ➔ `2.0.0`).
+- `docs(...)`, `chore(...)`, `refactor(...)`, `test(...)`, `style(...)`, `ci(...)`, `build(...)` : **Aucun changement de version** (pas de release déclenchée).
+
+### Automatisation du Numéro de Version (Semantic-Release)
+Le numéro de version n'est **JAMAIS** modifié manuellement dans `package.json`, `plugin.json` ou `pyproject.toml` par un développeur ou un agent. Il est calculé et publié automatiquement :
+1. **Déclencheur CI/CD** :
+   - À chaque merge de PR sur `main`, GitHub Actions exécute la suite de tests Python (`python -m unittest discover -s tests`).
+   - Si les tests passent, l'étape `semantic-release` s'exécute automatiquement sur Ubuntu.
+2. **Actions automatisées par Semantic-Release** :
+   - **Analyse des commits** depuis le dernier tag Git pour déterminer la prochaine version selon les règles ci-dessus.
+   - **Mise à jour synchronisée des fichiers de version** : `package.json`, `package-lock.json`, `plugin.json` et `pyproject.toml` avec le nouveau numéro de version.
+   - **Génération / mise à jour de `CHANGELOG.md`** avec catégorisation des commits (`Features`, `Bug Fixes`, `Hotfixes`, `Performance Improvements`).
+   - **Packaging de distribution** : Création de l'archive ZIP `information-architecture-v<version>.zip` (contenant skills, plugins, CLI, templates et specs).
+   - **Commit Git & Tag automatique** : Création du commit `chore(release): <version> [skip ci]` et du tag Git `v<version>`.
+   - **GitHub Release** : Publication de la release avec le changelog et l'archive ZIP téléchargeable.
+
+### Vérification Locale (Dry-Run)
+Pour tester et prévisualiser le calcul de version et le changelog en local sans publier :
+```bash
+npx semantic-release --dry-run
+```
