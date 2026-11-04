@@ -2,7 +2,7 @@
 title: Components Palette
 type: reference
 id: COMPONENTS-PALETTE
-version: 1.0.0
+version: 1.1.0
 roles: [ALL]
 tags: [userflow, reference, palette, syntax]
 description: Palette visuelle et aide-mémoire des nœuds et liaisons de parcours
@@ -32,11 +32,12 @@ flowchart LR
     end
 
     %% --------------------------------------------------------------------------
-    %% 3. Typologie des Liaisons
+    %% 3. Typologie des Liaisons & Styles de Lignes
     %% --------------------------------------------------------------------------
-    subgraph Liaisons["3. Types de Liaisons"]
+    subgraph Liaisons["3. Typologie des Liaisons & Styles de Lignes"]
         direction TB
-        L1_A["Étape N"] -->|"Liaison nominale (-->)"| L1_B["Étape N+1"]
-        L2_A["Étape N"] -.->|"Liaison variante (-.->)"| L2_B["Étape Variante"]
-        L3_A["Étape N"] -->|"Contexte produit : [État:Validé]"| L3_B["Étape Suivante"]
+        L1_A["Étape N"] -->|"Flux nominal (-->) : Trait plein sombre"| L1_B["Étape N+1"]
+        L2_A["Étape N"] -.->|"Variante / Dérivation (-.->) : Trait pointillé gris"| L2_B["Étape Variante"]
+        L_CALL[["CALL PF-xxx"]] -->|"Sortie sous-parcours : Trait violet"| L_CALL_NEXT["Écran d'atterrissage"]
+        L_EXT[/"EXT Tiers ⏸"/] -->|"Sortie événement externe : Trait orange"| L_EXT_NEXT["Écran de reprise"]
     end

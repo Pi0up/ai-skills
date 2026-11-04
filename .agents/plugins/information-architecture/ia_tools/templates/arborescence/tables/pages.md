@@ -10,5 +10,10 @@
 | L002 | products | HOME | 2 | /products | ANONYMOUS, BUYER, ADMIN | |
 | C001 | product-detail | L002 | 1 | /products/[id] | ANONYMOUS, BUYER, ADMIN | FEAT-COMMANDER |
 | F001 | login | HOME | 3 | /login | ANONYMOUS | FEAT-CONNEXION |
-| D001 | account | HOME | 4 | /account | BUYER, ADMIN | |
-| F002 | checkout | HOME | 5 | /checkout | BUYER | FEAT-FINALISER |
+| E001 | error-404 | HOME | 4 | /404 | ANONYMOUS | |
+| D001 | account | HOME | 5 | /account | BUYER, ADMIN | |
+| F002 | checkout | HOME | 6 | /checkout | BUYER | FEAT-FINALISER |
+| H001 | workspace | HOME | 7 | /workspace | BUYER, ADMIN | |
+| L003 | workspace-projects | H001 | 1 | /workspace/projects | BUYER, ADMIN | |
+| C002 | project-detail | L003 | 1 | /workspace/projects/[id] | BUYER, ADMIN | |
+| F003 | project-new | L003 | 2 | /workspace/projects/new | BUYER, ADMIN | |

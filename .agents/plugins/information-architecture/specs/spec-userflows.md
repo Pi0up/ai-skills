@@ -53,7 +53,7 @@ A node is a graph event. A journey is an ordered sequence of nodes.
 | ECR | Screen Opening | `page-ref`, `module-ref`, or `comp-ref` | Direct (URL or Custom Event) |
 | ACT | User Action on a FEAT | `FEAT-ref` | Direct (Custom Event) |
 | ATT | Asynchronous Wait / Processing | Colloquial label | Indirect (Server Status / Webhook) |
-| EXT | External Out-of-App Event | Colloquial label | Indirect with return key, else unobservable |
+| EXT | External Out-of-App Event / Service | `ext-ref` or colloquial label | Indirect with return key, else unobservable |
 
 ### 2.3 Context Glossary
 
@@ -73,6 +73,7 @@ example  : origin=SEARCH ; folder=DRAFT ; data=COMPLETE
 ```
 registre/pages.md         (synchronized from 'pages', 'variantes', 'composants_page')
 registre/modules.md       (synchronized from 'modules')
+registre/services_externes.md (synchronized from 'services_externes')
 registre/roles.md         (synchronized from 'roles')
 registre/noeuds.md        (node event catalog)
 registre/glossaire.md     (closed context glossary)

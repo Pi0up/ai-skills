@@ -88,6 +88,7 @@ class TemplateCode(Enum):
     D = "D"
     E = "E"
     M = "M"
+    EXT = "EXT"
 
 
 class NodeType(Enum):
@@ -202,11 +203,22 @@ class Renvoi:
 
 
 @dataclass
+class ServiceExterne:
+    code: str
+    url: str
+    access: List[str]
+    label: str = ""
+    fournisseur: str = ""
+    fonctionnalites: List[str] = field(default_factory=list)
+
+
+@dataclass
 class ArborescenceModel:
     roles: Dict[str, Role] = field(default_factory=dict)
     pages: Dict[str, Page] = field(default_factory=dict)
     variantes: Dict[str, Variante] = field(default_factory=dict)
     modules: Dict[str, Module] = field(default_factory=dict)
+    services_externes: Dict[str, ServiceExterne] = field(default_factory=dict)
     composants: Dict[str, ComposantPage] = field(default_factory=dict)
     renvois: List[Renvoi] = field(default_factory=list)
 

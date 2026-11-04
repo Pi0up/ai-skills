@@ -68,18 +68,25 @@ regex    : ^[a-z][a-z0-9_]*=[A-Z][A-Z0-9_]*(?: ; [a-z][a-z0-9_]*=[A-Z][A-Z0-9_]*
 example  : origin=SEARCH ; folder=DRAFT ; data=COMPLETE
 ```
 
-### 2.4 File Organization
+### 2.4 File Organization & Workspace Convention (infoarchi_docs)
 
-```
-registre/pages.md         (synchronized from 'pages', 'variantes', 'composants_page')
-registre/modules.md       (synchronized from 'modules')
-registre/services_externes.md (synchronized from 'services_externes')
-registre/roles.md         (synchronized from 'roles')
-registre/noeuds.md        (node event catalog)
-registre/glossaire.md     (closed context glossary)
-uc/UC-xxx.md              (use case specifications and journeys)
-generated/                (generated Mermaid diagrams, screen sheets, preview.html)
-```
+All Information Architecture artifacts (Part 1 Arborescence and Part 2 Userflows) share a single project root directory infoarchi_docs/:
+
+`
+infoarchi_docs/
+├── pages.md                  (source of truth: sitemap pages)
+├── roles.md, variantes.md... (sitemap reference tables)
+├── registre/
+│   ├── pages.md              (synchronized from 'pages', 'variantes', 'composants_page')
+│   ├── modules.md            (synchronized from 'modules')
+│   ├── services_externes.md  (synchronized from 'services_externes')
+│   ├── roles.md              (synchronized from 'roles')
+│   ├── noeuds.md             (node event catalog)
+│   └── glossaire.md          (closed context glossary)
+├── uc/
+│   └── UC-xxx.md             (use case specifications and journeys)
+└── generated/                (unified Studio intake: sitemaps, userflows, metadata.json, preview.html, screen-sheets/)
+`
 
 ## 3. Use Cases and Journeys
 

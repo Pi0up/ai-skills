@@ -12,13 +12,13 @@ flowchart TD
     %% --------------------------------------------------------------------------
     %% 1. Structure Hiérarchique Principale
     %% --------------------------------------------------------------------------
-    HOME["HOME /"]
-    L001["L001 /search-results"]
-    L002["L002 /products"]
-    C001["C001 /products/[id]"]
-    F001["F001 /login"]
-    D001["D001 /account (protégée)"]
-    F002["F002 /checkout (protégée)"]
+    HOME["home<br/>/"]
+    L001["search-results<br/>search-results/"]
+    L002["products<br/>products/"]
+    C001["product-detail<br/>[id]/"]
+    F001["login<br/>login/"]
+    D001["account<br/>account/"]
+    F002["checkout<br/>checkout/"]
 
     HOME --> L001
     HOME --> L002

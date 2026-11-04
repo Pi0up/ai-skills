@@ -1,46 +1,31 @@
----
-title: Flow Expanded - PF-DOSSIER-NOM
-type: userflow
-id: PF-DOSSIER-NOM-EXP
-version: 1.0.0
-roles: [USER]
-tags: [userflow, expanded, sub-flow]
-description: Template de parcours déplié avec sous-parcours (PF-DOSSIER-PJ-SEG)
----
+%%@file id=PF-DOSSIER-NOM-EXP project=DOSSIER kind=userflow view=expanded uc=UC-DOSSIER uc_title="Constitution et soumission de dossier" obj=OBJ-DOSSIER-01 statut=nominal roles=MANAGER title="Soumettre un Dossier avec contrôle des pièces" version="1.2" atterrissage=C010
+%%@node ND010 code=C010:EDIT type=ECR order=1
+%%@node ND011 ref=FEAT-VALIDER-INFOS type=ACT order=2
+%%@node ND040 code=F010 type=ECR order=3
+%%@node ND041 ref=FEAT-TELEVERSER type=ACT order=4
+%%@node ND042 type=ATT break=yes resume=ND043 persist=session delay=2m order=5
+%%@node ND043 code=F010:CONTROLE type=ECR order=6
+%%@node ND020 code=C010 type=ECR order=7
+%%@node ND021 ref=FEAT-SOUMETTRE type=ACT order=8
+%%@edge ND010>ND011 kind=nominal
+%%@edge ND011>ND040 kind=nominal
+%%@edge ND040>ND041 kind=nominal
+%%@edge ND041>ND042 kind=nominal
+%%@edge ND042>ND043 kind=nominal
+%%@edge ND043>ND020 kind=nominal
+%%@edge ND020>ND021 kind=nominal
 flowchart LR
 
     %% --------------------------------------------------------------------------
-    %% Étape amont de l'appelant
+    %% Séquence linéaire dépliée (incluant les étapes détaillées des pièces)
     %% --------------------------------------------------------------------------
-    ND010(["ND-010 ECR C010:EDIT"])
-    ND011["ND-011 ACT FEAT-VALIDER-INFOS"]
+    ND010(["ND-010 · C010:EDIT — Saisie du dossier"])
+    ND011["ND-011 · Valider les informations"]
+    ND040(["ND-040 · F010 — Dépôt des pièces"])
+    ND041["ND-041 · Téléverser les justificatifs"]
+    ND042{{"ND-042 · Contrôle des pièces ⏸"}}
+    ND043(["ND-043 · F010:CONTROLE — Validation des pièces"])
+    ND020(["ND-020 · C010 — Récapitulatif"])
+    ND021["ND-021 · Soumettre le dossier"]
 
-    ND010 --> ND011
-
-    %% --------------------------------------------------------------------------
-    %% Sous-parcours appelé (PF-DOSSIER-PJ-SEG déplié dans son subgraph)
-    %% --------------------------------------------------------------------------
-    subgraph Sub_PJ["CALL PF-DOSSIER-PJ-SEG (Déplié)"]
-        direction LR
-        ND040(["ND-040 ECR F010"])
-        ND041["ND-041 ACT FEAT-TELEVERSER"]
-        ND042{{"ND-042 ATT Contrôle pièces ⏸"}}
-        ND043(["ND-043 ECR F010:CONTROLE"])
-
-        ND040 --> ND041
-        ND041 --> ND042
-        ND042 --> ND043
-    end
-
-    %% Transition vers l'entrée du sous-parcours (CTX-IN garanti)
-    ND011 --> ND040
-
-    %% --------------------------------------------------------------------------
-    %% Écran d'atterrissage et suite de l'appelant
-    %% --------------------------------------------------------------------------
-    ND020(["ND-020 ECR C010"])
-    ND021["ND-021 ACT FEAT-SOUMETTRE"]
-
-    %% Transition depuis la sortie du sous-parcours (CTX-OUT garanti)
-    ND043 --> ND020
-    ND020 --> ND021
+    ND010 --> ND011 --> ND040 --> ND041 --> ND042 --> ND043 --> ND020 --> ND021

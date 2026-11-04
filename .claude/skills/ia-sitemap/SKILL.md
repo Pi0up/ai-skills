@@ -20,6 +20,55 @@ This skill implements the normative specification:
 
 ---
 
+## Workspace Root Convention: `infoarchi_docs`
+
+All Information Architecture deliverables (Sitemap Part 1 and Userflows Part 2) belong to a single, unified project root directory named:
+
+```
+infoarchi_docs/
+```
+
+### Why a Single Shared Root?
+1. **Co-location with Userflows**: Sitemap reference tables (`pages.md`, `roles.md`, etc.) and user journey specifications (`uc/UC-*.md`, `registre/glossaire.md`) live side by side in `infoarchi_docs/` so that identifiers, codes, and context variables are strictly resolved and validated together.
+2. **Studio Single Ingestion Directory**: The Studio viewer (`preview.html`) does **not** perform arbitrary recursive directory searches. It loads Mermaid diagrams (`*.mmd`), the indexed metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) directly from a single unified generated folder:
+   ```
+   infoarchi_docs/generated/
+   ```
+   Never split sitemap outputs and userflow outputs into separate directories. They must be generated together in `infoarchi_docs/generated/` so Studio can load them simultaneously on the same canvas.
+
+---
+
+## Directory Layout in `infoarchi_docs`
+
+```
+infoarchi_docs/
+├── pages.md                   <-- Reference table: pages (single source of truth)
+├── roles.md                   <-- Reference table: user roles & permissions
+├── variantes.md               <-- Reference table: page layout/permission variants
+├── modules.md                 <-- Reference table: transversal out-of-tree modules
+├── composants_page.md         <-- Reference table: attached popins (!) and anchors (#)
+├── services_externes.md       <-- Reference table: third-party external services (EXT-xxx)
+├── renvois.md                 <-- Reference table: virtual cross-cutting navigation links
+├── registre/                  <-- Synchronized registry & context glossary
+│   ├── glossaire.md           <-- Closed context vocabulary (key=VALUE)
+│   ├── pages.md
+│   └── ...
+├── uc/                        <-- Use case journey specifications (Part 2)
+│   ├── UC-xxx.md
+│   └── ...
+└── generated/                 <-- SINGLE TARGET FOLDER LOADED BY STUDIO
+    ├── preview.html           <-- Unified standalone Studio visualizer
+    ├── metadata.json          <-- Unified metadata registry (pages, journeys, sheets)
+    ├── sitemap-overview.mmd   <-- High-level hierarchical page overview
+    ├── sitemap-detailed.mmd   <-- Detailed sitemap with variants, modules, and renvois
+    ├── PF-*.mmd               <-- All user journey diagrams (co-located)
+    └── screen-sheets/         <-- Deduce cross-cutting screen sheets
+        ├── screen-HOME.md
+        └── ...
+```
+
+---
+
 ## Golden Rules of Arborescence
 
 1. **Source of Truth**: Markdown tables are the sole source of truth. Mermaid diagrams are derived projection views.
@@ -42,45 +91,47 @@ This skill implements the normative specification:
 
 ## Step-by-Step Procedure
 
-### 1. Draft `roles.md` Table
-Create the file containing at least `ANONYMOUS` and identified user roles.
-
-### 2. Draft `pages.md` Table
-Provide fields for each page:
-- `code`: unique per template (`L001`, `C001`, `D001`, etc.)
-- `label`: indicative human-readable label
-- `parent`: single exclusive parent (empty for `HOME`; multi-parenting forbidden)
-- `ordre` / `order`: display sequence among sibling pages (mandatory except for `HOME`)
-- `url`: canonical URL extending parent URL
-- `access`: authorized role codes (`ANONYMOUS` for public access)
-- `fonctionnalites` / `features`: list of supported `FEAT-XXX` codes
-
-> **Mutualization Alert (C15)**: If two screens share the same template and entity, do not create duplicate nodes in the tree: mutualize under a single page and document variants. Maintaining separate nodes requires explicit human validation.
-
-### 3. Declare `variantes.md`
-- Each variant must specify a documented `condition_spec`.
-- Variant `access` must be a subset of its base page's access list.
-- Use variants (`:OWNER`, `@ADMIN`, etc.) to convey permission and layout adaptations.
-
-### 4. Declare `modules.md` and `composants_page.md`
-- Modules live outside the tree (no parent).
-- Set scope: `ALL`, `PUBLIC`, `AUTH`, `@ROLE`, or `PAGE:code1,code2...`.
-- In-page popins (`!`) and anchors (`#`) are cataloged in `composants_page.md`.
-
-### 5. Declare `renvois.md` (Virtual Navigation Children)
-- Cross-cutting links to a mutualized page from secondary views are declared here (`source -. FEAT .-> target:VAR`).
-- This models navigation flexibility without corrupting tree hierarchy.
-
-### 6. Generate Mermaid Diagrams
-Run:
+### 1. Initialize `infoarchi_docs` Directory
+Create the unified folder if it does not exist:
 ```bash
-# Generate pure logic Mermaid diagrams with unified HTML preview
-python -m ia_tools.cli generate-mermaid --type arborescence --out generated --preview
-
-# Standard style without preview
-python -m ia_tools.cli generate-mermaid --type arborescence --out generated
+python -m ia_tools.cli init --dir infoarchi_docs --mode minimal
 ```
-Produced diagrams follow a **top-to-bottom** layout (`flowchart TD`):
-- `sitemap-overview.mmd` (high-level view with public/protected subgraphs and transversal modules)
-- `sitemap-detailed.mmd` (detailed view with components, variants, invocations, and functional cross-references)
-- `preview.html` (single unified interactive viewer with pan/zoom, filters, node inspector, and image export)
+
+### 2. Draft Reference Tables in `infoarchi_docs/`
+- `roles.md`: user role codes (including mandatory `ANONYMOUS`).
+- `pages.md`: page codes, verbatim labels, parents, orders, cascading canonical URLs, role access, and features (`FEAT-xxx`).
+- `variantes.md`: display/layout variants with documented `condition_spec`.
+- `modules.md`: out-of-tree transversal modules (`M001`, `ALL`, `PUBLIC`, `AUTH`, `@ROLE`).
+- `composants_page.md`: in-page popins (`!`) and anchors (`#`).
+- `services_externes.md`: third-party external services (`EXT-xxx`, out-of-tree).
+- `renvois.md`: cross-cutting virtual links (`source -. FEAT .-> target:VAR`).
+
+### 3. Generate Mermaid Diagrams and Studio Preview
+Run the CLI pointing `--dir infoarchi_docs` to the root and `--out infoarchi_docs/generated` to the unified Studio folder:
+
+```bash
+# Recommended: generate all diagrams (sitemap + userflows), unified metadata, and preview.html
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated --preview
+
+# Or generate only arborescence views into the common Studio folder:
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type arborescence --out infoarchi_docs/generated --preview
+```
+
+Produced sitemap diagrams in `infoarchi_docs/generated/`:
+- `sitemap-overview.mmd`: high-level view (`flowchart TD`) with public/protected subgraphs and transversal modules.
+- `sitemap-detailed.mmd`: detailed view (`flowchart TD`) with components, variants, invocations, and functional cross-references.
+- `metadata.json`: unified metadata registry consumed by the Studio inspector.
+- `preview.html`: standalone Studio visualizer.
+
+### 4. Validate Cross-Disciplinary Consistency
+Always run validation on `infoarchi_docs` to verify that sitemap rules (C1-C15) pass and references match userflows:
+```bash
+python -m ia_tools.cli validate --dir infoarchi_docs
+```
+
+### 5. Preview in Studio
+Open the generated directory in the Studio visualizer:
+```bash
+python -m ia_tools.cli preview --dir infoarchi_docs/generated
+```
+Studio will automatically load `metadata.json`, discover all sitemaps and userflows, and provide bi-directional navigation.

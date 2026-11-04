@@ -13,6 +13,7 @@ This skill orchestrates the end-to-end Information Architecture methodology in a
 - [Information Architecture — Global Documentation](../../specs/documentation-architecture-information.md)
 - [Part 1: Arborescence Specification (v0.4)](../../specs/spec-arborescence.md)
 - [Part 2: Userflows Specification (v2.2)](../../specs/spec-userflows.md)
+- [Unified Visualizer Specification (v1.5)](../../specs/spec-preview.md)
 
 ---
 
@@ -22,16 +23,35 @@ This skill orchestrates the end-to-end Information Architecture methodology in a
 
 ---
 
+## Workspace Root Convention: `infoarchi_docs`
+
+All Information Architecture deliverables for a project live within a single unified root directory:
+
+```
+infoarchi_docs/
+```
+
+### Studio Co-location Principle
+The Studio visualizer (`preview.html`) does **not** perform recursive folder traversals. Its discovery pipeline expects all visual artifacts (`*.mmd`), the metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) to be co-located within a single output folder:
+
+```
+infoarchi_docs/generated/
+```
+
+Never split sitemap outputs and userflow outputs into separate folders. They must be generated together in `infoarchi_docs/generated/` so Studio can load both page hierarchies and linear journeys simultaneously on the same canvas.
+
+---
+
 ## Logical Execution Workflow
 
 ```
-1. Scoping & Extraction   ==>  2. Part 1: Sitemap         ==>  3. Part 2: Userflows
-(skill: ia-scoping)             (skill: ia-sitemap)            (skill: ia-userflows)
+1. Scoping & Extraction   ==>  2. Part 1: Sitemap         ==>  3. Synchronize Registry
+(skill: ia-scoping)             (skill: ia-sitemap)            (ia_tools sync-registry)
                                           ||                             ||
                                           \/                             \/
-5. Audit & Consistency    <==  4. Derived Deliverables   <== Synchronize Registry
-(skill: ia-audit)               (ia-screen-sheets, ia-tracking, (ia_tools sync-registry)
-                                 ia-qa-uat)
+5. Audit & Validation     <==  4. Derived Deliverables   <==  4. Part 2: Userflows
+(skill: ia-audit,               (ia-screen-sheets, ia-tracking, (skill: ia-userflows)
+ ia_tools validate)              ia-qa-uat, generate-mermaid)
 ```
 
 ---
@@ -44,45 +64,63 @@ This skill orchestrates the end-to-end Information Architecture methodology in a
    - *Global*: entire application ecosystem.
    - *Scoped*: specific functional sub-domain (e.g., e-commerce catalog, account management) or targeted use case (e.g., `UC-DOSSIER`).
 3. If input material is incomplete, informal, or unstructured, immediately activate skill `ia-scoping`.
-4. **Mutualization Duty and Alert (C15)**: Actively detect potential screen duplication for logically related entities. If two candidate pages share the same business entity and layout without documented functional justification, proactively alert the user and prompt for arbitration to mutualize them under a canonical page with variants.
+4. Initialize the project workspace under the common root `infoarchi_docs/`:
+   ```bash
+   python -m ia_tools.cli init --dir infoarchi_docs --mode minimal
+   ```
+5. **Mutualization Duty and Alert (C15)**: Actively detect potential screen duplication for logically related entities. If two candidate pages share the same business entity and layout without documented functional justification, proactively alert the user and prompt for arbitration to mutualize them under a canonical page with variants.
 
 ### Step 2: Build the Arborescence (Part 1)
 Activate skill `ia-sitemap`:
-1. Create or update reference tables in `arborescence/` (or project root):
-   - `roles.md` (unique role codes, including mandatory `ANONYMOUS`)
+1. Create or update reference tables directly in `infoarchi_docs/`:
    - `pages.md` (template codes `HOME`, `L`, `C`, `F`, `D`, `E`, `H`, hierarchical canonical URLs, access rights, `FEAT-XXX` capabilities; **strictly single parent, absolute prohibition of multi-parenting**)
+   - `roles.md` (unique role codes, including mandatory `ANONYMOUS`)
    - `variantes.md` (`CODE@ROLE:VARIANT`, `condition_spec`; handles permissions and display variants)
    - `modules.md` (`M001`, out-of-tree reusable blocks, invocation, scope: `ALL/PUBLIC/AUTH/@ROLE/PAGE:`)
    - `composants_page.md` (`page!key` for popins/prompts, `page#key` for internal anchors)
+   - `services_externes.md` (`EXT-xxx`, third-party external services)
    - `renvois.md` (`source -. FEAT .-> target`; models functional cross-references and virtual navigation children)
-2. Generate compliant Mermaid diagrams (`python -m ia_tools.cli generate-mermaid --type arborescence`).
 
 ### Step 3: Synchronize Registry
-Before drafting user journeys, execute automatic synchronization:
+Before drafting user journeys, execute automatic synchronization from `infoarchi_docs/`:
 ```bash
-python -m ia_tools.cli sync-registry --out registre
+python -m ia_tools.cli sync-registry --dir infoarchi_docs --out infoarchi_docs/registre
 ```
-The registry (`registre/pages.md`, `registre/modules.md`, `registre/roles.md`) serves as the single source of truth for journey references.
+The registry (`infoarchi_docs/registre/pages.md`, `modules.md`, `roles.md`) serves as the single source of truth for journey references.
 
 ### Step 4: Model Userflows (Part 2)
 Activate skill `ia-userflows`:
-1. Define the closed context glossary (`registre/glossaire.md` using `key=VALUE` syntax).
-2. Author use case specifications in `uc/UC-xxx.md`:
+1. Define the closed context glossary (`infoarchi_docs/registre/glossaire.md` using `key=VALUE` syntax).
+2. Author use case specifications in `infoarchi_docs/uc/UC-xxx.md`:
    - Exactly one nominal flow per objective (`OBJ-xxx`).
    - Variants declaring `diverge_de` and `rejoint`.
    - Reusable factored segments declaring `atterrissage`.
 3. Systematically flag flow breaks `⏸` and session memory requirements on asynchronous wait nodes (`ATT`) and external nodes (`EXT`).
-4. Generate userflow Mermaid diagrams (`python -m ia_tools.cli generate-mermaid --type userflows`).
 
-### Step 5: Generate Derived Deliverables
-Depending on project requirements:
-- **Deduced Screen Sheets**: activate `ia-screen-sheets` (`python -m ia_tools.cli extract-screens`).
+### Step 5: Generate Unified Mermaid Diagrams & Screen Sheets
+Generate all diagrams and derived deliverables into the common Studio folder `infoarchi_docs/generated/`:
+```bash
+# 1. Generate all Mermaid diagrams (sitemap + userflows), unified metadata, and preview.html
+python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated --preview
+
+# 2. Deduce cross-cutting screen sheets into the same location
+python -m ia_tools.cli extract-screens --dir infoarchi_docs --out infoarchi_docs/generated/screen-sheets
+```
+
+Depending on project requirements, optionally generate:
 - **Tracking & Observability Plan**: activate `ia-tracking`.
 - **QA / UAT Test Notebook**: activate `ia-qa-uat`.
 
-### Step 6: Integrity Audit and Continuous Repair
-Activate `ia-audit` or run:
+### Step 6: Integrity Audit and Conjoint Validation
+Run the validation engine on `infoarchi_docs/` to confirm that sitemap and use cases are mutually resolvable and consistent:
 ```bash
-python -m ia_tools.cli validate
+python -m ia_tools.cli validate --dir infoarchi_docs
 ```
 - If violations are detected (broken references after external changes, broken URLs, missing break markers, uncovered pages), immediately apply normative corrective actions.
+
+### Step 7: Visual Inspection in Studio
+Open the generated directory in the Studio visualizer:
+```bash
+python -m ia_tools.cli preview --dir infoarchi_docs/generated
+```
+Studio will display both the sitemap arborescence and userflow journey tracks in the left sidebar, with bidirectional cross-navigation and metadata inspection.

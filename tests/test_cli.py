@@ -148,6 +148,36 @@ class TestCLI(unittest.TestCase):
         self.assertFalse(validate_studio_content("<html>" + "a" * 1500 + "</html>"))
         self.assertTrue(validate_studio_content("<!doctype html><html><body>Information Architecture Studio render-target" + "x" * 1000 + "</body></html>"))
 
+    def test_infoarchi_docs_convention(self):
+        """Confirme que la racine unique infoarchi_docs charge conjointement sitemap et userflows pour le Studio."""
+        repo_root = Path(__file__).resolve().parent.parent
+        ia_root = repo_root / "infoarchi_docs"
+        self.assertTrue(ia_root.exists(), "infoarchi_docs folder must exist")
+
+        from ia_tools.markdown_parser import ArborescenceParser, UserflowsParser
+        from ia_tools.validator import IAValidator
+
+        arbo = ArborescenceParser.parse_directory(ia_root)
+        uf = UserflowsParser.parse_directory(ia_root)
+
+        self.assertIn("HOME", arbo.pages)
+        self.assertIn("C001", arbo.pages)
+        self.assertIn("UC-CATALOGUE", uf.cas_usages)
+        self.assertIn("UC-DOSSIER", uf.cas_usages)
+
+        validator = IAValidator(arbo=arbo, userflows=uf)
+        violations = validator.validate_all()
+        blocking = [v for v in violations if v.severity.value in ("Bloquant", "Blocking")]
+        self.assertEqual(len(blocking), 0, f"No blocking violations allowed in infoarchi_docs: {blocking}")
+
+        gen_dir = ia_root / "generated"
+        self.assertTrue((gen_dir / "preview.html").exists())
+        self.assertTrue((gen_dir / "metadata.json").exists())
+        self.assertTrue((gen_dir / "sitemap-overview.mmd").exists())
+        self.assertTrue((gen_dir / "sitemap-detailed.mmd").exists())
+        self.assertTrue((gen_dir / "PF-CATALOGUE-NOM-collapsed.mmd").exists())
+        self.assertTrue((gen_dir / "screen-sheets").exists())
+
 
 if __name__ == "__main__":
     unittest.main()
