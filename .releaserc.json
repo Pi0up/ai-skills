@@ -1,0 +1,80 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          { "type": "hotfix", "release": "patch" },
+          { "type": "perf", "release": "patch" }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            { "type": "feat", "section": "✨ Features" },
+            { "type": "fix", "section": "🐛 Bug Fixes" },
+            { "type": "hotfix", "section": "🚑 Hotfixes" },
+            { "type": "perf", "section": "⚡ Performance Improvements" },
+            { "type": "revert", "section": "⏪ Reverts" },
+            { "type": "docs", "section": "📝 Documentation", "hidden": true },
+            { "type": "style", "section": "💄 Styles", "hidden": true },
+            { "type": "refactor", "section": "♻️ Code Refactoring", "hidden": true },
+            { "type": "test", "section": "✅ Tests", "hidden": true },
+            { "type": "build", "section": "📦 Build System", "hidden": true },
+            { "type": "ci", "section": "👷 CI/CD", "hidden": true },
+            { "type": "chore", "section": "🔧 Maintenance", "hidden": true }
+          ]
+        }
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md",
+        "changelogTitle": "# Changelog\n\nToutes les modifications notables apportées à ce projet sont consignées dans ce fichier."
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "node scripts/prepare-release.js ${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "package.json",
+          "package-lock.json",
+          "plugin.json",
+          "pyproject.toml"
+        ],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "information-architecture-v*.zip",
+            "label": "Information Architecture Plugin Package (ZIP)"
+          }
+        ]
+      }
+    ]
+  ]
+}
