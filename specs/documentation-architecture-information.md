@@ -74,16 +74,16 @@ A page's technical reference combines its template code, numerical ID, optional 
 - **Business object states** (e.g., draft, submitted) are userflow context terms, not page variants per se. They only warrant a variant if layout or permissions change.
 - Modeling operates at template abstraction level; displayed content remains dynamic.
 
-### 2.6 Canonical URL Conventions
+### 2.6 Canonical URL Conventions & Breadcrumb Mirroring
 
-- Single language: English by default. Localization aliases go into an appendix.
-- Lowercase throughout, segments separated by `/`, multi-word terms by `-`.
-- Plurals for collection entities (`products`, `search-results`).
-- No arbitrary depth limit; a child URL strictly extends its parent's URL.
-- Exactly one canonical URL per page.
+- **Breadcrumb Mirroring**: The canonical URL structure faithfully mirrors the application breadcrumb path (e.g. `/` -> `/workspace/` -> `/workspace/projects/` -> `/workspace/projects/[id]/`).
+- **Semantic English Slugs by Default**: Each URL segment is an intuitive, semantic English slug (lowercase, kebab-case) derived from the page role and label, regardless of the display language.
+- **Conventions by Template**: Plurals for collections (`L`: `projects/`), dynamic variables between square brackets for detail items (`C`: `[id]/`), action verbs/states for forms (`F`: `new/`, `edit/`, `settings/`), domain nouns for hubs (`H`: `workspace/`) and dashboards (`D`: `overview/`).
+- **Prohibition of Technical Codes**: Technical page codes (`c001`, `l002`, `h001`, `f003`, etc.) are graph identifiers and are strictly prohibited as URL segments.
+- **Cascading Hierarchy**: Exactly one canonical URL per page; a child URL strictly extends its parent's URL.
 - Square brackets denote dynamic route parameters: `/products/[id]`.
 - Modals (`!`) and anchors (`#`) are documented references, not browser URL routes.
-- **Relative paths**: Relative URL paths and segments must end with a trailing slash `/` (e.g., `products/`, `[id]/`), except leaf in-page anchors (`#...`) and modals/popins (`!...`) at the end of the chain, which must not end with a trailing slash.
+- **Relative paths & trailing slash**: Relative URL paths and segments must end with a trailing slash `/` (e.g., `projects/`, `[id]/`, `edit/`), except leaf in-page anchors (`#...`) and modals/popins (`!...`) at the end of the chain, which must not end with a trailing slash.
 
 ### 2.7 Technical Pages
 
