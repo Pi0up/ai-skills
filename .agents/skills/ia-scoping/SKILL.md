@@ -37,16 +37,19 @@ It extracts and scopes foundational elements before formalizing the arborescence
   - Define authenticated profiles in uppercase (e.g., `BUYER`, `ADMIN`, `MANAGER`).
 - Record roles in `roles.md`.
 
-### 2. Categorize Screens into Normative Templates
+### 2. Categorize Screens into Normative Templates & Pre-assign Breadcrumb Slugs
 Classify each candidate screen under an official template code:
 - `HOME`: Single root homepage (`/`).
 - `H`: Hub (routing intermediary with URL but no direct content, navigating to its first child).
-- `L`: Object list (cards, table, grid).
-- `F`: Form (data input or edit).
-- `C`: Content / object detail view.
-- `D`: Dashboard / synthesis panel.
-- `E`: Technical page (404, maintenance, 403) when user-facing.
-- `M`: Transversal out-of-tree module (login popin, help drawer).
+- `L`: Object list (cards, table, grid) -> Pre-assign English plural slug (e.g. `projects/`, `invoices/`).
+- `F`: Form (data input or edit) -> Pre-assign action/verb slug (e.g. `new/`, `edit/`, `settings/`).
+- `C`: Content / object detail view -> Pre-assign dynamic variable slug (e.g. `[id]/`, `[projectId]/`).
+- `D`: Dashboard / synthesis panel -> Pre-assign domain overview slug (e.g. `dashboard/`, `overview/`).
+- `E`: Technical page (404, maintenance, 403) when user-facing (e.g. `404/`, `maintenance/`).
+- `M`: Transversal out-of-tree module (login popin, help drawer, invoked via `!`).
+
+> [!IMPORTANT]
+> **Prohibition of Technical Codes as Slugs**: Never pre-assign or accept technical template codes (e.g. `/c001`, `/l002`) as URL segments. Slugs must reflect the application breadcrumb path in English.
 
 ### 3. Mutualize Related Templates & Duty of Alert (Rule C15)
 - **Strict Parent Uniqueness**: In the arborescence, a page must never have multiple parents. Multi-parenting is prohibited.
