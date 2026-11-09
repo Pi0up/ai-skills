@@ -2,6 +2,24 @@
 
 Toutes les modifications notables apportées à ce projet sont consignées dans ce fichier.
 
+## [1.1.0](https://github.com/Pi0up/ai-skills/compare/v1.0.0...v1.1.0) (2026-11-09)
+
+### ✨ Features
+
+* **agents:** consolidate project instructions into AGENTS.md and remove GEMINI.md ([94ad6fc](https://github.com/Pi0up/ai-skills/commit/94ad6fc62ccff8da037e45c3e9d4b1eac08fd78a))
+* **docs:** add project instructions and behavioral guidelines in AGENTS.md ([6ec1077](https://github.com/Pi0up/ai-skills/commit/6ec1077137ced1c20f5fdbdd2bc87947cb7e97c2))
+* **skills:** add generated diagram audit rules and synchronize skills across targets ([4a76eae](https://github.com/Pi0up/ai-skills/commit/4a76eae2ab21c259760e9347a5bb44bdc88cd2ce))
+* **skills:** centralize IA docs directory and co-locate sitemaps and userflows in generated ([154249b](https://github.com/Pi0up/ai-skills/commit/154249b4fb58177fc3825b5d01291cb58b0067fd))
+* **skills:** enforce semantic english slugs and breadcrumb hierarchy in ia skills ([cb63a71](https://github.com/Pi0up/ai-skills/commit/cb63a7108cea6ca04e5a714082e4daaa7a1e0725))
+* **skills:** establish infoarchi_docs convention for sitemap and userflows in Studio ([ddc7892](https://github.com/Pi0up/ai-skills/commit/ddc7892b219f7f8b19f9bcdb523b76fd43c7f7d1))
+* **skills:** update documentation for IA Orchestrator, IA Sitemap, and IA Userflows to clarify Studio visualizer usage and metadata requirements ([3edb1c3](https://github.com/Pi0up/ai-skills/commit/3edb1c317764abf53447b090c73a4cbe7a7f5118))
+* **validator:** detect and warn on technical page codes in url segments in C4 rule ([cf705e8](https://github.com/Pi0up/ai-skills/commit/cf705e8b752071842509af7e5fdac808634d6464))
+
+### 🐛 Bug Fixes
+
+* **git:** convert AGENTS.md from symlink to regular file ([d0ccf84](https://github.com/Pi0up/ai-skills/commit/d0ccf84d8698f4d970dd2cd40a6a2831f7ab4757))
+* **tests:** make test_infoarchi_docs_convention self-contained without pre-existing generated dir ([59ba595](https://github.com/Pi0up/ai-skills/commit/59ba595a3d65896ce8f78b57a8464f240899852d))
+
 ## 1.0.0 (2026-11-04)
 
 ### ✨ Features
