@@ -20,23 +20,27 @@ This skill implements the normative specification:
 
 ---
 
-## Workspace Root Convention: `infoarchi_docs`
+## Workspace Root Convention & Studio Co-location Principle
 
-All Information Architecture deliverables (Sitemap Part 1 and Userflows Part 2) belong to a single, unified project root directory named:
+All Information Architecture deliverables (Sitemap Part 1 and Userflows Part 2) belong to a single, unified project root directory (`<ia_root>/`, e.g. `infoarchi_docs/` by default or customized for the target project):
 
 ```
-infoarchi_docs/
+<ia_root>/
 ```
 
-### Why a Single Shared Root?
-1. **Co-location with Userflows**: Sitemap reference tables (`pages.md`, `roles.md`, etc.) and user journey specifications (`uc/UC-*.md`, `registre/glossaire.md`) live side by side in `infoarchi_docs/` so that identifiers, codes, and context variables are strictly resolved and validated together.
+### Identification & Confirmation of the Target Directory
+- The agent determines `<ia_root>` based on the target project structure.
+- **Rule**: If the agent is not completely sure of the target directory, it **MUST ask the user** for the desired path before proceeding.
+
+### Co-location of Sitemaps & Userflows in `<ia_root>/generated/`
+1. **Co-location with Userflows**: Sitemap reference tables (`pages.md`, `roles.md`, etc.) and user journey specifications (`uc/UC-*.md`, `registre/glossaire.md`) live side by side in `<ia_root>/`.
 2. **Studio Single Ingestion Directory**: The official reference visualizer is the online Studio hosted at:
    **https://pi0up.github.io/ai-studio/**
-   The visualizer does **not** perform arbitrary recursive directory searches. It directly loads Mermaid diagrams (`*.mmd`), the indexed metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) from a single unified generated folder:
+   The visualizer directly loads Mermaid diagrams (`*.mmd`), the indexed metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) from a single unified generated folder:
    ```
-   infoarchi_docs/generated/
+   <ia_root>/generated/
    ```
-   Never split sitemap outputs and userflow outputs into separate directories. They must be generated together in `infoarchi_docs/generated/` so Studio can load them simultaneously on the same canvas.
+   **MANDATORY RULE**: Never split sitemap outputs and userflow outputs into separate directories. They must be generated together in `<ia_root>/generated/` so Studio can load them simultaneously on the same canvas.
 3. **No Embedded Viewer Application**: The generated directory MUST only contain diagrams and their metadata. Never copy, embed, or generate a local copy of the viewer (such as `preview.html`) in `generated/`. Diagram inspection is performed by opening the online visualizer and loading the generated folder.
 
 ---

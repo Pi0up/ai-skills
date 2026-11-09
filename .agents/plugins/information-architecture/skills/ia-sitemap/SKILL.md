@@ -20,23 +20,27 @@ This skill implements the normative specification:
 
 ---
 
-## Workspace Root Convention: `infoarchi_docs`
+## Workspace Root Convention & Studio Co-location Principle
 
-All Information Architecture deliverables (Sitemap Part 1 and Userflows Part 2) belong to a single, unified project root directory named:
+All Information Architecture deliverables (Sitemap Part 1 and Userflows Part 2) belong to a single, unified project root directory (`<ia_root>/`, e.g. `infoarchi_docs/` by default or customized for the target project):
 
 ```
-infoarchi_docs/
+<ia_root>/
 ```
 
-### Why a Single Shared Root?
-1. **Co-location with Userflows**: Sitemap reference tables (`pages.md`, `roles.md`, etc.) and user journey specifications (`uc/UC-*.md`, `registre/glossaire.md`) live side by side in `infoarchi_docs/` so that identifiers, codes, and context variables are strictly resolved and validated together.
+### Identification & Confirmation of the Target Directory
+- The agent determines `<ia_root>` based on the target project structure.
+- **Rule**: If the agent is not completely sure of the target directory, it **MUST ask the user** for the desired path before proceeding.
+
+### Co-location of Sitemaps & Userflows in `<ia_root>/generated/`
+1. **Co-location with Userflows**: Sitemap reference tables (`pages.md`, `roles.md`, etc.) and user journey specifications (`uc/UC-*.md`, `registre/glossaire.md`) live side by side in `<ia_root>/`.
 2. **Studio Single Ingestion Directory**: The official reference visualizer is the online Studio hosted at:
    **https://pi0up.github.io/ai-studio/**
-   The visualizer does **not** perform arbitrary recursive directory searches. It directly loads Mermaid diagrams (`*.mmd`), the indexed metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) from a single unified generated folder:
+   The visualizer directly loads Mermaid diagrams (`*.mmd`), the indexed metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) from a single unified generated folder:
    ```
-   infoarchi_docs/generated/
+   <ia_root>/generated/
    ```
-   Never split sitemap outputs and userflow outputs into separate directories. They must be generated together in `infoarchi_docs/generated/` so Studio can load them simultaneously on the same canvas.
+   **MANDATORY RULE**: Never split sitemap outputs and userflow outputs into separate directories. They must be generated together in `<ia_root>/generated/` so Studio can load them simultaneously on the same canvas.
 3. **No Embedded Viewer Application**: The generated directory MUST only contain diagrams and their metadata. Never copy, embed, or generate a local copy of the viewer (such as `preview.html`) in `generated/`. Diagram inspection is performed by opening the online visualizer and loading the generated folder.
 
 ---
@@ -75,16 +79,7 @@ infoarchi_docs/
 
 1. **Source of Truth**: Markdown tables are the sole source of truth. Mermaid diagrams are derived projection views.
 2. **Single Root & Strict Parent Uniqueness (C3)**: Exactly one `HOME` page with URL `/` and no parent. Every other page has exactly one direct parent. Multi-parenting is strictly forbidden.
-3. **Cascading URLs & Semantic English Slugs (C4 - Breadcrumb Mirroring)**:
-   - A page's canonical URL strictly extends its parent's URL.
-   - **Breadcrumb Reflection**: URLs must faithfully mirror the application breadcrumb path (`/` $\rightarrow$ `/workspace/` $\rightarrow$ `/workspace/projects/` $\rightarrow$ `/workspace/projects/[id]/`).
-   - **Semantic English Slugs**: Each URL segment MUST be an intuitive English slug (lowercase, kebab-case) derived from the page's role and label:
-     - Collection (`L`): plural noun (`projects/`, `invoices/`, `stays/`, `documents/`).
-     - Detail item (`C`): dynamic variable in square brackets (`[id]/`, `[projectId]/`, `[slug]/`).
-     - Form / Action (`F`): action verb or state noun (`new/`, `edit/`, `settings/`, `apply/`).
-     - Hub / Workspace (`H`): domain space noun (`workspace/`, `admin/`, `portal/`).
-     - Dashboard (`D`): domain overview (`overview/`, `dashboard/`, `analytics/`).
-   - **Strict Prohibition of Technical Page Codes**: Internal codes (`c001`, `l002`, `h001`, `f003`, etc.) are graph identifiers and MUST NEVER appear as URL segments.
+3. **Cascading URLs (C4)**: A page's canonical URL strictly extends its parent's URL (e.g., `/products` $\rightarrow$ `/products/[id]`). Lowercase throughout, plurals for object collections.
 4. **Normative Grammar (Section 5.1)**:
    - Pages: `HOME`, `L001`, `C001`
    - Variants: `C001@BUYER`, `C001@ADMIN:EDIT` (at least `@` or `:`)
@@ -115,11 +110,6 @@ python -m ia_tools.cli init --dir infoarchi_docs --mode minimal
 ### 2. Draft Reference Tables in `infoarchi_docs/`
 - `roles.md`: user role codes (including mandatory `ANONYMOUS`).
 - `pages.md`: page codes, verbatim labels, parents, orders, cascading canonical URLs, role access, and features (`FEAT-xxx`).
-  - **Deriving English Breadcrumb Slugs**:
-    - Build canonical URLs hierarchically: parent URL + `/` + semantic relative slug in English.
-    - Example: Root `HOME` (`/`) -> Hub `H001` (`/workspace`) -> List `L001` (`/workspace/projects`) -> Detail `C001` (`/workspace/projects/[id]`) -> Edit Form `F001` (`/workspace/projects/[id]/edit`).
-    - Relative URLs on cards will automatically display as `workspace/`, `projects/`, `[id]/`, `edit/`.
-    - **Never** write `/c001`, `/workspace/l001`, or technical codes in the `url` column.
 - `variantes.md`: display/layout variants with documented `condition_spec`.
 - `modules.md`: out-of-tree transversal modules (`M001`, `ALL`, `PUBLIC`, `AUTH`, `@ROLE`).
 - `composants_page.md`: in-page popins (`!`) and anchors (`#`).

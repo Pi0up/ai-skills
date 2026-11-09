@@ -63,13 +63,13 @@ def main() -> int:
     # 2. sync-registry
     sync_parser = subparsers.add_parser("sync-registry", help="Synchronize registry from arborescence tables.")
     sync_parser.add_argument("--dir", default=".", help="Root directory")
-    sync_parser.add_argument("--out", default="registre", help="Target registry directory (default: registre)")
+    sync_parser.add_argument("--out", default=None, help="Target registry directory (default: <dir>/registre)")
 
     # 3. generate-mermaid
     m_parser = subparsers.add_parser("generate-mermaid", help="Render Mermaid diagrams.")
     m_parser.add_argument("--dir", default=".", help="Root directory")
     m_parser.add_argument("--type", choices=["arborescence", "userflows", "all"], default="all")
-    m_parser.add_argument("--out", default="generated", help="Output directory (default: generated)")
+    m_parser.add_argument("--out", default=None, help="Output directory (default: <dir>/generated)")
     m_parser.add_argument(
         "--style",
         choices=["standard", "rich"],
@@ -85,7 +85,7 @@ def main() -> int:
     # 4. extract-screens
     scr_parser = subparsers.add_parser("extract-screens", help="Deduce cross-cutting screen sheets.")
     scr_parser.add_argument("--dir", default=".", help="Root directory")
-    scr_parser.add_argument("--out", default="generated/screen-sheets", help="Output directory (default: generated/screen-sheets)")
+    scr_parser.add_argument("--out", default=None, help="Output directory (default: <dir>/generated/screen-sheets)")
 
     # 5. preview
     prev_parser = subparsers.add_parser("preview", help="Open local visualizer server in browser.")
@@ -188,7 +188,7 @@ def main() -> int:
         arbo = ArborescenceParser.parse_directory(root_dir)
         if not arbo.pages and (root_dir / "arborescence").exists():
             arbo = ArborescenceParser.parse_directory(root_dir / "arborescence")
-        out_dir = Path(args.out).resolve()
+        out_dir = Path(args.out).resolve() if args.out else (root_dir / "registre").resolve()
         sync = RegistrySynchronizer(arbo, out_dir)
         sync.sync_all()
         print(f"✅ Registry successfully synchronized in {out_dir}")
@@ -199,7 +199,7 @@ def main() -> int:
         if not arbo.pages and (root_dir / "arborescence").exists():
             arbo = ArborescenceParser.parse_directory(root_dir / "arborescence")
         uf = UserflowsParser.parse_directory(root_dir)
-        out_dir = Path(args.out).resolve()
+        out_dir = Path(args.out).resolve() if args.out else (root_dir / "generated").resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
         style = getattr(args, "style", "standard")
         preview = getattr(args, "preview", False)
@@ -288,7 +288,7 @@ def main() -> int:
         if not arbo.pages and (root_dir / "arborescence").exists():
             arbo = ArborescenceParser.parse_directory(root_dir / "arborescence")
         uf = UserflowsParser.parse_directory(root_dir)
-        out_dir = Path(args.out).resolve()
+        out_dir = Path(args.out).resolve() if args.out else (root_dir / "generated" / "screen-sheets").resolve()
         out_dir.mkdir(parents=True, exist_ok=True)
 
         gen = ScreenSheetGenerator(arbo, uf)

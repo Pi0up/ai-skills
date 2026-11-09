@@ -31,13 +31,18 @@ It extracts and scopes foundational elements before formalizing the arborescence
 
 ## Step-by-Step Procedure
 
-### 1. Extract Roles
+### 1. Determine Target IA Documentation Directory
+- Check for existing Information Architecture documents (e.g. `infoarchi_docs/`, `docs/ia/`, or files like `pages.md`).
+- **Prompt User When Uncertain**: If no directory exists, if multiple possibilities exist, or if there is any doubt about the target project layout, **ask the user for the preferred path** before creating any documentation.
+- All sitemaps, user journeys, reference tables, and generated artifacts will live under this single `<ia_root>`.
+
+### 2. Extract Roles
 - Identify who interacts with the system:
   - Always include `ANONYMOUS` for unauthenticated public access.
   - Define authenticated profiles in uppercase (e.g., `BUYER`, `ADMIN`, `MANAGER`).
 - Record roles in `roles.md`.
 
-### 2. Categorize Screens into Normative Templates
+### 3. Categorize Screens into Normative Templates
 Classify each candidate screen under an official template code:
 - `HOME`: Single root homepage (`/`).
 - `H`: Hub (routing intermediary with URL but no direct content, navigating to its first child).
@@ -48,19 +53,19 @@ Classify each candidate screen under an official template code:
 - `E`: Technical page (404, maintenance, 403) when user-facing.
 - `M`: Transversal out-of-tree module (login popin, help drawer).
 
-### 3. Mutualize Related Templates & Duty of Alert (Rule C15)
+### 4. Mutualize Related Templates & Duty of Alert (Rule C15)
 - **Strict Parent Uniqueness**: In the arborescence, a page must never have multiple parents. Multi-parenting is prohibited.
 - **Logical Consolidation Principle**: When two views manipulate the same logical entity with similar layouts (e.g., two lists in the same domain accessing the same detail view with conditional permissions), systematically prioritize a **single canonical page attached to a single parent**, completed with variants (`:VARIANT` or `@ROLE`). Accessing it from another list is modeled as a functional cross-reference ("virtual navigation child").
 - **Mandatory Human Alert**: If creating two separate pages is considered for related entities without explicit functional justification, you MUST alert the user and prompt them for arbitration.
 
-### 4. Delimit Use Cases (`UC-xxx`)
+### 5. Delimit Use Cases (`UC-xxx`)
 For each key user intent:
 - Name the use case: `UC-<NAME>` (e.g., `UC-CATALOG`, `UC-DOSSIER`).
 - Qualify its nature: `metier` (business), `usage`, or `confort`.
 - Define importance: `critique` (critical), `courant` (standard), or `occasionnel` (occasional).
 - Define measurable objectives: `OBJ-<NAME>-01`.
 
-### 5. User Clarification Checklist
+### 6. User Clarification Checklist
 Prompt the user when requirements are ambiguous:
 - Do two screens handle the same business entity? Can they be consolidated into a single canonical page with variants rather than creating redundant tree nodes?
 - Are unauthenticated visitors allowed on this screen?

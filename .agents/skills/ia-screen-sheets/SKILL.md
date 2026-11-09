@@ -36,15 +36,15 @@ It provides an objective, exhaustive inventory of everything occurring on a give
 
 To generate all screen sheets for the project:
 ```bash
-python -m ia_tools.cli extract-screens --dir . --out generated/screen-sheets
+python -m ia_tools.cli extract-screens --dir <ia_root>
 ```
 
 ---
 
 ## Structure of a Deduced Screen Sheet
 
-Each generated sheet (`generated/screen-sheets/screen-[CODE].md`) contains:
-1. **Technical Identity**: Canonical reference (`C010:EDIT`), target URL, breadcrumb path reflecting the hierarchy of English slugs, authorized roles.
+Each generated sheet (`<ia_root>/generated/screen-sheets/screen-[CODE].md`, co-located with sitemaps and userflows in `<ia_root>/generated/`) contains:
+1. **Technical Identity**: Canonical reference (`C010:EDIT`), target URL, authorized roles.
 2. **Observed Contexts**: Context pairs (`key=VALUE`) encountered when reaching this screen.
 3. **Contents and Features**: Actionable `FEAT-XXX` capabilities, accessible modules.
 4. **Inputs**: Upstream journeys and steps entering this screen.

@@ -19,24 +19,28 @@ This skill implements the normative specification:
 
 ---
 
-## Workspace Root Convention: `infoarchi_docs`
+## Workspace Root Convention & Studio Co-location Principle
 
-All userflows, use cases, and registries MUST share the exact same root directory as the sitemap arborescence:
+All userflows, use cases, and registries MUST share the exact same root directory as the sitemap arborescence (`<ia_root>/`, e.g. `infoarchi_docs/` by default):
 
 ```
-infoarchi_docs/
+<ia_root>/
 ```
+
+### Identification & Confirmation of the Target Directory
+- The IA root directory is determined according to the target project.
+- **Rule**: If the agent is not completely certain of the destination directory, it **MUST ask the user** for confirmation before generating or editing files.
 
 ### Studio Discovery & Ingestion Constraints
 The official reference visualizer is the online Studio hosted at:
 **https://pi0up.github.io/ai-studio/**
 
 The Studio discovery reader scans **the single directory selected by the user** (or opened via HTTP):
-- Diagram files: directly at the root of `infoarchi_docs/generated/` (`*.mmd`)
-- Metadata registry: directly at `infoarchi_docs/generated/metadata.json`
-- Screen sheets: in the subfolder `infoarchi_docs/generated/screen-sheets/`
+- Diagram files: directly at the root of `<ia_root>/generated/` (`*.mmd`)
+- Metadata registry: directly at `<ia_root>/generated/metadata.json`
+- Screen sheets: in the subfolder `<ia_root>/generated/screen-sheets/`
 
-Therefore, **never** generate sitemaps and userflows in separate output directories. Generating all diagrams together into `infoarchi_docs/generated/` ensures Studio renders sitemap trees and linear journey tracks on the same unified canvas, with cross-navigation between sitemap nodes and journey steps.
+**MANDATORY RULE**: **Never** generate sitemaps and userflows in separate output directories. Sitemaps and userflows (UF) must go into the exact same `<ia_root>/generated/` directory so Studio renders sitemap trees and linear journey tracks on the same unified canvas, with cross-navigation between sitemap nodes and journey steps.
 
 **No Embedded Viewer Application**: The generated directory contains diagrams and their metadata, not the visualizer application. Never copy, embed, or generate a local copy of the viewer (such as `preview.html`) in `generated/`.
 

@@ -23,25 +23,29 @@ This skill orchestrates the end-to-end Information Architecture methodology in a
 
 ---
 
-## Workspace Root Convention: `infoarchi_docs`
+## Workspace Root Convention & Studio Co-location Principle
 
-All Information Architecture deliverables for a project live within a single unified root directory:
+All Information Architecture deliverables for a project live within a single unified root directory (conventionally `<ia_root>/`, e.g. `infoarchi_docs/` by default or a project-specific directory such as `docs/ia/`):
 
 ```
-infoarchi_docs/
+<ia_root>/
 ```
 
-### Studio Co-location Principle
+### Project Target Resolution & User Clarification Rule
+- **Detect Existing IA Root**: Inspect the target repository to identify any existing Information Architecture workspace (such as `infoarchi_docs/`, `docs/ia/`, or folders containing `pages.md`).
+- **Prompt User When Uncertain**: If the target location is ambiguous, if multiple candidate directories exist, or if starting in a blank/new project, **the skill MUST explicitly ask the user which directory to use as the IA root before creating or generating files**.
+
+### Studio Ingestion & Insular `generated/` Directory
 The official reference visualizer is the online Studio hosted at:
 **https://pi0up.github.io/ai-studio/**
 
 The Studio visualizer does **not** perform recursive folder traversals. Its discovery pipeline expects all visual artifacts (`*.mmd`), the metadata registry (`metadata.json`), and screen sheets (`screen-sheets/*.md`) to be co-located within a single output folder:
 
 ```
-infoarchi_docs/generated/
+<ia_root>/generated/
 ```
 
-Never split sitemap outputs and userflow outputs into separate folders. They must be generated together in `infoarchi_docs/generated/` so Studio can load both page hierarchies and linear journeys simultaneously on the same canvas.
+**MANDATORY RULE**: Never split sitemap outputs and userflow outputs into separate folders. Sitemaps and Userflows (UF) must strictly be generated together in `<ia_root>/generated/` so Studio can render page hierarchies and linear journey tracks simultaneously on the same canvas.
 
 **No Embedded Viewer Application**: The generated directory contains diagrams and their metadata, not the visualizer application. Never copy, embed, or generate a local copy of the viewer (such as `preview.html`) in `generated/`.
 
@@ -69,17 +73,18 @@ Never split sitemap outputs and userflow outputs into separate folders. They mus
    - *Global*: entire application ecosystem.
    - *Scoped*: specific functional sub-domain (e.g., e-commerce catalog, account management) or targeted use case (e.g., `UC-DOSSIER`).
 3. If input material is incomplete, informal, or unstructured, immediately activate skill `ia-scoping`.
-4. Initialize the project workspace under the common root `infoarchi_docs/`:
+4. Determine the target IA root directory `<ia_root>`:
+   - If unsure or starting fresh, **ask the user** (e.g., "Which folder should hold the Information Architecture documentation? [Recommended: `infoarchi_docs/`]").
+   - Initialize the project workspace under `<ia_root>`:
    ```bash
-   python -m ia_tools.cli init --dir infoarchi_docs --mode minimal
+   python -m ia_tools.cli init --dir <ia_root> --mode minimal
    ```
 5. **Mutualization Duty and Alert (C15)**: Actively detect potential screen duplication for logically related entities. If two candidate pages share the same business entity and layout without documented functional justification, proactively alert the user and prompt for arbitration to mutualize them under a canonical page with variants.
 
 ### Step 2: Build the Arborescence (Part 1)
 Activate skill `ia-sitemap`:
 1. Create or update reference tables directly in `infoarchi_docs/`:
-   - `pages.md` (template codes `HOME`, `L`, `C`, `F`, `D`, `E`, `H`, hierarchical canonical URLs mirroring the breadcrumb with semantic English slugs, access rights, `FEAT-XXX` capabilities; **strictly single parent, absolute prohibition of multi-parenting**)
-   - **Quality Gate (Anti-Code Pollution in URLs)**: Systematically verify that no URL segment contains a technical page code (`c001`, `l002`, `h001`, etc.). Every URL must reflect an intuitive English breadcrumb (`projects/`, `[id]/`, `settings/`).
+   - `pages.md` (template codes `HOME`, `L`, `C`, `F`, `D`, `E`, `H`, hierarchical canonical URLs, access rights, `FEAT-XXX` capabilities; **strictly single parent, absolute prohibition of multi-parenting**)
    - `roles.md` (unique role codes, including mandatory `ANONYMOUS`)
    - `variantes.md` (`CODE@ROLE:VARIANT`, `condition_spec`; handles permissions and display variants)
    - `modules.md` (`M001`, out-of-tree reusable blocks, invocation, scope: `ALL/PUBLIC/AUTH/@ROLE/PAGE:`)
@@ -104,13 +109,13 @@ Activate skill `ia-userflows`:
 3. Systematically flag flow breaks `⏸` and session memory requirements on asynchronous wait nodes (`ATT`) and external nodes (`EXT`).
 
 ### Step 5: Generate Unified Mermaid Diagrams & Screen Sheets
-Generate all diagrams and derived deliverables into the common Studio folder `infoarchi_docs/generated/` (do NOT generate `preview.html`):
+Generate all diagrams and derived deliverables into the common Studio folder `<ia_root>/generated/` (do NOT generate `preview.html`):
 ```bash
-# 1. Generate all Mermaid diagrams (sitemap + userflows) and unified metadata
-python -m ia_tools.cli generate-mermaid --dir infoarchi_docs --type all --out infoarchi_docs/generated
+# 1. Generate all Mermaid diagrams (sitemaps + userflows co-located together) and unified metadata
+python -m ia_tools.cli generate-mermaid --dir <ia_root>
 
-# 2. Deduce cross-cutting screen sheets into the same location
-python -m ia_tools.cli extract-screens --dir infoarchi_docs --out infoarchi_docs/generated/screen-sheets
+# 2. Deduce cross-cutting screen sheets into the same location (<ia_root>/generated/screen-sheets)
+python -m ia_tools.cli extract-screens --dir <ia_root>
 ```
 
 Depending on project requirements, optionally generate:

@@ -39,7 +39,7 @@ This skill derives functional and business test plans from Information Architect
 - Review importance (`critical`, `standard`, `occasional`) to prioritize test efforts.
 
 ### 2. Formulate Step-by-Step Test Notebook
-Using the template [plan-test-qa-uat-template.md](../../templates/derived/plan-test-qa-uat-template.md):
+Using the template [plan-test-qa-uat-template.md](../../templates/derived/plan-test-qa-uat-template.md) (saved under `<ia_root>/derived/plan-test-qa-uat.md` or `<ia_root>/plan-test-qa-uat.md`):
 1. **Preconditions**: Tester role, initial context assertions (`ctx_in`).
 2. **Step Table**:
    - Concrete tester action
