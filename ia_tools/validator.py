@@ -308,6 +308,41 @@ class IAValidator:
                         )
                     )
 
+            # Contrôle sémantique des segments d'URL (anti-code-pollution & fil d'Ariane)
+            clean_path = url.strip("/")
+            segments = [s for s in clean_path.split("/") if s]
+            for seg in segments:
+                base_seg = seg.split("#")[0].split("!")[0]
+                # Détection de code technique de page (ex: c001, l002, h001, f003)
+                if re.match(r"^[HLFCDEhlfcde][0-9]{3,}$", base_seg):
+                    self.violations.append(
+                        AuditViolation(
+                            rule_id="C4",
+                            severity=Severity.AVERTISSEMENT,
+                            elements=f"{code} ({url})",
+                            constat=(
+                                f"Le segment d'URL '{seg}' est un code technique de page. "
+                                "Les URLs doivent être composées de slugs sémantiques en anglais reflétant le fil d'Ariane."
+                            ),
+                            proposition=(
+                                "Remplacer ce segment technique par un slug sémantique en anglais "
+                                "(ex. 'projects', '[id]', 'settings', 'overview')."
+                            ),
+                        )
+                    )
+                # Vérification des majuscules sur segments statiques
+                elif not (base_seg.startswith("[") and base_seg.endswith("]")) and not base_seg.startswith(":"):
+                    if any(c.isupper() for c in base_seg):
+                        self.violations.append(
+                            AuditViolation(
+                                rule_id="C4",
+                                severity=Severity.AVERTISSEMENT,
+                                elements=f"{code} ({url})",
+                                constat=f"Le segment d'URL '{seg}' contient des majuscules. Les URLs doivent être en minuscules.",
+                                proposition=f"Passer le segment en minuscules : '{base_seg.lower()}'.",
+                            )
+                        )
+
     def _check_c5_hubs_and_orders(self) -> None:
         """C5 : Tout hub (H) a au moins un enfant ; ordre distinct parmi enfants."""
         children_map: Dict[str, List[Page]] = {}

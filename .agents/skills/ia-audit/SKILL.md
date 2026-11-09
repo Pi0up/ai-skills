@@ -97,6 +97,7 @@ python -m ia_tools.cli validate --dir . --output rapport-audit.md
    - MMD-02: Ensure UC overviews declare `view=uc` and `uc=UC-...`.
    - MMD-03: Remove any `preview.html` or viewer application copy accidentally generated or copied into `generated/`.
 2. **Address Warnings (Should)**:
+   - C4 (URL Breadcrumb / Anti-Code-Pollution): Detect and report any URL containing technical page codes (e.g. `/c001`, `/l002`) instead of semantic English slugs (`[id]/`, `projects/`, etc.).
    - C15 / R-05: Identify unjustified duplicate screens for the same entity; request human arbitration to mutualize with variants or document functional divergence.
    - R-15: Connect or archive orphan segments.
    - C10 / C11: Adjust module scopes and cross-references.

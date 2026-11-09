@@ -81,19 +81,33 @@ flowchart TD
 
 ## 4. URL Construction
 
-### 4.1 Principle
-A URL represents the hierarchical location of a page in the tree. It is a property of the page and defined here. There is exactly one canonical URL per page.
+### 4.1 Principle: Breadcrumb Mirroring
+A URL represents the hierarchical location of a page in the application tree and MUST faithfully mirror the application breadcrumb path. It is an intrinsic property of the page and defined here. There is exactly one canonical URL per page.
+
+Each hierarchical level in the arborescence adds a relative URL segment that represents an intuitive step in the breadcrumb:
+- Root / Home: `/`
+- Section / Hub: `/workspace/` (relative segment: `workspace/`)
+- Collection / List: `/workspace/projects/` (relative segment: `projects/`)
+- Item Detail / Instance: `/workspace/projects/[id]/` (relative segment: `[id]/`)
+- Sub-resource / Form: `/workspace/projects/[id]/settings/` (relative segment: `settings/`)
 
 ### 4.2 Rules
-- English by default. Localization aliases go into an appendix.
-- Lowercase throughout, segments separated by `/`, multi-word terms by `-`.
-- Plurals for collection entities (`products`, `search-results`).
-- No arbitrary depth limit; child URL strictly extends parent URL (Check C4).
-- Root homepage is `/`.
-- Square brackets define dynamic variables: `/products/[id]`.
-- **Relative URL Paths**: Relative paths (individual segment or sub-path relative to parent) MUST end with a trailing slash `/` (e.g., `products/`, `[id]/`, `edit/`), EXCEPT when representing an in-page leaf anchor (`#...`) or modal/popin (`!...`) at the end of the chain, which must NOT end with a trailing slash.
+- **Semantic English Slugs by Default**: Each URL segment MUST be an intuitive, semantic English slug (lowercase, kebab-case) derived from the page role and label, regardless of the display language requested for labels.
+- **Segment Conventions by Template**:
+  - `L` (List / Collection): English plural nouns (`projects/`, `invoices/`, `stays/`, `documents/`).
+  - `C` (Content / Item Detail): Normalized dynamic variable enclosed in square brackets (`[id]/`, `[projectId]/`, `[slug]/`) when child of a collection, or singular domain concept (`profile/`, `overview/`).
+  - `F` (Form / Action): Standard action verbs or state nouns (`new/`, `edit/`, `settings/`, `checkout/`, `apply/`).
+  - `H` (Hub): High-level domain concept or workspace noun (`workspace/`, `admin/`, `portal/`).
+  - `D` (Dashboard): Domain overview noun (`dashboard/`, `overview/`, `analytics/`).
+- **Relative URL Paths & Trailing Slash**: Relative paths (individual segment or sub-path relative to parent) MUST end with a trailing slash `/` (e.g., `projects/`, `[id]/`, `edit/`), EXCEPT when representing an in-page leaf anchor (`#...`) or modal/popin (`!...`) at the end of the chain, which must NOT end with a trailing slash.
+- **Cascading Hierarchy**: No arbitrary depth limit; child canonical URL strictly extends parent canonical URL (Check C4).
+- **Homepage Root**: Root homepage is `/`.
 
-### 4.3 In-Page Markers
+### 4.3 Forbidden URL Patterns (Anti-Code-Pollution)
+- **Strict Prohibition of Technical Page Codes**: An URL segment MUST NEVER be an internal page code or template identifier (e.g. `/c001/`, `/l002/`, `/h001/`, `/f003/`, `/workspace/c002`). Template codes (`C001`, `L002`, etc.) are technical graph node identifiers and must never leak into the URL structure.
+- **Strict Prohibition of Non-Semantic IDs**: Arbitrary numbers, numerical hashes, or unreadable abbreviations are prohibited as static segments.
+
+### 4.4 In-Page Markers
 
 | Marker | Purpose | Example |
 |---|---|---|
@@ -103,7 +117,7 @@ A URL represents the hierarchical location of a page in the tree. It is a proper
 - `!` is a **documentary notation**, not browser route syntax.
 - Popins, prompts, and anchors are never autonomous pages; they belong to a parent page in `composants_page.md`.
 
-### 4.4 Virtual Navigation Children
+### 4.5 Virtual Navigation Children
 A journey can navigate directly to an entity detail view from a secondary list or filtered search. This does not alter the arborescence: the target page retains its single parent and canonical URL in the tree, while acting as a "virtual child" in user navigation via a cross-reference and variant.
 
 ## 5. Technical References & Grammar
@@ -263,7 +277,7 @@ External service pages represent out-of-application screens or third-party valid
 | C1 | Uniqueness of page codes and module codes | Must | Unique per template family |
 | C2 | Grammar conformance | Must | All references follow Section 5.1 |
 | C3 | Single root and strict single parenting | Must | Exactly one `HOME`; every other page has one valid parent; no cycles |
-| C4 | Cascading URLs | Must | Child URL strictly extends parent URL |
+| C4 | Cascading URLs & Semantic Slugs | Must | Child URL strictly extends parent URL; relative segments MUST be semantic English slugs; technical page codes (c001, etc.) strictly prohibited |
 | C5 | Hubs and sibling orders | Must | Hubs have $\ge 1$ child; sibling orders are distinct |
 | C6 | Role and variant existence | Must | Roles exist in `roles.md`; variants document `condition_spec` |
 | C7 | Module scope and invocation | Must | Scope valid; invocation key unique |

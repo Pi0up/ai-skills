@@ -78,7 +78,8 @@ Never split sitemap outputs and userflow outputs into separate folders. They mus
 ### Step 2: Build the Arborescence (Part 1)
 Activate skill `ia-sitemap`:
 1. Create or update reference tables directly in `infoarchi_docs/`:
-   - `pages.md` (template codes `HOME`, `L`, `C`, `F`, `D`, `E`, `H`, hierarchical canonical URLs, access rights, `FEAT-XXX` capabilities; **strictly single parent, absolute prohibition of multi-parenting**)
+   - `pages.md` (template codes `HOME`, `L`, `C`, `F`, `D`, `E`, `H`, hierarchical canonical URLs mirroring the breadcrumb with semantic English slugs, access rights, `FEAT-XXX` capabilities; **strictly single parent, absolute prohibition of multi-parenting**)
+   - **Quality Gate (Anti-Code Pollution in URLs)**: Systematically verify that no URL segment contains a technical page code (`c001`, `l002`, `h001`, etc.). Every URL must reflect an intuitive English breadcrumb (`projects/`, `[id]/`, `settings/`).
    - `roles.md` (unique role codes, including mandatory `ANONYMOUS`)
    - `variantes.md` (`CODE@ROLE:VARIANT`, `condition_spec`; handles permissions and display variants)
    - `modules.md` (`M001`, out-of-tree reusable blocks, invocation, scope: `ALL/PUBLIC/AUTH/@ROLE/PAGE:`)

@@ -75,7 +75,16 @@ infoarchi_docs/
 
 1. **Source of Truth**: Markdown tables are the sole source of truth. Mermaid diagrams are derived projection views.
 2. **Single Root & Strict Parent Uniqueness (C3)**: Exactly one `HOME` page with URL `/` and no parent. Every other page has exactly one direct parent. Multi-parenting is strictly forbidden.
-3. **Cascading URLs (C4)**: A page's canonical URL strictly extends its parent's URL (e.g., `/products` $\rightarrow$ `/products/[id]`). Lowercase throughout, plurals for object collections.
+3. **Cascading URLs & Semantic English Slugs (C4 - Breadcrumb Mirroring)**:
+   - A page's canonical URL strictly extends its parent's URL.
+   - **Breadcrumb Reflection**: URLs must faithfully mirror the application breadcrumb path (`/` $\rightarrow$ `/workspace/` $\rightarrow$ `/workspace/projects/` $\rightarrow$ `/workspace/projects/[id]/`).
+   - **Semantic English Slugs**: Each URL segment MUST be an intuitive English slug (lowercase, kebab-case) derived from the page's role and label:
+     - Collection (`L`): plural noun (`projects/`, `invoices/`, `stays/`, `documents/`).
+     - Detail item (`C`): dynamic variable in square brackets (`[id]/`, `[projectId]/`, `[slug]/`).
+     - Form / Action (`F`): action verb or state noun (`new/`, `edit/`, `settings/`, `apply/`).
+     - Hub / Workspace (`H`): domain space noun (`workspace/`, `admin/`, `portal/`).
+     - Dashboard (`D`): domain overview (`overview/`, `dashboard/`, `analytics/`).
+   - **Strict Prohibition of Technical Page Codes**: Internal codes (`c001`, `l002`, `h001`, `f003`, etc.) are graph identifiers and MUST NEVER appear as URL segments.
 4. **Normative Grammar (Section 5.1)**:
    - Pages: `HOME`, `L001`, `C001`
    - Variants: `C001@BUYER`, `C001@ADMIN:EDIT` (at least `@` or `:`)
@@ -106,6 +115,11 @@ python -m ia_tools.cli init --dir infoarchi_docs --mode minimal
 ### 2. Draft Reference Tables in `infoarchi_docs/`
 - `roles.md`: user role codes (including mandatory `ANONYMOUS`).
 - `pages.md`: page codes, verbatim labels, parents, orders, cascading canonical URLs, role access, and features (`FEAT-xxx`).
+  - **Deriving English Breadcrumb Slugs**:
+    - Build canonical URLs hierarchically: parent URL + `/` + semantic relative slug in English.
+    - Example: Root `HOME` (`/`) -> Hub `H001` (`/workspace`) -> List `L001` (`/workspace/projects`) -> Detail `C001` (`/workspace/projects/[id]`) -> Edit Form `F001` (`/workspace/projects/[id]/edit`).
+    - Relative URLs on cards will automatically display as `workspace/`, `projects/`, `[id]/`, `edit/`.
+    - **Never** write `/c001`, `/workspace/l001`, or technical codes in the `url` column.
 - `variantes.md`: display/layout variants with documented `condition_spec`.
 - `modules.md`: out-of-tree transversal modules (`M001`, `ALL`, `PUBLIC`, `AUTH`, `@ROLE`).
 - `composants_page.md`: in-page popins (`!`) and anchors (`#`).

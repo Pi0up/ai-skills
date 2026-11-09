@@ -76,6 +76,49 @@ class TestIAValidator(unittest.TestCase):
         errs = [v for v in validator.violations if v.rule_id == "C4"]
         self.assertTrue(any("prolonge pas" in v.constat for v in errs))
 
+    def test_c4_technical_code_in_url_warns(self):
+        arbo = ArborescenceModel(
+            roles={"ANONYMOUS": Role("ANONYMOUS")},
+            pages={
+                "HOME": Page(code="HOME", url="/", access=["ANONYMOUS"]),
+                "L001": Page(code="L001", url="/products", parent="HOME", access=["ANONYMOUS"]),
+                "C001": Page(code="C001", url="/products/c001", parent="L001", access=["ANONYMOUS"]),
+            },
+        )
+        validator = IAValidator(arbo)
+        validator._check_c4_urls()
+        warns = [v for v in validator.violations if v.rule_id == "C4" and v.severity == Severity.AVERTISSEMENT]
+        self.assertTrue(any("code technique" in v.constat for v in warns))
+
+    def test_c4_uppercase_in_static_segment_warns(self):
+        arbo = ArborescenceModel(
+            roles={"ANONYMOUS": Role("ANONYMOUS")},
+            pages={
+                "HOME": Page(code="HOME", url="/", access=["ANONYMOUS"]),
+                "L001": Page(code="L001", url="/Products", parent="HOME", access=["ANONYMOUS"]),
+            },
+        )
+        validator = IAValidator(arbo)
+        validator._check_c4_urls()
+        warns = [v for v in validator.violations if v.rule_id == "C4" and v.severity == Severity.AVERTISSEMENT]
+        self.assertTrue(any("majuscules" in v.constat for v in warns))
+
+    def test_c4_valid_breadcrumb_slugs(self):
+        arbo = ArborescenceModel(
+            roles={"ANONYMOUS": Role("ANONYMOUS")},
+            pages={
+                "HOME": Page(code="HOME", url="/", access=["ANONYMOUS"]),
+                "H001": Page(code="H001", url="/workspace", parent="HOME", access=["ANONYMOUS"]),
+                "L001": Page(code="L001", url="/workspace/projects", parent="H001", access=["ANONYMOUS"]),
+                "C001": Page(code="C001", url="/workspace/projects/[id]", parent="L001", access=["ANONYMOUS"]),
+                "F001": Page(code="F001", url="/workspace/projects/[id]/edit", parent="C001", access=["ANONYMOUS"]),
+            },
+        )
+        validator = IAValidator(arbo)
+        validator._check_c4_urls()
+        c4_issues = [v for v in validator.violations if v.rule_id == "C4"]
+        self.assertEqual(len(c4_issues), 0)
+
     def test_r01_broken_screen_reference(self):
         uf = UserflowsModel()
         cu = CasUsage(uc_id="UC-TEST", nom="Test", objectifs=["OBJ-1"])
