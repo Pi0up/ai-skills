@@ -45,6 +45,7 @@ This skill implements tracking requirements defined in:
 2. **Define Tracking Matrix**:
    - For each step, document signal type (URL, Event, Server, Return Key).
    - Use the template [plan-tracking-template.md](../../templates/derived/plan-tracking-template.md).
+   - Save the tracking documentation within the project's IA root (`<ia_root>/derived/plan-tracking.md` or `<ia_root>/plan-tracking.md`).
 3. **Validate Plan Integrity**:
    - Ensure events are uniquely attributed.
    - Confirm modules and modals emit a dedicated open signal.

@@ -210,5 +210,45 @@ class TestCLI(unittest.TestCase):
         self.assertTrue((gen_dir / "screen-sheets").exists())
 
 
+    def test_default_output_resolution_relative_to_dir(self):
+        """Vérifie que sans argument --out, generate-mermaid, extract-screens et sync-registry
+        résolvent automatiquement leurs sorties sous <dir>/generated et <dir>/registre."""
+        import sys
+        old_argv = sys.argv
+        fixtures_dir = Path(__file__).parent / "fixtures" / "valid_project"
+        
+        # Copier le fixture dans un dossier temporaire isolé
+        test_workspace = self.temp_dir / "custom_ia_project"
+        shutil.copytree(fixtures_dir, test_workspace)
+        
+        try:
+            # 1. sync-registry sans --out
+            sys.argv = ["ia_tools", "sync-registry", "--dir", str(test_workspace)]
+            exit_code = main()
+            self.assertEqual(exit_code, 0)
+            self.assertTrue((test_workspace / "registre" / "pages.md").exists())
+
+            # 2. generate-mermaid sans --out
+            sys.argv = ["ia_tools", "generate-mermaid", "--dir", str(test_workspace), "--type", "all"]
+            exit_code = main()
+            self.assertEqual(exit_code, 0)
+            
+            # Sitemaps et Userflows (UF) co-localisés dans le même dossier generated/
+            self.assertTrue((test_workspace / "generated" / "sitemap-overview.mmd").exists())
+            self.assertTrue((test_workspace / "generated" / "sitemap-detailed.mmd").exists())
+            self.assertTrue((test_workspace / "generated" / "UC-DOSSIER-overview.mmd").exists())
+            self.assertTrue((test_workspace / "generated" / "PF-DOSSIER-NOM-collapsed.mmd").exists())
+            self.assertTrue((test_workspace / "generated" / "metadata.json").exists())
+
+            # 3. extract-screens sans --out
+            sys.argv = ["ia_tools", "extract-screens", "--dir", str(test_workspace)]
+            exit_code = main()
+            self.assertEqual(exit_code, 0)
+            self.assertTrue((test_workspace / "generated" / "screen-sheets").exists())
+            self.assertTrue(len(list((test_workspace / "generated" / "screen-sheets").glob("screen-*.md"))) > 0)
+        finally:
+            sys.argv = old_argv
+
+
 if __name__ == "__main__":
     unittest.main()

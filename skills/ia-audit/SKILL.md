@@ -40,7 +40,10 @@ When a page is renamed, removed, or an external URL is changed:
 
 ## Generated Diagrams & Studio Compliance Audit
 
-When auditing generated directories (e.g. `infoarchi_docs/generated/`), systematically verify diagram metadata headers and artifact hygiene:
+When auditing generated directories (`<ia_root>/generated/`, where `<ia_root>` is determined from the target project or confirmed with the user), systematically verify diagram metadata headers, co-location hygiene, and absence of visualizer copies:
+
+0. **Co-location Check (Sitemap & Userflows)**:
+   - Sitemap diagrams (`sitemap-*.mmd`) and Userflow diagrams (`PF-*.mmd`, `UC-*-overview.mmd`) MUST reside in the same `<ia_root>/generated/` folder. They must never be segregated into separate output folders.
 
 1. **Userflows Metadata (`PF-*.mmd`)**:
    - Line 1 must begin with the `%%@file` directive before diagram content.
